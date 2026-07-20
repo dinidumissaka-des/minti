@@ -1,0 +1,145 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ArrowsLeftRight } from "@phosphor-icons/react";
+import { Loader2 } from "lucide-react";
+import { CURRENCIES, formatAmount } from "@/lib/currencies";
+import { convertAmount, getCachedRateAge } from "@/lib/exchangeRates";
+
+interface Props {
+  defaultFrom: string;
+}
+
+function timeAgo(ms: number): string {
+  const mins = Math.round(ms / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  return `${hours}h ago`;
+}
+
+export default function CurrencyConverter({ defaultFrom }: Props) {
+  const [amount, setAmount] = useState("1");
+  const [from, setFrom] = useState(defaultFrom);
+  const [to, setTo] = useState(defaultFrom === "USD" ? "EUR" : "USD");
+  const [result, setResult] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rateAge, setRateAge] = useState<number | null>(null);
+
+  useEffect(() => {
+    const numeric = Number(amount);
+    if (!amount || Number.isNaN(numeric)) {
+      setResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    convertAmount(numeric, from, to)
+      .then((converted) => {
+        if (cancelled) return;
+        setResult(converted);
+        setRateAge(getCachedRateAge(from));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError("Couldn't fetch rates. Check your connection.");
+        setResult(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [amount, from, to]);
+
+  function handleAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/,/g, "");
+    if (raw !== "" && !/^\d*\.?\d*$/.test(raw)) return;
+    setAmount(raw);
+  }
+
+  function swap() {
+    setFrom(to);
+    setTo(from);
+  }
+
+  return (
+    <div className="px-2 pb-2 space-y-4">
+      <div>
+        <label className="block text-xs text-white/40 mb-1.5 px-1">Amount</label>
+        <input
+          inputMode="decimal"
+          value={amount}
+          onChange={handleAmountChange}
+          placeholder="0"
+          className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-4 text-lg font-mono text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+        />
+      </div>
+
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <label className="block text-xs text-white/40 mb-1.5 px-1">From</label>
+          <select
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/30 appearance-none"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">
+                {c.code}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={swap}
+          aria-label="Swap currencies"
+          className="h-[52px] w-[52px] shrink-0 flex items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.07] text-white/60 hover:text-white hover:border-white/30 transition-colors"
+        >
+          <ArrowsLeftRight size={18} />
+        </button>
+
+        <div className="flex-1">
+          <label className="block text-xs text-white/40 mb-1.5 px-1">To</label>
+          <select
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/30 appearance-none"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">
+                {c.code}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-5 text-center">
+        {loading ? (
+          <Loader2 size={22} className="animate-spin text-white/40 mx-auto" />
+        ) : error ? (
+          <p className="text-sm text-danger">{error}</p>
+        ) : result !== null ? (
+          <>
+            <p className="font-mono text-3xl font-bold text-white leading-tight">
+              {formatAmount(result, to)} <span className="text-lg text-white/50">{to}</span>
+            </p>
+            {rateAge !== null && (
+              <p className="text-xs text-white/30 mt-2">Rates updated {timeAgo(rateAge)}</p>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-white/30">Enter an amount</p>
+        )}
+      </div>
+    </div>
+  );
+}

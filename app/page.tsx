@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, ChevronDown, Download, MoreHorizontal } from "lucide-react";
-import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed } from "@phosphor-icons/react";
+import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
@@ -23,6 +23,7 @@ import SubscriptionList from "@/components/subscription/SubscriptionList";
 import IncomeSection from "@/components/analytics/IncomeSection";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import BottomDrawer from "@/components/BottomDrawer";
+import CurrencyConverter from "@/components/CurrencyConverter";
 import { usePrivacy } from "@/components/PrivacyContext";
 
 type Filter = "all" | "today" | "week";
@@ -64,6 +65,7 @@ export default function Home() {
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+  const [showConverterDrawer, setShowConverterDrawer] = useState(false);
   const [expandedSection, setExpandedSection] = useState<"month" | "currency" | null>(null);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
   const currencyRef = useRef<HTMLDivElement>(null);
@@ -258,6 +260,15 @@ export default function Home() {
           zIndex: 45,
         }}
       />
+      {/* Currency converter drawer */}
+      <BottomDrawer
+        open={showConverterDrawer}
+        onClose={() => setShowConverterDrawer(false)}
+        title="Convert Currency"
+      >
+        <CurrencyConverter defaultFrom={currency} />
+      </BottomDrawer>
+
       {/* Currency picker drawer — desktop */}
       <BottomDrawer
         open={showCurrencyPicker}
@@ -367,6 +378,15 @@ export default function Home() {
         >
           <span className="text-white/60">Insights</span>
           <Lightbulb size={14} className="text-white/40" />
+        </button>
+
+        {/* Currency converter */}
+        <button
+          onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+        >
+          <span className="text-white/60">Convert currency</span>
+          <ArrowsLeftRight size={14} className="text-white/40" />
         </button>
 
         {/* Export CSV */}
@@ -492,6 +512,13 @@ export default function Home() {
               >
                 <Download size={12} />
                 CSV
+              </button>
+              <button
+                onClick={() => setShowConverterDrawer(true)}
+                aria-label="Convert currency"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+              >
+                <ArrowsLeftRight size={14} />
               </button>
               <button
                 onClick={prevMonth}
