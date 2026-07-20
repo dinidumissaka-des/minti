@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ArrowsLeftRight } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { CURRENCIES, formatAmount } from "@/lib/currencies";
@@ -26,6 +26,9 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rateAge, setRateAge] = useState<number | null>(null);
+  const amountId = useId();
+  const fromId = useId();
+  const toId = useId();
 
   useEffect(() => {
     const numeric = Number(amount);
@@ -72,23 +75,25 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
   return (
     <div className="px-2 pb-2 space-y-4">
       <div>
-        <label className="block text-xs text-white/40 mb-1.5 px-1">Amount</label>
+        <label htmlFor={amountId} className="block text-xs text-white/40 mb-1.5 px-1">Amount</label>
         <input
+          id={amountId}
           inputMode="decimal"
           value={amount}
           onChange={handleAmountChange}
           placeholder="0"
-          className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-4 text-lg font-mono text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-4 text-lg font-mono text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
         />
       </div>
 
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <label className="block text-xs text-white/40 mb-1.5 px-1">From</label>
+          <label htmlFor={fromId} className="block text-xs text-white/40 mb-1.5 px-1">From</label>
           <select
+            id={fromId}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/30 appearance-none"
+            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
               <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">
@@ -107,11 +112,12 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         </button>
 
         <div className="flex-1">
-          <label className="block text-xs text-white/40 mb-1.5 px-1">To</label>
+          <label htmlFor={toId} className="block text-xs text-white/40 mb-1.5 px-1">To</label>
           <select
+            id={toId}
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/30 appearance-none"
+            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
               <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">

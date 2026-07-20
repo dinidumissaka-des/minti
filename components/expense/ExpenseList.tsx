@@ -205,18 +205,20 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                     <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-white/[0.03]">
                       <div className="flex gap-2">
                         <input
-                          className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white placeholder:text-muted outline-none focus:border-white/30"
+                          className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white placeholder:text-muted outline-none focus:border-white/40"
                           value={editState.description}
                           onChange={(e) => setEditState({ ...editState, description: e.target.value })}
                           placeholder="Description"
+                          aria-label="Description"
                           autoFocus
                         />
                         <input
                           type="number"
-                          className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           value={editState.amount}
                           onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                           placeholder="Amount"
+                          aria-label="Amount"
                           min="0.01"
                           step="0.01"
                         />
