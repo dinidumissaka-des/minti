@@ -70,7 +70,7 @@ const config: Config = {
         },
       },
       animation: {
-        "fade-slide-in": "fadeSlideIn 220ms ease-out both",
+        "fade-slide-in": "fadeSlideIn 220ms ease-out",
         spin: "spin 3s linear infinite",
         "fluid-bg": "fluidBg 4s ease infinite",
         "glass-sheen": "glassSheen 3.5s ease-in-out infinite",
