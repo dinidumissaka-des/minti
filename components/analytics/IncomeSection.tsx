@@ -211,7 +211,8 @@ const IncomeSection = memo(function IncomeSection({
               onChange={(e) => setBaselineInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
               placeholder="Monthly income"
-              className="flex-1 bg-transparent text-white text-base outline-none placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              aria-label="Monthly income"
+              className="flex-1 bg-transparent text-white text-base outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent text-[#163300] flex-shrink-0">
               <Check size={13} />
@@ -293,7 +294,8 @@ const IncomeSection = memo(function IncomeSection({
                   onChange={(e) => setNewAmount(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleAddEntry(); if (e.key === "Escape") setShowAddForm(false); }}
                   placeholder="Amount"
-                  className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-[15px] text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  aria-label="Amount"
+                  className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-[15px] text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
               <div className="flex gap-2">

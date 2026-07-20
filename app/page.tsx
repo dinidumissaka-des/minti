@@ -265,6 +265,7 @@ export default function Home() {
         open={showConverterDrawer}
         onClose={() => setShowConverterDrawer(false)}
         title="Convert Currency"
+        fullScreen
       >
         <CurrencyConverter defaultFrom={currency} />
       </BottomDrawer>
@@ -413,7 +414,7 @@ export default function Home() {
       </BottomDrawer>
 
       {/* Bottom nav — mobile only */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
+      <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
         <div className="flex items-center h-16 p-1.5 rounded-3xl border border-white/[0.1] bg-black/40 backdrop-blur-xl">
           {([
             { key: "expenses", label: "Expenses", Icon: CreditCard },
@@ -448,12 +449,12 @@ export default function Home() {
             <span>Insights</span>
           </button>
         </div>
-      </div>
+      </nav>
 
       <div className="max-w-2xl mx-auto px-4 pb-28 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
 
         {/* Header */}
-        <div className="flex flex-col gap-5">
+        <header className="flex flex-col gap-5">
           {/* Row 1: Logo + Sign out */}
           <div className="flex items-center justify-between pt-1 pb-2">
             <Logo className="h-5 w-auto" />
@@ -540,7 +541,7 @@ export default function Home() {
             </div>
           </div>
           {/* Row 3: View toggle (full width) — desktop only */}
-          <div className="hidden sm:flex items-center h-10 p-0.5 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md w-full">
+          <nav aria-label="Sections" className="hidden sm:flex items-center h-10 p-0.5 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md w-full">
             {(["expenses", "subscriptions", "income"] as View[]).map((v) => (
               <button
                 key={v}
@@ -554,8 +555,8 @@ export default function Home() {
                 {v === "expenses" ? "Expenses" : v === "subscriptions" ? "Subscriptions" : "Income"}
               </button>
             ))}
-          </div>
-        </div>
+          </nav>
+        </header>
 
         {/* Stats */}
         {view === "expenses" && (

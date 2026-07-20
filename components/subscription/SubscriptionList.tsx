@@ -127,18 +127,20 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                   <div key={sub.id} className="px-4 py-3 flex flex-col gap-3">
                     <div className="flex gap-2">
                       <input
-                        className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white placeholder:text-muted outline-none focus:border-white/30"
+                        className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white placeholder:text-muted outline-none focus:border-white/40"
                         value={editState.name}
                         onChange={(e) => setEditState({ ...editState, name: e.target.value })}
                         placeholder="Name"
+                        aria-label="Subscription name"
                         autoFocus
                       />
                       <input
                         type="number"
-                        className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         value={editState.amount}
                         onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                         placeholder="Amount"
+                        aria-label="Amount"
                         min="0.01" step="0.01"
                       />
                     </div>
@@ -229,18 +231,20 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
         <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
           <div className="p-4 flex flex-col gap-3 w-full">
             <input
-              className="w-full bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-10 text-base text-white placeholder:text-muted outline-none focus:border-white/30"
+              className="w-full bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-10 text-base text-white placeholder:text-muted outline-none focus:border-white/40"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Name (e.g. Netflix)"
+              aria-label="Subscription name"
               autoFocus
             />
             <input
               type="number"
-              className="w-full bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-10 text-base text-white outline-none focus:border-white/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-full bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-10 text-base text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               value={newAmount}
               onChange={(e) => setNewAmount(e.target.value)}
               placeholder="Amount"
+              aria-label="Amount"
               min="0.01" step="0.01"
             />
             <button

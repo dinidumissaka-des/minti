@@ -104,7 +104,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               placeholder="0.00"
               aria-label="Amount"
-              className="w-full bg-transparent text-right text-6xl font-bold text-white placeholder:text-white/25 outline-none border-none focus-visible:outline-none"
+              className="w-full bg-transparent text-right text-6xl font-bold text-white placeholder:text-white/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg"
             />
             <div className="h-px w-16 bg-white/[0.1] mt-1" />
           </div>
@@ -116,6 +116,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             onChange={(e) => setDescription(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && amountRef.current?.focus()}
             placeholder="Lunch at Nando's"
+            aria-label="Description"
           />
 
           {/* Category + Date row */}
@@ -145,6 +146,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               placeholder="Enter category name"
+              aria-label="Custom category name"
               autoFocus
             />
           )}

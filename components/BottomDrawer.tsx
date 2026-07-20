@@ -8,9 +8,10 @@ interface Props {
   title?: string;
   children: React.ReactNode;
   contentClassName?: string;
+  fullScreen?: boolean;
 }
 
-export default function BottomDrawer({ open, onClose, title, children, contentClassName }: Props) {
+export default function BottomDrawer({ open, onClose, title, children, contentClassName, fullScreen }: Props) {
 
   return (
     <>
@@ -27,17 +28,28 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed bottom-0 left-0 right-0 z-[70] max-w-2xl mx-auto bg-[#080f05]/85 backdrop-blur-2xl border-t border-x border-white/10 rounded-t-2xl transition-transform duration-300 ease-out ${
-          open ? "translate-y-0" : "translate-y-full"
+        className={`fixed z-[70] bg-[#080f05]/85 backdrop-blur-2xl border-white/10 transition-transform duration-300 ease-out flex flex-col ${
+          fullScreen
+            ? `inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
+            : `bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
         }`}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
-        </div>
+        {!fullScreen && (
+          <div className="flex justify-center pt-3 pb-2 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+        )}
+        {fullScreen && (
+          <div className="hidden sm:flex justify-center pt-3 pb-2 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+        )}
 
         {title && (
-          <div className="px-4 pt-1 pb-3 border-b border-white/10 flex items-center justify-between">
+          <div
+            className={`px-4 pb-3 border-b border-white/10 flex items-center justify-between shrink-0 ${fullScreen ? "sm:!pt-1" : ""}`}
+            style={fullScreen ? { paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' } : { paddingTop: '0.25rem' }}
+          >
             <p className="font-sans font-semibold text-white text-base">{title}</p>
             <button
               onClick={onClose}
@@ -49,7 +61,10 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
           </div>
         )}
 
-        <div className={`overflow-y-auto max-h-[60vh] p-2 ${contentClassName ?? ""}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}>
+        <div
+          className={`overflow-y-auto p-2 ${fullScreen ? "flex-1 sm:flex-none sm:max-h-[60vh]" : "max-h-[60vh]"} ${contentClassName ?? ""}`}
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+        >
           {children}
         </div>
       </div>
