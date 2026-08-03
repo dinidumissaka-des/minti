@@ -104,9 +104,9 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               placeholder="0.00"
               aria-label="Amount"
-              className="w-full bg-transparent text-right text-6xl font-bold text-white placeholder:text-white/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg"
+              className="w-full bg-transparent text-right text-6xl font-bold text-ink placeholder:text-ink/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg"
             />
-            <div className="h-px w-16 bg-white/[0.1] mt-1" />
+            <div className="h-px w-16 bg-ink/[0.1] mt-1" />
           </div>
 
           {/* Description */}
@@ -124,9 +124,9 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowCategoryDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/10 transition-colors"
+              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
-              <span className="font-medium text-sm text-white truncate">
+              <span className="font-medium text-sm text-ink truncate">
                 {isCustom ? (customCategory.trim() || "Custom") : category}
               </span>
             </button>
@@ -134,9 +134,9 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowDateDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/10 transition-colors"
+              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
-              <span className="font-medium text-sm text-white">{formatDateLabel(date)}</span>
+              <span className="font-medium text-sm text-ink">{formatDateLabel(date)}</span>
             </button>
           </div>
 

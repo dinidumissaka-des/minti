@@ -6,7 +6,6 @@ import { CATEGORY_COLORS } from "@/lib/categories";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAY_LABELS = ["Mo","Tu","We","Th","Fr","Sa","Su"];
-const ACCENT = "#9FE870";
 
 // ─── Calendar Picker ──────────────────────────────────────────────────────────
 
@@ -42,20 +41,20 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
   return (
     <div className="px-3 pb-2">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.07] text-white/60 hover:text-white transition-colors">
+        <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] text-ink/60 hover:text-ink transition-colors">
           <ChevronLeft size={16} />
         </button>
-        <span className="font-sans font-semibold text-white text-base">
+        <span className="font-sans font-semibold text-ink text-base">
           {MONTH_NAMES[viewMonth]} {viewYear}
         </span>
-        <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.07] text-white/60 hover:text-white transition-colors">
+        <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] text-ink/60 hover:text-ink transition-colors">
           <ChevronRight size={16} />
         </button>
       </div>
 
       <div className="grid grid-cols-7 mb-1">
         {DAY_LABELS.map(d => (
-          <div key={d} className="text-center text-xs font-mono text-muted py-1">{d}</div>
+          <div key={d} className="text-center text-xs font-mono text-ink/50 py-1">{d}</div>
         ))}
       </div>
 
@@ -71,10 +70,10 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
               onClick={() => { onChange(iso); onClose(); }}
               className={`aspect-square flex items-center justify-center rounded-full text-[15px] font-mono mx-auto w-10 h-10 transition-colors ${
                 isSelected
-                  ? "bg-accent text-[#163300] font-bold"
+                  ? "bg-accent-fill text-[#163300] font-bold"
                   : isToday
-                  ? "border border-accent/50 text-accent"
-                  : "text-white/80 hover:bg-white/10"
+                  ? "border border-accent-fill/50 text-accent"
+                  : "text-ink/80 hover:bg-ink/10"
               }`}
             >
               {day}
@@ -103,20 +102,20 @@ export function CategoryList({
         <button
           key={cat}
           onClick={() => onSelect(cat)}
-          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === cat ? "bg-white/10" : "hover:bg-white/5"}`}
+          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === cat ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-white">{cat}</span>
-          {selected === cat && <Check size={15} className="flex-shrink-0" style={{ color: ACCENT }} />}
+          <span className="flex-1 text-[15px] font-sans text-ink">{cat}</span>
+          {selected === cat && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
       {extraOptions?.map(({ value, label }) => (
         <button
           key={value}
           onClick={() => onSelect(value)}
-          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === value ? "bg-white/10" : "hover:bg-white/5"}`}
+          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === value ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-white/60">{label}</span>
-          {selected === value && <Check size={15} className="flex-shrink-0" style={{ color: ACCENT }} />}
+          <span className="flex-1 text-[15px] font-sans text-ink/60">{label}</span>
+          {selected === value && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
     </div>
@@ -132,10 +131,10 @@ export function SourceList({ sources, selected, onSelect }: { sources: string[];
         <button
           key={source}
           onClick={() => onSelect(source)}
-          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === source ? "bg-white/10" : "hover:bg-white/5"}`}
+          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === source ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-white">{source}</span>
-          {selected === source && <Check size={15} className="flex-shrink-0" style={{ color: ACCENT }} />}
+          <span className="flex-1 text-[15px] font-sans text-ink">{source}</span>
+          {selected === source && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
     </div>

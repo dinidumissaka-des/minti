@@ -48,22 +48,25 @@ export default function InstallPrompt() {
       className="fixed left-4 right-4 max-w-2xl mx-auto z-[55] animate-fade-slide-in"
       style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
     >
-      <div className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-white/[0.1] bg-[#0d1a09]/90 backdrop-blur-2xl shadow-2xl">
+      <div
+        className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-ink/[0.1] backdrop-blur-2xl shadow-2xl"
+        style={{ backgroundColor: "rgb(var(--background) / 0.9)" }}
+      >
         {/* App icon */}
-        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-accent-fill/15 border border-accent-fill/25 flex items-center justify-center flex-shrink-0">
           <Logo className="h-3.5 w-auto" />
         </div>
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight">Add to Home Screen</p>
+          <p className="text-sm font-semibold text-ink leading-tight">Add to Home Screen</p>
           {isIOS ? (
-            <p className="text-xs text-white/40 mt-0.5 flex items-center gap-1 flex-wrap">
+            <p className="text-xs text-ink/40 mt-0.5 flex items-center gap-1 flex-wrap">
               Tap <Share size={10} className="text-accent inline" /> then
               <span className="text-accent font-medium">Add to Home Screen</span>
             </p>
           ) : (
-            <p className="text-xs text-white/40 mt-0.5">Get the full app experience</p>
+            <p className="text-xs text-ink/40 mt-0.5">Get the full app experience</p>
           )}
         </div>
 
@@ -71,7 +74,7 @@ export default function InstallPrompt() {
         {!isIOS && (
           <button
             onClick={install}
-            className="flex-shrink-0 h-11 px-5 rounded-full bg-accent text-[#163300] text-sm font-semibold hover:bg-accent/90 transition-colors"
+            className="flex-shrink-0 h-11 px-5 rounded-full bg-accent-fill text-[#163300] text-sm font-semibold hover:bg-accent-fill/90 transition-colors"
           >
             Install
           </button>
@@ -80,7 +83,7 @@ export default function InstallPrompt() {
         {/* Dismiss */}
         <button
           onClick={dismiss}
-          className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-white/[0.07] border border-white/[0.08] text-white/30 hover:text-white/70 transition-colors"
+          className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-ink/[0.07] border border-ink/[0.08] text-ink/30 hover:text-ink/70 transition-colors"
         >
           <X size={12} />
         </button>

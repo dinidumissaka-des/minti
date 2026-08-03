@@ -5,9 +5,10 @@ import { TrendingUp, TrendingDown, Minus, PieChart, Calendar, RefreshCw } from "
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
-import { CATEGORY_COLORS } from "@/lib/categories";
+import { getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
+import { useTheme } from "@/components/ThemeContext";
 
 interface Props {
   expenses: Expense[];
@@ -40,9 +41,11 @@ interface CategoryStat {
   color: string;
 }
 
-const OTHER_COLOR = "#ffffff33";
-
-function buildCategoryStats(expenses: Expense[], subscriptions: Subscription[]): CategoryStat[] {
+function buildCategoryStats(
+  expenses: Expense[],
+  subscriptions: Subscription[],
+  theme: "light" | "dark" = "dark",
+): CategoryStat[] {
   const map: Record<string, number> = {};
   for (const e of expenses) {
     map[e.category] = (map[e.category] ?? 0) + Number(e.amount);
@@ -58,7 +61,7 @@ function buildCategoryStats(expenses: Expense[], subscriptions: Subscription[]):
       category,
       amount,
       pct: (amount / total) * 100,
-      color: CATEGORY_COLORS[category] ?? OTHER_COLOR,
+      color: getCategoryColor(category, theme) ?? OTHER_CATEGORY_COLOR[theme],
     }));
 }
 
@@ -72,7 +75,8 @@ const CategoryChart = memo(function CategoryChart({
   currency: string;
 }) {
   const { mask } = usePrivacy();
-  const stats = useMemo(() => buildCategoryStats(expenses, subscriptions), [expenses, subscriptions]);
+  const { theme } = useTheme();
+  const stats = useMemo(() => buildCategoryStats(expenses, subscriptions, theme), [expenses, subscriptions, theme]);
 
   if (stats.length === 0) {
     return (
@@ -99,14 +103,14 @@ const CategoryChart = memo(function CategoryChart({
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <span className="font-sans text-[15px] text-white/80">{category}</span>
+                  <span className="font-sans text-[15px] text-ink/80">{category}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm text-muted">{pct.toFixed(0)}%</span>
-                  <span className="font-mono text-[15px] text-white font-medium">{mask(formatAmount(amount, currency))}</span>
+                  <span className="font-mono text-[15px] text-ink font-medium">{mask(formatAmount(amount, currency))}</span>
                 </div>
               </div>
-              <div className="h-2 w-full bg-white/[0.06] rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-ink/[0.06] rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${pct}%`, backgroundColor: color }}
@@ -157,7 +161,7 @@ function buildInsights(
       text: `${top.category} is your biggest spend`,
       sub: `${top.pct.toFixed(0)}% of total — ${mask(formatAmount(top.amount, currency))} ${currency}`,
       type: "neutral",
-      icon: <PieChart size={16} className="text-white/40" />,
+      icon: <PieChart size={16} className="text-ink/40" />,
     });
   }
 
@@ -173,7 +177,7 @@ function buildInsights(
       type: projected > (budget ?? Infinity) ? "warning" : "neutral",
       icon: projected > (budget ?? Infinity)
         ? <TrendingUp size={16} className="text-danger" />
-        : <Calendar size={16} className="text-white/40" />,
+        : <Calendar size={16} className="text-ink/40" />,
     });
   }
 
@@ -291,7 +295,7 @@ const InsightCards = memo(function InsightCards({
                 <span className="flex-shrink-0">{insight.icon}</span>
               )}
               <div className="flex flex-col gap-1 min-w-0">
-                <p className="font-sans text-[15px] text-white leading-snug">{insight.text}</p>
+                <p className="font-sans text-[15px] text-ink leading-snug">{insight.text}</p>
                 {insight.sub && (
                   <p className="font-mono text-xs text-muted leading-relaxed">{insight.sub}</p>
                 )}
@@ -320,6 +324,7 @@ const MomComparison = memo(function MomComparison({
   selectedMonth: { year: number; month: number };
 }) {
   const { mask } = usePrivacy();
+  const { theme } = useTheme();
   const { year, month } = prevMonthOf(selectedMonth.year, selectedMonth.month);
   const prevLabel = new Date(year, month - 1, 1).toLocaleDateString("en", { month: "short", year: "2-digit" });
 
@@ -345,12 +350,12 @@ const MomComparison = memo(function MomComparison({
         cat,
         curr: currMap[cat] ?? 0,
         prev: prevMap[cat] ?? 0,
-        color: CATEGORY_COLORS[cat] ?? OTHER_COLOR,
+        color: getCategoryColor(cat, theme) ?? OTHER_CATEGORY_COLOR[theme],
       }))
       .filter((r) => r.curr > 0 || r.prev > 0)
       .sort((a, b) => b.curr - a.curr)
       .slice(0, 6);
-  }, [currMap, prevMap]);
+  }, [currMap, prevMap, theme]);
 
   if (categories.length === 0) return null;
 
@@ -370,8 +375,8 @@ const MomComparison = memo(function MomComparison({
             return (
               <div key={cat} className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <span className="font-sans text-[15px] text-white/80 flex-1 truncate">{cat}</span>
-                <span className="font-mono text-[15px] text-white flex-shrink-0">{mask(formatAmount(curr, currency))}</span>
+                <span className="font-sans text-[15px] text-ink/80 flex-1 truncate">{cat}</span>
+                <span className="font-mono text-[15px] text-ink flex-shrink-0">{mask(formatAmount(curr, currency))}</span>
                 {pctChange !== null ? (
                   <span className={`font-mono text-sm font-semibold flex-shrink-0 w-16 text-right ${isUp ? "text-danger" : "text-accent"}`}>
                     {isUp ? "+" : ""}{pctChange.toFixed(0)}%
@@ -432,8 +437,8 @@ export default function AnalyticsView({
             onClick={() => setTab(key)}
             className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors ${
               tab === key
-                ? "bg-white/10 backdrop-blur-md text-white border border-white/15"
-                : "text-muted hover:text-white"
+                ? "flat-chip-active text-ink border"
+                : "text-ink/50 hover:text-ink"
             }`}
           >
             {label}

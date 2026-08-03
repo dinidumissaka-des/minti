@@ -188,24 +188,24 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
               <span className="font-mono text-xs text-muted uppercase tracking-widest whitespace-nowrap">
                 {formatDateLabel(date)}
               </span>
-              <div className="flex-1 h-px bg-white/[0.05]" />
+              <div className="flex-1 h-px bg-ink/[0.05]" />
               <span className="font-mono text-xs text-muted whitespace-nowrap">
                 {currency} {mask(formatAmount(dayTotal, currency))}
               </span>
             </div>
 
             <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-            <div className="w-full divide-y divide-white/10">
+            <div className="w-full divide-y divide-ink/10">
               {dayExpenses.map((expense) => {
                 const isEditing = editingId === expense.id;
                 const isSwiped = swipedId === expense.id;
 
                 if (isEditing && editState) {
                   return (
-                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-white/[0.03]">
+                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-ink/[0.03]">
                       <div className="flex gap-2">
                         <input
-                          className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white placeholder:text-muted outline-none focus:border-white/40"
+                          className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
                           value={editState.description}
                           onChange={(e) => setEditState({ ...editState, description: e.target.value })}
                           placeholder="Description"
@@ -214,7 +214,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         />
                         <input
                           type="number"
-                          className="w-28 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-base text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          className="w-28 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           value={editState.amount}
                           onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                           placeholder="Amount"
@@ -226,7 +226,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         type="button"
                         onClick={() => setShowCatDrawer(true)}
-                        className="w-full bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-[15px] text-white text-left hover:border-white/30 transition-colors"
+                        className="w-full bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
                       >
                         {editState.category}
                       </button>
@@ -234,7 +234,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           type="button"
                           onClick={() => setShowDateDrawer(true)}
-                          className="flex-1 bg-white/[0.07] border border-white/[0.1] rounded-lg px-3 h-11 text-[15px] text-white text-left hover:border-white/30 transition-colors"
+                          className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
                         >
                           {formatDateLabel(editState.date)}
                         </button>
@@ -242,14 +242,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           onClick={() => handleSave(expense.id)}
                           disabled={saving}
                           aria-label="Save changes"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent text-[#163300] hover:bg-accent/85 disabled:opacity-50 flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0"
                         >
                           <Check size={15} />
                         </button>
                         <button
                           onClick={cancelEdit}
                           aria-label="Cancel editing"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg border border-white/[0.1] text-muted hover:text-white flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0"
                         >
                           <X size={15} />
                         </button>
@@ -269,7 +269,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         onClick={(e) => { e.stopPropagation(); startEdit(expense); }}
                         aria-label="Edit expense"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-ink/10 text-ink"
                       >
                         <Pencil size={14} />
                       </button>
@@ -277,7 +277,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
                         disabled={deletingId === expense.id}
                         aria-label="Delete expense"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-danger/20 text-danger disabled:opacity-30"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-danger-fill/20 text-danger disabled:opacity-30"
                       >
                         {deletingId === expense.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
@@ -290,11 +290,11 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       onTouchMove={(e) => onTouchMove(e, expense.id)}
                       onTouchEnd={() => onTouchEnd(expense.id)}
                       onTouchCancel={() => snapBack(expense.id)}
-                      className="group relative flex items-center gap-3 px-4 py-4 sm:hover:bg-white/5 transition-colors"
+                      className="group relative flex items-center gap-3 px-4 py-4 sm:hover:bg-ink/5 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-text text-[15px] font-sans truncate">{expense.description}</p>
-                        <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-white/[0.07] text-white/40">
+                        <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/[0.1] text-ink/50">
                           {expense.category}
                         </span>
                       </div>
@@ -305,7 +305,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         </span>
                       )}
 
-                      <span className="font-mono text-sm text-white flex-shrink-0">
+                      <span className="font-mono text-sm text-ink flex-shrink-0">
                         {mask(formatAmount(Number(expense.amount), currency))}
                       </span>
 
@@ -314,7 +314,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           onClick={() => startEdit(expense)}
                           aria-label="Edit expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-white transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink transition-colors flex-shrink-0"
                         >
                           <Pencil size={13} />
                         </button>

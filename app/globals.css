@@ -4,20 +4,43 @@
 
 html {
   color-scheme: dark;
-  background-color: #060e03;
+  background-color: rgb(var(--background));
 }
 
-:root {
+html.light {
+  color-scheme: light;
+}
+
+:root,
+.dark {
   --background:  10  15  8;
+  --ink:         255 255 255;
   --surface:     255 255 255;
   --surface2:    255 255 255;
   --border:      255 255 255;
   --foreground:  255 255 255;
   --muted:       255 255 255;
   --accent:      159 232 112;
+  --accent-text: 159 232 112;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
+  --danger-text: 224 92  92;
   --radius:      1rem;
+}
+
+.light {
+  --background:  247 250 243;
+  --ink:         15  23  11;
+  --surface:     15  23  11;
+  --surface2:    15  23  11;
+  --border:      15  23  11;
+  --foreground:  15  23  11;
+  --muted:       15  23  11;
+  --accent:      159 232 112;
+  --accent-text: 63  122 31;
+  --accent-on:   22  51  0;
+  --danger:      224 92  92;
+  --danger-text: 176 44  44;
 }
 
 @layer base {
@@ -26,7 +49,7 @@ html {
   }
   body {
     background-color: rgb(var(--background));
-    color: rgba(255, 255, 255, 0.9);
+    color: rgb(var(--ink) / 0.9);
     -webkit-font-smoothing: antialiased;
   }
 }
@@ -38,6 +61,37 @@ html {
   }
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Flat chips (header buttons, nav pills, filter tabs, tags): solid, theme-adaptive
+     fills — white tint in both themes (dark mode via --ink, light mode overridden
+     below since --ink is near-black there and would otherwise read as gray/black). */
+  .flat-chip {
+    background-color: rgb(var(--ink) / 0.08);
+    border-color: rgb(var(--ink) / 0.14);
+  }
+  .flat-chip:hover {
+    border-color: rgb(var(--ink) / 0.24);
+  }
+  .light .flat-chip {
+    background-color: rgba(255, 255, 255, 0.45);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+  .light .flat-chip:hover {
+    border-color: rgba(0, 0, 0, 0.16);
+  }
+
+  .flat-chip-active {
+    background-color: rgb(var(--ink) / 0.16);
+    border-color: rgb(var(--ink) / 0.2);
+  }
+  .light .flat-chip-active {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .flat-chip-dashed {
+    border-color: rgb(var(--ink) / 0.2);
   }
 }
 
