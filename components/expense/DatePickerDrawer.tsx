@@ -111,16 +111,16 @@ export default function DatePickerDrawer({ open, value, onChange, onClose }: Pro
       <div ref={headerRef} className="flex items-center justify-between mb-3 px-1">
         <button
           onClick={prevMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-muted hover:text-white hover:border-white/30 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink hover:border-ink/30 transition-colors"
         >
           <ChevronLeft size={15} />
         </button>
-        <span className="font-sans font-semibold text-white text-sm">
+        <span className="font-sans font-semibold text-ink text-sm">
           {MONTHS[viewMonth]} {viewYear}
         </span>
         <button
           onClick={nextMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-muted hover:text-white hover:border-white/30 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink hover:border-ink/30 transition-colors"
         >
           <ChevronRight size={15} />
         </button>
@@ -154,11 +154,11 @@ export default function DatePickerDrawer({ open, value, onChange, onClose }: Pro
                 opacity: 0,
                 transform: "scale(0)",
                 backgroundColor: isSelected ? ACCENT : "transparent",
-                color: isSelected ? "#163300" : isToday ? ACCENT : "rgba(255,255,255,0.8)",
+                color: isSelected ? "#163300" : isToday ? "rgb(var(--accent-text))" : "rgb(var(--ink) / 0.8)",
                 boxShadow: isSelected ? `0 2px 12px ${ACCENT}40` : undefined,
               }}
               className={`aspect-square flex items-center justify-center rounded-full text-sm font-mono mx-auto w-9 h-9 border transition-colors ${
-                isSelected ? "border-transparent font-bold" : isToday ? "border-accent/40" : "border-transparent hover:bg-white/10"
+                isSelected ? "border-transparent font-bold" : isToday ? "border-accent-fill/40" : "border-transparent hover:bg-ink/10"
               }`}
             >
               {day}

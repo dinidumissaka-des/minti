@@ -44,10 +44,10 @@ export default function AuthForm() {
 
   if (signUpDone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-white/[0.07] sm:rounded-2xl sm:border sm:border-white/[0.1] sm:p-8">
-        <p className="font-sans font-semibold text-xl text-white">Check your email</p>
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-ink/[0.07] sm:rounded-2xl sm:border sm:border-ink/[0.1] sm:p-8">
+        <p className="font-sans font-semibold text-xl text-ink">Check your email</p>
         <p className="font-sans text-base text-muted">
-          We sent a confirmation link to <span className="text-white font-medium">{email}</span>.
+          We sent a confirmation link to <span className="text-ink font-medium">{email}</span>.
         </p>
         <button
           onClick={() => { setMode("signin"); setSignUpDone(false); }}
@@ -62,13 +62,13 @@ export default function AuthForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col min-h-[100dvh] px-6 sm:min-h-0 sm:bg-white/[0.07] sm:rounded-2xl sm:border sm:border-white/[0.1] sm:p-8 sm:gap-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+2.5rem)]"
+      className="flex flex-col min-h-[100dvh] px-6 sm:min-h-0 sm:bg-ink/[0.07] sm:rounded-2xl sm:border sm:border-ink/[0.1] sm:p-8 sm:gap-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+2.5rem)]"
     >
       {/* Logo + title */}
       <div className="flex items-center gap-3">
         <Logo className="h-5 w-auto flex-shrink-0" />
-        <span className="text-white/20">•</span>
-        <h1 className="font-sans font-semibold text-xl text-white">
+        <span className="text-ink/20">•</span>
+        <h1 className="font-sans font-semibold text-xl text-ink">
           {mode === "signin" ? "Sign in" : "Sign up"}
         </h1>
       </div>
@@ -109,15 +109,15 @@ export default function AuthForm() {
         </Button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-white/[0.08]" />
+          <div className="flex-1 h-px bg-ink/[0.08]" />
           <span className="text-xs text-muted font-mono">or</span>
-          <div className="flex-1 h-px bg-white/[0.08]" />
+          <div className="flex-1 h-px bg-ink/[0.08]" />
         </div>
 
         <button
           type="button"
           onClick={() => signInWithGoogle()}
-          className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] transition-colors text-sm font-medium text-white"
+          className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-ink/[0.1] bg-ink/[0.05] hover:bg-ink/[0.1] transition-colors text-sm font-medium text-ink"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>

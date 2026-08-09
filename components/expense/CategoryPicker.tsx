@@ -64,9 +64,9 @@ export default function CategoryPicker({ open, selected, isCustom, onSelect }: P
             style={{
               opacity: 0,
               transform: "scale(0)",
-              backgroundColor: isSelected ? ACCENT : "rgba(255,255,255,0.07)",
-              color: isSelected ? "#163300" : "rgba(255,255,255,0.75)",
-              borderColor: isSelected ? "transparent" : "rgba(255,255,255,0.1)",
+              backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)",
+              color: isSelected ? "#163300" : "rgb(var(--ink) / 0.75)",
+              borderColor: isSelected ? "transparent" : "rgb(var(--ink) / 0.1)",
               boxShadow: isSelected
                 ? `0 4px 20px ${ACCENT}40`
                 : "0 4px 16px rgba(0,0,0,0.4)",

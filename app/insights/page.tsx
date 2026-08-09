@@ -100,7 +100,7 @@ export default function InsightsPage() {
           <button
             onClick={() => router.back()}
             aria-label="Back"
-            className="flex items-center gap-1.5 h-10 px-3 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/50 hover:text-white hover:border-white/[0.3] transition-colors text-xs font-mono"
+            className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/50 hover:text-ink transition-colors text-xs font-mono"
           >
             <ArrowLeft size={13} />
             Back
@@ -110,17 +110,17 @@ export default function InsightsPage() {
             <button
               onClick={prevMonth}
               aria-label="Previous month"
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] text-white/40 hover:text-white/90 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
             >
               <ChevronLeft size={13} />
             </button>
-            <span className="font-mono text-xs text-white/70 min-w-[52px] text-center">
+            <span className="font-mono text-xs text-ink/70 min-w-[52px] text-center">
               {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
             </span>
             <button
               onClick={nextMonth}
               aria-label="Next month"
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] text-white/40 hover:text-white/90 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
             >
               <ChevronRight size={13} />
             </button>

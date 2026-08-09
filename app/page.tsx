@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ChevronDown, Download, MoreHorizontal } from "lucide-react";
+import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
@@ -25,6 +25,7 @@ import AnalyticsView from "@/components/analytics/AnalyticsView";
 import BottomDrawer from "@/components/BottomDrawer";
 import CurrencyConverter from "@/components/CurrencyConverter";
 import { usePrivacy } from "@/components/PrivacyContext";
+import { useTheme } from "@/components/ThemeContext";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
@@ -71,6 +72,7 @@ export default function Home() {
   const currencyRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { privacyMode, togglePrivacy, mask } = usePrivacy();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (!showMoreDrawer) setExpandedSection(null);
@@ -256,7 +258,7 @@ export default function Home() {
         className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
         style={{
           height: 'calc(env(safe-area-inset-bottom) + 6rem)',
-          background: 'linear-gradient(to bottom, transparent, #080f05 70%)',
+          background: 'linear-gradient(to bottom, transparent, rgb(var(--background)) 70%)',
           zIndex: 45,
         }}
       />
@@ -280,14 +282,14 @@ export default function Home() {
           <button
             key={c.code}
             onClick={() => selectCurrency(c.code)}
-            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-white/10 last:border-0 ${
+            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
               currency === c.code
-                ? "text-accent bg-accent/10"
-                : "text-white hover:bg-white/[0.07]"
+                ? "text-accent bg-accent-fill/10"
+                : "text-ink hover:bg-ink/[0.07]"
             }`}
           >
             <span className="font-mono font-semibold text-base">{c.code}</span>
-            <span className="text-sm text-muted">{c.name}</span>
+            <span className="text-sm text-ink/50">{c.name}</span>
           </button>
         ))}
       </BottomDrawer>
@@ -302,12 +304,12 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "month" ? null : "month")}
           aria-expanded={expandedSection === "month"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
         >
-          <span className="text-white/60">Month</span>
+          <span className="text-ink/60">Month</span>
           <div className="flex items-center gap-2">
             <span className="font-mono font-semibold">{MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}</span>
-            <ChevronDown size={13} className={`text-white/40 transition-transform duration-200 ${expandedSection === "month" ? "rotate-180" : ""}`} />
+            <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "month" ? "rotate-180" : ""}`} />
           </div>
         </button>
         <div className={`overflow-hidden transition-all duration-300 ease-out ${expandedSection === "month" ? "max-h-64" : "max-h-0"}`}>
@@ -315,12 +317,12 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setPickerYear(y => y - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] text-white/40 hover:text-white/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
               >‹</button>
-              <span className="font-mono text-sm font-semibold text-white">{pickerYear}</span>
+              <span className="font-mono text-sm font-semibold text-ink">{pickerYear}</span>
               <button
                 onClick={() => setPickerYear(y => y + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] text-white/40 hover:text-white/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
               >›</button>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -333,8 +335,8 @@ export default function Home() {
                     onClick={() => { setSelectedMonth({ year: pickerYear, month }); setExpandedSection(null); setShowMoreDrawer(false); }}
                     className={`h-10 rounded-full text-sm font-mono transition-colors ${
                       isSelected
-                        ? "bg-accent/15 text-accent border border-accent/30 font-semibold"
-                        : "text-white/40 hover:text-white/80"
+                        ? "bg-accent-fill/15 text-accent border border-accent-fill/30 font-semibold"
+                        : "text-ink/40 hover:text-ink/80"
                     }`}
                   >{name}</button>
                 );
@@ -347,12 +349,12 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "currency" ? null : "currency")}
           aria-expanded={expandedSection === "currency"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
         >
-          <span className="text-white/60">Currency</span>
+          <span className="text-ink/60">Currency</span>
           <div className="flex items-center gap-2">
             <span className="font-mono font-semibold">{currency}</span>
-            <ChevronDown size={13} className={`text-white/40 transition-transform duration-200 ${expandedSection === "currency" ? "rotate-180" : ""}`} />
+            <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "currency" ? "rotate-180" : ""}`} />
           </div>
         </button>
         <div className={`overflow-hidden transition-all duration-300 ease-out ${expandedSection === "currency" ? "max-h-64" : "max-h-0"}`}>
@@ -362,11 +364,11 @@ export default function Home() {
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
-                  currency === c.code ? "text-accent bg-accent/10" : "text-white hover:bg-white/[0.07]"
+                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/[0.07]"
                 }`}
               >
                 <span className="font-mono font-semibold text-base">{c.code}</span>
-                <span className="text-sm text-muted">{c.name}</span>
+                <span className="text-sm text-ink/50">{c.name}</span>
               </button>
             ))}
           </div>
@@ -375,19 +377,19 @@ export default function Home() {
         {/* Insights */}
         <button
           onClick={() => { setShowMoreDrawer(false); setView("insights"); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
         >
-          <span className="text-white/60">Insights</span>
-          <Lightbulb size={14} className="text-white/40" />
+          <span className="text-ink/60">Insights</span>
+          <Lightbulb size={14} className="text-ink/40" />
         </button>
 
         {/* Currency converter */}
         <button
           onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
         >
-          <span className="text-white/60">Convert currency</span>
-          <ArrowsLeftRight size={14} className="text-white/40" />
+          <span className="text-ink/60">Convert currency</span>
+          <ArrowsLeftRight size={14} className="text-ink/40" />
         </button>
 
         {/* Export CSV */}
@@ -398,15 +400,15 @@ export default function Home() {
               : exportSubscriptionsCSV(subscriptions, currency);
             setShowMoreDrawer(false);
           }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-white hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
         >
-          <span className="text-white/60">Export CSV</span>
-          <Download size={14} className="text-white/40" />
+          <span className="text-ink/60">Export CSV</span>
+          <Download size={14} className="text-ink/40" />
         </button>
         {/* Sign out */}
         <button
           onClick={() => { signOut(); setShowMoreDrawer(false); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-white/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-ink/[0.07] transition-colors"
         >
           <span>Sign out</span>
           <LogOut size={14} />
@@ -415,7 +417,7 @@ export default function Home() {
 
       {/* Bottom nav — mobile only */}
       <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
-        <div className="flex items-center h-16 p-1.5 rounded-3xl border border-white/[0.1] bg-black/40 backdrop-blur-xl">
+        <div className="flex items-center h-16 p-1.5 rounded-3xl border flat-chip">
           {([
             { key: "expenses", label: "Expenses", Icon: CreditCard },
             { key: "subscriptions", label: "Bills", Icon: ArrowsClockwise },
@@ -428,8 +430,8 @@ export default function Home() {
                 onClick={() => setView(key)}
                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
                   active
-                    ? "bg-white/15 text-white border border-white/15"
-                    : "text-white/35 hover:text-white/70"
+                    ? "flat-chip-active text-ink border"
+                    : "text-ink/35 hover:text-ink/70"
                 }`}
               >
                 <Icon size={22} weight={active ? "fill" : "regular"} />
@@ -441,8 +443,8 @@ export default function Home() {
             onClick={() => setView("insights")}
             className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
               view === "insights"
-                ? "bg-white/15 text-white border border-white/15"
-                : "text-white/35 hover:text-white/70"
+                ? "flat-chip-active text-ink border"
+                : "text-ink/35 hover:text-ink/70"
             }`}
           >
             <Lightbulb size={22} weight={view === "insights" ? "fill" : "regular"} />
@@ -462,25 +464,32 @@ export default function Home() {
               <button
                 onClick={togglePrivacy}
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border backdrop-blur-md transition-colors ${
+                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors ${
                   privacyMode
-                    ? "border-accent/40 bg-accent/10 text-accent"
-                    : "border-white/[0.1] bg-white/[0.07] text-white/40 hover:text-white/90 hover:border-white/[0.3]"
+                    ? "border-accent-fill/40 bg-accent-fill/10 text-accent"
+                    : "flat-chip text-ink/40 hover:text-ink/90"
                 }`}
               >
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
               </button>
               <button
+                onClick={toggleTheme}
+                aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+              >
+                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              </button>
+              <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 <MoreHorizontal size={14} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 <LogOut size={14} />
               </button>
@@ -493,7 +502,7 @@ export default function Home() {
             <div ref={currencyRef} className="relative">
               <button
                 onClick={() => setShowCurrencyPicker((v) => !v)}
-                className="flex items-center gap-1 h-10 px-3 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors text-xs font-mono"
+                className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
               >
                 {currency}
                 <ChevronDown size={11} />
@@ -509,7 +518,7 @@ export default function Home() {
                     : exportSubscriptionsCSV(subscriptions, currency)
                 }
                 aria-label="Export CSV"
-                className="flex items-center gap-1.5 h-10 px-3 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors text-xs font-mono"
+                className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
               >
                 <Download size={12} />
                 CSV
@@ -517,39 +526,39 @@ export default function Home() {
               <button
                 onClick={() => setShowConverterDrawer(true)}
                 aria-label="Convert currency"
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 <ArrowsLeftRight size={14} />
               </button>
               <button
                 onClick={prevMonth}
                 aria-label="Previous month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 ‹
               </button>
-              <span className="font-sans text-[15px] text-white font-medium min-w-[72px] text-center">
+              <span className="font-sans text-[15px] text-ink font-medium min-w-[72px] text-center">
                 {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
               </span>
               <button
                 onClick={nextMonth}
                 aria-label="Next month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md text-white/40 hover:text-white/90 hover:border-white/[0.3] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 ›
               </button>
             </div>
           </div>
           {/* Row 3: View toggle (full width) — desktop only */}
-          <nav aria-label="Sections" className="hidden sm:flex items-center h-10 p-0.5 rounded-full border border-white/[0.1] bg-white/[0.07] backdrop-blur-md w-full">
+          <nav aria-label="Sections" className="hidden sm:flex items-center h-10 p-0.5 rounded-full border flat-chip w-full">
             {(["expenses", "subscriptions", "income"] as View[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 className={`flex-1 h-9 rounded-full text-sm font-mono transition-colors ${
                   view === v
-                    ? "bg-white/15 text-white border border-white/15"
-                    : "text-white/40 hover:text-white/80"
+                    ? "flat-chip-active text-ink border"
+                    : "text-ink/40 hover:text-ink/80"
                 }`}
               >
                 {v === "expenses" ? "Expenses" : v === "subscriptions" ? "Subscriptions" : "Income"}
@@ -566,17 +575,17 @@ export default function Home() {
           <div className="flex flex-col gap-2">
             <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
               <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Bills</span>
-              <span className="font-mono text-5xl font-bold text-white leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
+              <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
             </div>
             <GlassSurface borderRadius={28}>
-              <div className="w-full grid grid-cols-2 divide-x divide-white/[0.07]">
+              <div className="w-full grid grid-cols-2 divide-x divide-ink/[0.07]">
                 <div className="px-5 py-4 flex flex-col gap-1">
                   <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Active</span>
-                  <span className="font-mono text-2xl font-bold text-white leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
+                  <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
                 </div>
                 <div className="px-5 py-4 flex flex-col gap-1">
                   <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Per Year</span>
-                  <span className="font-mono text-2xl font-bold text-white leading-tight">{mask(formatAmount(subscriptionsTotal * 12, currency))}</span>
+                  <span className="font-mono text-2xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal * 12, currency))}</span>
                 </div>
               </div>
             </GlassSurface>
@@ -585,7 +594,7 @@ export default function Home() {
         {view === "income" && (
           <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
             <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Income</span>
-            <span className="font-mono text-5xl font-bold text-white leading-tight">{mask(formatAmount(incomeTotalHero, currency))}</span>
+            <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(incomeTotalHero, currency))}</span>
           </div>
         )}
 
@@ -606,8 +615,8 @@ export default function Home() {
                     onClick={() => setFilter(key)}
                     className={`flex-1 py-2 text-sm font-mono rounded-full transition-colors ${
                       filter === key
-                        ? "bg-white/10 backdrop-blur-md text-white font-semibold border border-white/15"
-                        : "text-muted hover:text-white"
+                        ? "flat-chip-active text-ink font-semibold border"
+                        : "text-muted hover:text-ink"
                     }`}
                   >
                     {label}
@@ -619,9 +628,9 @@ export default function Home() {
             {/* Expense list / loading / error */}
             <div key={filter} className="animate-fade-slide-in">
               {fetchError ? (
-                <div className="bg-white/[0.07] rounded-xl border border-danger/40 p-5 text-center">
+                <div className="bg-ink/[0.07] rounded-xl border border-danger-fill/40 p-5 text-center">
                   <p className="text-danger font-mono text-sm">{fetchError}</p>
-                  <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-white">
+                  <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
                     Retry
                   </button>
                 </div>
@@ -679,18 +688,18 @@ function LoadingSkeleton() {
       {[0, 1].map((g) => (
         <div key={g}>
           <div className="flex justify-between mb-2 px-1">
-            <div className="h-3 w-16 bg-white/[0.07] rounded" />
-            <div className="h-3 w-20 bg-white/[0.07] rounded" />
+            <div className="h-3 w-16 bg-ink/[0.07] rounded" />
+            <div className="h-3 w-20 bg-ink/[0.07] rounded" />
           </div>
-          <div className="bg-white/[0.04] rounded-xl border border-white/[0.07] overflow-hidden divide-y divide-white/[0.08]">
+          <div className="bg-ink/[0.04] rounded-xl border border-ink/[0.07] overflow-hidden divide-y divide-ink/[0.08]">
             {[0, 1, 2].map((r) => (
               <div key={r} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-white/[0.07] flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-ink/[0.07] flex-shrink-0" />
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <div className="h-3 w-2/3 bg-white/[0.07] rounded" />
-                  <div className="h-2.5 w-1/4 bg-white/[0.07] rounded-full" />
+                  <div className="h-3 w-2/3 bg-ink/[0.07] rounded" />
+                  <div className="h-2.5 w-1/4 bg-ink/[0.07] rounded-full" />
                 </div>
-                <div className="h-3 w-20 bg-white/[0.07] rounded" />
+                <div className="h-3 w-20 bg-ink/[0.07] rounded" />
               </div>
             ))}
           </div>

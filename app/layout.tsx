@@ -1,12 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Fraunces } from "next/font/google";
-import dynamic from "next/dynamic";
+import Script from "next/script";
 import "./globals.css";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import ClientProviders from "@/components/ClientProviders";
+import AppBackground from "@/components/background/AppBackground";
 
-const LightRays = dynamic(() => import("@/components/background/LightRays"), { ssr: false });
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var t = localStorage.getItem("minti_theme");
+    if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    if (t === "light") document.documentElement.classList.add("light");
+  } catch (e) {}
+})();
+`;
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -23,7 +32,7 @@ const fraunces = Fraunces({
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: "#060e03",
-  colorScheme: "dark",
+  colorScheme: "light dark",
 };
 
 export const metadata: Metadata = {
@@ -46,29 +55,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${manrope.variable} ${fraunces.variable}`}>
+      <head>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
+      </head>
       <body>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:z-[200] focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-accent focus:text-[#163300] focus:rounded-lg focus:font-semibold focus:text-sm"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-[200] focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-accent-fill focus:text-[#163300] focus:rounded-lg focus:font-semibold focus:text-sm"
         >
           Skip to main content
         </a>
-        <div className="fixed z-0 bg-[#060e03]" style={{ inset: 0, top: 'calc(-1 * env(safe-area-inset-top))' }}>
-          <LightRays
-            raysOrigin="top-center"
-            raysColor="#9FE870"
-            raysSpeed={1.2}
-            lightSpread={0.9}
-            rayLength={1.4}
-            followMouse={true}
-            mouseInfluence={0.12}
-            noiseAmount={0.08}
-            distortion={0.03}
-            fadeDistance={1.2}
-            saturation={0.9}
-          />
-        </div>
         <ClientProviders>
+          <AppBackground />
           {children}
           <InstallPrompt />
           <ServiceWorkerRegistration />

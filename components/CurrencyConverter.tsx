@@ -75,28 +75,28 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
   return (
     <div className="px-2 pb-2 space-y-4">
       <div>
-        <label htmlFor={amountId} className="block text-xs text-white/40 mb-1.5 px-1">Amount</label>
+        <label htmlFor={amountId} className="block text-xs text-ink/40 mb-1.5 px-1">Amount</label>
         <input
           id={amountId}
           inputMode="decimal"
           value={amount}
           onChange={handleAmountChange}
           placeholder="0"
-          className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-4 text-lg font-mono text-white outline-none focus:border-white/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full h-[52px] rounded-xl border border-ink/[0.1] bg-ink/[0.07] px-4 text-lg font-mono text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
         />
       </div>
 
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <label htmlFor={fromId} className="block text-xs text-white/40 mb-1.5 px-1">From</label>
+          <label htmlFor={fromId} className="block text-xs text-ink/40 mb-1.5 px-1">From</label>
           <select
             id={fromId}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/40 appearance-none"
+            className="w-full h-[52px] rounded-xl border border-ink/[0.1] bg-ink/[0.07] px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">
+              <option key={c.code} value={c.code} className="bg-background text-ink">
                 {c.code}
               </option>
             ))}
@@ -106,21 +106,21 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         <button
           onClick={swap}
           aria-label="Swap currencies"
-          className="h-[52px] w-[52px] shrink-0 flex items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.07] text-white/60 hover:text-white hover:border-white/30 transition-colors"
+          className="h-[52px] w-[52px] shrink-0 flex items-center justify-center rounded-xl border border-ink/[0.1] bg-ink/[0.07] text-ink/60 hover:text-ink hover:border-ink/30 transition-colors"
         >
           <ArrowsLeftRight size={18} />
         </button>
 
         <div className="flex-1">
-          <label htmlFor={toId} className="block text-xs text-white/40 mb-1.5 px-1">To</label>
+          <label htmlFor={toId} className="block text-xs text-ink/40 mb-1.5 px-1">To</label>
           <select
             id={toId}
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-white/[0.1] bg-white/[0.07] px-3 text-white font-mono font-semibold outline-none focus:border-white/40 appearance-none"
+            className="w-full h-[52px] rounded-xl border border-ink/[0.1] bg-ink/[0.07] px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code} className="bg-[#0a1206] text-white">
+              <option key={c.code} value={c.code} className="bg-background text-ink">
                 {c.code}
               </option>
             ))}
@@ -128,22 +128,22 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-5 text-center">
+      <div className="rounded-xl border border-ink/[0.1] bg-ink/[0.04] px-4 py-5 text-center">
         {loading ? (
-          <Loader2 size={22} className="animate-spin text-white/40 mx-auto" />
+          <Loader2 size={22} className="animate-spin text-ink/40 mx-auto" />
         ) : error ? (
           <p className="text-sm text-danger">{error}</p>
         ) : result !== null ? (
           <>
-            <p className="font-mono text-3xl font-bold text-white leading-tight">
-              {formatAmount(result, to)} <span className="text-lg text-white/50">{to}</span>
+            <p className="font-mono text-3xl font-bold text-ink leading-tight">
+              {formatAmount(result, to)} <span className="text-lg text-ink/50">{to}</span>
             </p>
             {rateAge !== null && (
-              <p className="text-xs text-white/30 mt-2">Rates updated {timeAgo(rateAge)}</p>
+              <p className="text-xs text-ink/30 mt-2">Rates updated {timeAgo(rateAge)}</p>
             )}
           </>
         ) : (
-          <p className="text-sm text-white/30">Enter an amount</p>
+          <p className="text-sm text-ink/30">Enter an amount</p>
         )}
       </div>
     </div>

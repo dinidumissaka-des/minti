@@ -33,14 +33,18 @@
 .glass-surface--svg {
   background: hsl(0 0% 100% / var(--glass-frost, 0));
   backdrop-filter: var(--filter-id, url(#glass-filter)) blur(28px) saturate(var(--glass-saturation, 1.4));
-  box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.25);
 }
 
 .glass-surface--fallback {
   background: rgba(255, 255, 255, var(--glass-frost, 0.07));
   backdrop-filter: blur(28px) saturate(1.4);
   -webkit-backdrop-filter: blur(28px) saturate(1.4);
-  box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.light .glass-surface--svg,
+.light .glass-surface--fallback {
+  background: rgba(255, 255, 255, calc(var(--glass-frost, 0.07) + 0.55));
+  border: 1px solid rgba(15, 23, 11, 0.08);
 }
 
 .glass-surface:focus-visible {
