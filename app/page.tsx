@@ -46,6 +46,11 @@ function startOfWeekISO() {
   return new Date(d.setDate(diff)).toISOString().split("T")[0];
 }
 
+// GradualBlur adds +100 to zIndex for page targets, so this lands the scroll
+// edge effect at 5: above scrolling content, below the sticky header (z-content).
+// Passing 10 here would put it at 110 and blur the header itself.
+const SCROLL_EDGE_Z = -95;
+
 function todayISO() {
   return new Date().toISOString().split("T")[0];
 }
@@ -311,6 +316,11 @@ export default function Home() {
   return (
     <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
+      {/* Scroll edge effect. Apple: "Optimize for legibility when content
+          scrolls beneath controls... obscuring content that scrolls beneath
+          them." System bars get this free; the sticky mobile header has to
+          ask for it, otherwise the logo sits on raw scrolling text. */}
+      <GradualBlur target="page" position="top" height="7.5rem" strength={1.2} divCount={4} curve="bezier" zIndex={SCROLL_EDGE_Z} className="sm:hidden" />
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
         style={{
@@ -545,14 +555,20 @@ export default function Home() {
           {/* Row 1: Logo + Sign out */}
           <div className="flex items-center justify-between pt-1 pb-2">
             <Logo className="h-5 w-auto" />
-            <div className="flex items-center gap-2">
+            {/* One shared glass background rather than four floating ones:
+                Apple groups toolbar items and warns against layering separate
+                Liquid Glass elements, and combining the effect also means one
+                backdrop-filter pass instead of four. Inner buttons are 44px to
+                clear the minimum touch target; radii stay concentric (26 outer
+                - 4 padding = 22 inner). */}
+            <div className="flex items-center gap-0.5 p-1 h-control rounded-full border glass-chip">
               <button
                 onClick={togglePrivacy}
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors ${
+                className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${
                   privacyMode
-                    ? "border-accent-fill/40 bg-accent-fill/10 text-accent"
-                    : "glass-chip text-ink/40 hover:text-ink/90"
+                    ? "bg-accent-fill/15 text-accent"
+                    : "text-ink/55 hover:text-ink/90"
                 }`}
               >
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
@@ -560,23 +576,23 @@ export default function Home() {
               <button
                 onClick={toggleTheme}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                className="w-10 h-10 flex items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
               <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
-                <MoreHorizontal size={14} />
+                <MoreHorizontal size={16} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
-                <LogOut size={14} />
+                <LogOut size={16} />
               </button>
             </div>
           </div>

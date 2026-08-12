@@ -120,6 +120,32 @@ html.light {
     background-color: rgb(15 23 11 / 0.06);
     border-color: rgb(15 23 11 / 0.05);
   }
+
+  /* Apple: "Test your interface with a variety of display and accessibility
+     settings... Ensure you test your app's custom elements." Standard native
+     components adapt on their own; a CSS approximation has to do it here. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-chip,
+    .light .glass-chip {
+      background-color: rgb(var(--background));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-color: rgb(var(--ink) / 0.2);
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .glass-chip,
+    .light .glass-chip {
+      border-color: rgb(var(--ink) / 0.4);
+    }
+    .glass-chip-active {
+      background-color: rgb(var(--ink) / 0.3);
+    }
+    .light .glass-chip-active {
+      background-color: rgb(15 23 11 / 0.14);
+    }
+  }
 }
 
 @media (max-width: 640px) {
