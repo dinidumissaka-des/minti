@@ -52,6 +52,18 @@ The same source runs on both targets and branches on `isNative()` (`lib/platform
 
 Billing reminders schedule one repeating local notification per subscription, firing at 09:00 on each subscription's `billing_day`. They are rescheduled from scratch whenever the subscription list or currency changes, and cancelled when the setting is turned off.
 
+### Home screen widget
+
+`MintiWidget` is a second Xcode target showing month-to-date spend and budget progress. Data reaches it through the `group.com.minti.app` App Group:
+
+1. `lib/widget.ts` writes a JSON snapshot into Capacitor Preferences whenever the current month's totals change (older months are skipped — the widget always shows the live month).
+2. Preferences lands in `UserDefaults.standard`, which an extension cannot read, so `WidgetSync.swift` mirrors it into the App Group container when the app resigns active or backgrounds, then reloads the widget timeline.
+3. The widget reads the App Group and re-renders. It also refreshes itself hourly as a fallback.
+
+The widget therefore updates when you leave the app, not while you are typing in it.
+
+**The App Group must exist in your Apple Developer account** before either target will build with these entitlements: register `group.com.minti.app` under *Certificates, Identifiers & Profiles → Identifiers → App Groups*, then enable it on both the `com.minti.app` and `com.minti.app.MintiWidget` identifiers. Xcode's automatic signing can create these for you when you first select your team on each target.
+
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.

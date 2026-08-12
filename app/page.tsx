@@ -29,6 +29,7 @@ import { useTheme } from "@/components/ThemeContext";
 import { isNative } from "@/lib/platform";
 import { isBiometryAvailable, isAppLockEnabled, setAppLockEnabled, authenticate } from "@/lib/appLock";
 import { areRemindersEnabled, setRemindersEnabled, requestPermission, syncBillingReminders } from "@/lib/notifications";
+import { publishWidgetSnapshot } from "@/lib/widget";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
@@ -262,6 +263,20 @@ export default function Home() {
     () => expenses.reduce((s, e) => s + Number(e.amount), 0),
     [expenses]
   );
+
+  useEffect(() => {
+    if (!native || !user) return;
+    const today = new Date();
+    const isCurrentMonth =
+      selectedMonth.year === today.getFullYear() && selectedMonth.month === today.getMonth() + 1;
+    if (!isCurrentMonth) return;
+    publishWidgetSnapshot({
+      spent: expensesTotal + subscriptionsTotal,
+      budget,
+      currency,
+      month: `${MONTH_NAMES[selectedMonth.month - 1]} ${selectedMonth.year}`,
+    }).catch(() => {});
+  }, [native, user, expensesTotal, subscriptionsTotal, budget, currency, selectedMonth]);
 
   const filteredExpenses = useMemo(() => {
     if (filter === "today") return expenses.filter((e) => e.date === todayISO());
