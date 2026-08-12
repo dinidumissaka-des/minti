@@ -529,7 +529,7 @@ export default function Home() {
       )}
 
       {/* Add-expense sheet — the mobile counterpart of the desktop inline form */}
-      <BottomDrawer fullScreen open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
+      <BottomDrawer open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
         {user && (
           <AddExpenseForm
             bare
@@ -598,7 +598,7 @@ export default function Home() {
               <button
                 onClick={togglePrivacy}
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
-                className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${
+                className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors active:scale-90 ${
                   privacyMode
                     ? "bg-accent-fill/15 text-accent"
                     : "text-ink/55 hover:text-ink/90"
@@ -609,21 +609,21 @@ export default function Home() {
               <button
                 onClick={toggleTheme}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
               >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
               <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
+                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
               >
                 <MoreHorizontal size={16} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
+                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
               >
                 <LogOut size={16} />
               </button>
@@ -636,7 +636,7 @@ export default function Home() {
             <div ref={currencyRef} className="relative">
               <button
                 onClick={() => setShowCurrencyPicker((v) => !v)}
-                className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
+                className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-95 text-xs font-mono"
               >
                 {currency}
                 <ChevronDown size={11} />
@@ -648,7 +648,7 @@ export default function Home() {
               <button
                 onClick={exportCSV}
                 aria-label="Export CSV"
-                className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
+                className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-95 text-xs font-mono"
               >
                 <Download size={12} />
                 CSV
@@ -656,14 +656,14 @@ export default function Home() {
               <button
                 onClick={() => setShowConverterDrawer(true)}
                 aria-label="Convert currency"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
               >
                 <ArrowsLeftRight size={14} />
               </button>
               <button
                 onClick={prevMonth}
                 aria-label="Previous month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
               >
                 ‹
               </button>
@@ -673,7 +673,7 @@ export default function Home() {
               <button
                 onClick={nextMonth}
                 aria-label="Next month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
               >
                 ›
               </button>
@@ -740,23 +740,21 @@ export default function Home() {
             <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
 
             {/* Filter tabs */}
-            <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-              <div className="flex gap-1 p-1 w-full">
-                {filters.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setFilter(key)}
-                    className={`flex-1 py-2 text-sm font-mono rounded-full transition-colors ${
-                      filter === key
-                        ? "flat-chip-active text-ink font-semibold border"
-                        : "text-muted hover:text-ink"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </GlassSurface>
+            <div className="flex gap-2">
+              {filters.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors ${
+                    filter === key
+                      ? "flat-chip-active text-ink border"
+                      : "text-ink/50 hover:text-ink"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
             {/* Expense list / loading / error */}
             <div key={filter} className="animate-fade-slide-in">

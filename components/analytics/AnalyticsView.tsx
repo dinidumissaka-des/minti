@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { TrendingUp, TrendingDown, Minus, PieChart, Calendar, RefreshCw } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
@@ -161,7 +161,7 @@ function buildInsights(
       text: `${top.category} is your biggest spend`,
       sub: `${top.pct.toFixed(0)}% of total — ${mask(formatAmount(top.amount, currency))} ${currency}`,
       type: "neutral",
-      icon: <PieChart size={16} className="text-ink/40" />,
+      icon: <PieChart size={26} className="text-ink/40" />,
     });
   }
 
@@ -176,8 +176,8 @@ function buildInsights(
       sub: `Avg ${mask(formatAmount(avgDay, currency))} ${currency}/day over ${elapsed} days`,
       type: projected > (budget ?? Infinity) ? "warning" : "neutral",
       icon: projected > (budget ?? Infinity)
-        ? <TrendingUp size={16} className="text-danger" />
-        : <Calendar size={16} className="text-ink/40" />,
+        ? <TrendingUp size={26} className="text-danger" />
+        : <Calendar size={26} className="text-ink/40" />,
     });
   }
 
@@ -190,7 +190,7 @@ function buildInsights(
         text: `You've saved ${mask(formatAmount(saved, currency))} ${currency} this month`,
         sub: `${rate.toFixed(0)}% savings rate`,
         type: "positive",
-        icon: <TrendingUp size={16} className="text-accent" />,
+        icon: <TrendingUp size={26} className="text-accent" />,
       });
     } else {
       insights.push({
@@ -198,7 +198,7 @@ function buildInsights(
         text: `You're ${mask(formatAmount(Math.abs(saved), currency))} ${currency} over your income`,
         sub: `Spending exceeds income by ${Math.abs(rate).toFixed(0)}%`,
         type: "warning",
-        icon: <TrendingDown size={16} className="text-danger" />,
+        icon: <TrendingDown size={26} className="text-danger" />,
       });
     }
   }
@@ -218,8 +218,8 @@ function buildInsights(
         sub: `${mask(formatAmount(prev, currency))} → ${mask(formatAmount(curr, currency))} ${currency}`,
         type: pctChange > 15 ? "warning" : pctChange < -10 ? "positive" : "neutral",
         icon: pctChange > 0
-          ? <TrendingUp size={16} className="text-danger" />
-          : <TrendingDown size={16} className="text-accent" />,
+          ? <TrendingUp size={26} className="text-danger" />
+          : <TrendingDown size={26} className="text-accent" />,
       });
     }
   }
@@ -230,7 +230,7 @@ function buildInsights(
       text: `${subscriptions.length} active subscription${subscriptions.length > 1 ? "s" : ""}`,
       sub: `${mask(formatAmount(subTotal, currency))} ${currency}/month fixed cost`,
       type: "neutral",
-      icon: <RefreshCw size={16} className="text-muted" />,
+      icon: <RefreshCw size={26} className="text-muted" />,
     });
   }
 
@@ -261,49 +261,36 @@ const InsightCards = memo(function InsightCards({
     [expenses, subscriptions, prevExpenses, selectedMonth, currency, monthlyIncome, budget, mask],
   );
 
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [cardMinH, setCardMinH] = useState(0);
-
-  useEffect(() => {
-    if (!gridRef.current) return;
-    const items = Array.from(gridRef.current.children) as HTMLElement[];
-    const max = Math.max(...items.map((el) => el.getBoundingClientRect().height));
-    if (max > 0) setCardMinH(max);
-  }, [insights]);
-
   if (insights.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-3">
-      <div ref={gridRef} className="grid grid-cols-2 gap-3">
-        {insights.map((insight) => (
-          <GlassSurface
-            key={insight.id}
-            borderRadius={20}
-            backgroundOpacity={0.07}
-            style={{
-              minHeight: cardMinH || undefined,
-              ...(insight.type === "positive"
-                ? { borderColor: "rgb(var(--accent) / 0.2)" }
-                : insight.type === "warning"
-                ? { borderColor: "rgb(var(--danger) / 0.2)" }
-                : {}),
-            }}
-          >
-            <div className="px-4 py-4 flex flex-col gap-2 w-full h-full">
-              {insight.icon && (
-                <span className="flex-shrink-0">{insight.icon}</span>
+      {insights.map((insight) => (
+        <GlassSurface
+          key={insight.id}
+          borderRadius={24}
+          backgroundOpacity={0.07}
+          style={
+            insight.type === "positive"
+              ? { borderColor: "rgb(var(--accent) / 0.2)" }
+              : insight.type === "warning"
+              ? { borderColor: "rgb(var(--danger) / 0.2)" }
+              : {}
+          }
+        >
+          <div className="px-5 py-5 flex items-start gap-4 w-full">
+            {insight.icon && (
+              <span className="flex-shrink-0">{insight.icon}</span>
+            )}
+            <div className="flex flex-col gap-1 min-w-0">
+              <p className="font-sans text-lg font-semibold text-ink leading-snug">{insight.text}</p>
+              {insight.sub && (
+                <p className="font-mono text-sm text-muted leading-relaxed">{insight.sub}</p>
               )}
-              <div className="flex flex-col gap-1 min-w-0">
-                <p className="font-sans text-body text-ink leading-snug">{insight.text}</p>
-                {insight.sub && (
-                  <p className="font-mono text-xs text-muted leading-relaxed">{insight.sub}</p>
-                )}
-              </div>
             </div>
-          </GlassSurface>
-        ))}
-      </div>
+          </div>
+        </GlassSurface>
+      ))}
     </div>
   );
 });

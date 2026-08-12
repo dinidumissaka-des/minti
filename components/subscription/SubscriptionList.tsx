@@ -275,7 +275,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
       {!showAdd && (
         <button
           onClick={() => setShowAdd(true)}
-          className="w-full h-11 flex items-center justify-center gap-2 rounded-full border border-dashed border-ink/20 text-muted text-sm hover:text-ink hover:border-ink/40 transition-colors"
+          className="w-full h-11 flex items-center justify-center gap-2 rounded-full border border-dashed flat-chip-dashed text-muted text-sm hover:text-ink transition-colors"
         >
           <Plus size={14} />
           Add Subscription

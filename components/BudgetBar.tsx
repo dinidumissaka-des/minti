@@ -42,14 +42,12 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
 
   if (!budget && !editing) {
     return (
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-        <button
-          onClick={openEdit}
-          className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-xl"
-        >
-          + Set a monthly budget
-        </button>
-      </GlassSurface>
+      <button
+        onClick={openEdit}
+        className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-[28px]"
+      >
+        + Set a monthly budget
+      </button>
     );
   }
 

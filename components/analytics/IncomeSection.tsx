@@ -201,68 +201,70 @@ const IncomeSection = memo(function IncomeSection({
         </GlassSurface>
       )}
 
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-        {editingBaseline ? (
-          <div className="px-4 py-4 flex items-center gap-3 w-full">
-            <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
-            <input
-              ref={baselineRef}
-              type="number"
-              value={baselineInput}
-              onChange={(e) => setBaselineInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
-              placeholder="Monthly income"
-              aria-label="Monthly income"
-              className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
-              <Check size={13} />
-            </button>
-            <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
-              <X size={13} />
-            </button>
-          </div>
-        ) : monthlyIncome ? (
-          <div className="px-4 py-4 flex items-center justify-between w-full">
-            <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted font-semibold">Monthly Income</span>
-              <span className="font-mono text-base text-ink font-semibold">
-                {mask(formatAmount(entriesTotal > 0 ? totalIncome : monthlyIncome, currency))}
-                <span className="text-muted text-xs font-normal ml-1">{currency}</span>
-              </span>
-              {entriesTotal > 0 && (
-                <span className="font-mono text-xs text-muted">
-                  {mask(formatAmount(monthlyIncome, currency))} base + {mask(formatAmount(entriesTotal, currency))} one-off
+      {editingBaseline || monthlyIncome || entriesTotal > 0 ? (
+        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+          {editingBaseline ? (
+            <div className="px-4 py-4 flex items-center gap-3 w-full">
+              <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
+              <input
+                ref={baselineRef}
+                type="number"
+                value={baselineInput}
+                onChange={(e) => setBaselineInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
+                placeholder="Monthly income"
+                aria-label="Monthly income"
+                className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
+                <Check size={13} />
+              </button>
+              <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
+                <X size={13} />
+              </button>
+            </div>
+          ) : monthlyIncome ? (
+            <div className="px-4 py-4 flex items-center justify-between w-full">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-sans text-xs text-muted font-semibold">Monthly Income</span>
+                <span className="font-mono text-base text-ink font-semibold">
+                  {mask(formatAmount(entriesTotal > 0 ? totalIncome : monthlyIncome, currency))}
+                  <span className="text-muted text-xs font-normal ml-1">{currency}</span>
                 </span>
-              )}
+                {entriesTotal > 0 && (
+                  <span className="font-mono text-xs text-muted">
+                    {mask(formatAmount(monthlyIncome, currency))} base + {mask(formatAmount(entriesTotal, currency))} one-off
+                  </span>
+                )}
+              </div>
+              <button onClick={openBaselineEdit} aria-label="Edit monthly income" className="text-muted hover:text-ink transition-colors">
+                <Pencil size={12} />
+              </button>
             </div>
-            <button onClick={openBaselineEdit} aria-label="Edit monthly income" className="text-muted hover:text-ink transition-colors">
-              <Pencil size={12} />
-            </button>
-          </div>
-        ) : entriesTotal > 0 ? (
-          <div className="px-4 py-4 flex items-center justify-between w-full">
-            <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted font-semibold">Income This Month</span>
-              <span className="font-mono text-base text-ink font-semibold">
-                {mask(formatAmount(entriesTotal, currency))}
-                <span className="text-muted text-xs font-normal ml-1">{currency}</span>
-              </span>
-              <span className="font-mono text-xs text-muted">From one-off entries</span>
+          ) : (
+            <div className="px-4 py-4 flex items-center justify-between w-full">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-sans text-xs text-muted font-semibold">Income This Month</span>
+                <span className="font-mono text-base text-ink font-semibold">
+                  {mask(formatAmount(entriesTotal, currency))}
+                  <span className="text-muted text-xs font-normal ml-1">{currency}</span>
+                </span>
+                <span className="font-mono text-xs text-muted">From one-off entries</span>
+              </div>
+              <button onClick={openBaselineEdit} aria-label="Set monthly income baseline" className="text-muted hover:text-ink transition-colors text-xs font-mono">
+                + baseline
+              </button>
             </div>
-            <button onClick={openBaselineEdit} aria-label="Set monthly income baseline" className="text-muted hover:text-ink transition-colors text-xs font-mono">
-              + baseline
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={openBaselineEdit}
-            className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed border-ink/20 rounded-xl"
-          >
-            + Set monthly income baseline
-          </button>
-        )}
-      </GlassSurface>
+          )}
+        </GlassSurface>
+      ) : (
+        <button
+          onClick={openBaselineEdit}
+          className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-[28px]"
+        >
+          + Set monthly income baseline
+        </button>
+      )}
 
       <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
         <div className="w-full">
