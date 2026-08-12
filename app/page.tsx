@@ -513,7 +513,7 @@ export default function Home() {
                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
                   active
                     ? "glass-chip-active text-ink border"
-                    : "text-ink/35 hover:text-ink/70"
+                    : "text-ink/55 hover:text-ink/80"
                 }`}
               >
                 <Icon size={22} weight={active ? "fill" : "regular"} />
@@ -526,7 +526,7 @@ export default function Home() {
             className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
               view === "insights"
                 ? "glass-chip-active text-ink border"
-                : "text-ink/35 hover:text-ink/70"
+                : "text-ink/55 hover:text-ink/80"
             }`}
           >
             <Lightbulb size={22} weight={view === "insights" ? "fill" : "regular"} />

@@ -89,34 +89,36 @@ html.light {
     border-color: rgb(var(--ink) / 0.2);
   }
 
-  /* Floating chrome (bottom nav, mobile header controls). Reads as glass only
-     where content scrolls beneath it — over a static background it is just a
-     translucent fill. The inset top highlight fakes the specular rim that
-     iOS draws natively and backdrop-filter cannot. */
+  /* Floating chrome (bottom nav, mobile header controls). The material mostly
+     occludes what is behind it — iOS glass reads as glass through the tinted
+     edge and the specular rim, not through heavy transparency. Letting content
+     stay legible through the bar just looks like a noisy translucent panel.
+     The selected pill must contrast *against the bar*: darker in light mode,
+     lighter in dark mode. */
   .glass-chip {
-    background-color: rgb(var(--ink) / 0.06);
-    border-color: rgb(var(--ink) / 0.12);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background-color: rgb(var(--ink) / 0.10);
+    border-color: rgb(var(--ink) / 0.14);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.12),
-      0 8px 32px rgb(0 0 0 / 0.18);
+      inset 0 1px 0 rgb(255 255 255 / 0.14),
+      0 8px 32px rgb(0 0 0 / 0.28);
   }
   .light .glass-chip {
-    background-color: rgb(255 255 255 / 0.62);
-    border-color: rgb(15 23 11 / 0.08);
+    background-color: rgb(255 255 255 / 0.88);
+    border-color: rgb(15 23 11 / 0.07);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.7),
-      0 8px 32px rgb(15 23 11 / 0.08);
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 8px 28px rgb(15 23 11 / 0.10);
   }
 
   .glass-chip-active {
-    background-color: rgb(var(--ink) / 0.14);
-    border-color: rgb(var(--ink) / 0.18);
+    background-color: rgb(var(--ink) / 0.20);
+    border-color: rgb(var(--ink) / 0.16);
   }
   .light .glass-chip-active {
-    background-color: rgb(255 255 255 / 0.9);
-    border-color: rgb(15 23 11 / 0.06);
+    background-color: rgb(15 23 11 / 0.06);
+    border-color: rgb(15 23 11 / 0.05);
   }
 }
 
