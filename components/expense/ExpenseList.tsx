@@ -189,7 +189,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
               <span className="font-mono text-xs text-muted uppercase tracking-widest whitespace-nowrap">
                 {formatDateLabel(date)}
               </span>
-              <div className="flex-1 h-px bg-ink/[0.05]" />
+              <div className="flex-1 h-px bg-ink/5" />
               <span className="font-mono text-xs text-muted whitespace-nowrap">
                 {currency} {mask(formatAmount(dayTotal, currency))}
               </span>
@@ -203,10 +203,10 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
 
                 if (isEditing && editState) {
                   return (
-                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-ink/[0.03]">
+                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-ink/3">
                       <div className="flex gap-2">
                         <input
-                          className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
+                          className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
                           value={editState.description}
                           onChange={(e) => setEditState({ ...editState, description: e.target.value })}
                           placeholder="Description"
@@ -215,7 +215,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         />
                         <input
                           type="number"
-                          className="w-28 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           value={editState.amount}
                           onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                           placeholder="Amount"
@@ -227,7 +227,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         type="button"
                         onClick={() => setShowCatDrawer(true)}
-                        className="w-full bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                        className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
                       >
                         {editState.category}
                       </button>
@@ -235,7 +235,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           type="button"
                           onClick={() => setShowDateDrawer(true)}
-                          className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                          className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
                         >
                           {formatDateLabel(editState.date)}
                         </button>
@@ -243,14 +243,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           onClick={() => handleSave(expense.id)}
                           disabled={saving}
                           aria-label="Save changes"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0"
                         >
                           <Check size={15} />
                         </button>
                         <button
                           onClick={cancelEdit}
                           aria-label="Cancel editing"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0"
                         >
                           <X size={15} />
                         </button>
@@ -294,8 +294,8 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       className="group relative flex items-center gap-3 px-4 py-4 sm:hover:bg-ink/5 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-text text-[15px] font-sans truncate">{expense.description}</p>
-                        <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/[0.1] text-ink/50">
+                        <p className="text-ink/90 text-[15px] font-sans truncate">{expense.description}</p>
+                        <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/10 text-ink/50">
                           {expense.category}
                         </span>
                       </div>

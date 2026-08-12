@@ -18,7 +18,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-black/60 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-scrim/60 z-[60] transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -55,7 +55,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
             <button
               onClick={onClose}
               aria-label="Close"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] border border-ink/[0.1] text-ink/40 hover:text-ink/90 hover:border-ink/[0.3] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 border border-ink/10 text-ink/40 hover:text-ink/90 hover:border-ink/30 transition-colors"
             >
               <X size={13} />
             </button>

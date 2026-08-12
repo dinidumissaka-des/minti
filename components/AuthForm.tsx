@@ -50,7 +50,7 @@ export default function AuthForm() {
 
   if (signUpDone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-ink/[0.07] sm:rounded-2xl sm:border sm:border-ink/[0.1] sm:p-8">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-ink/7 sm:rounded-2xl sm:border sm:border-ink/10 sm:p-8">
         <p className="font-sans font-semibold text-xl text-ink">Check your email</p>
         <p className="font-sans text-base text-muted">
           We sent a confirmation link to <span className="text-ink font-medium">{email}</span>.
@@ -68,7 +68,7 @@ export default function AuthForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col min-h-[100dvh] px-6 sm:min-h-0 sm:bg-ink/[0.07] sm:rounded-2xl sm:border sm:border-ink/[0.1] sm:p-8 sm:gap-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+2.5rem)]"
+      className="flex flex-col min-h-[100dvh] px-6 sm:min-h-0 sm:bg-ink/7 sm:rounded-2xl sm:border sm:border-ink/10 sm:p-8 sm:gap-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+2.5rem)]"
     >
       {/* Logo + title */}
       <div className="flex items-center gap-3">
@@ -115,16 +115,16 @@ export default function AuthForm() {
         </Button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-ink/[0.08]" />
+          <div className="flex-1 h-px bg-ink/8" />
           <span className="text-xs text-muted font-mono">or</span>
-          <div className="flex-1 h-px bg-ink/[0.08]" />
+          <div className="flex-1 h-px bg-ink/8" />
         </div>
 
         {native && (
           <button
             type="button"
             onClick={() => signInWithApple()}
-            className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-ink/[0.1] bg-ink/[0.05] hover:bg-ink/[0.1] transition-colors text-sm font-medium text-ink"
+            className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-ink/10 bg-ink/5 hover:bg-ink/10 transition-colors text-sm font-medium text-ink"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M14.94 9.57c-.02-2.1 1.71-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.64-1.29-.13-2.52.76-3.18.76-.65 0-1.67-.74-2.74-.72-1.41.02-2.71.82-3.43 2.08-1.46 2.54-.37 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.84-2.22-3.36zM12.86 3.4c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.53.62-1 1.61-.87 2.56.93.07 1.87-.47 2.45-1.16z" />
@@ -136,7 +136,7 @@ export default function AuthForm() {
         <button
           type="button"
           onClick={() => signInWithGoogle()}
-          className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-ink/[0.1] bg-ink/[0.05] hover:bg-ink/[0.1] transition-colors text-sm font-medium text-ink"
+          className="w-full h-11 flex items-center justify-center gap-3 rounded-xl border border-ink/10 bg-ink/5 hover:bg-ink/10 transition-colors text-sm font-medium text-ink"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>

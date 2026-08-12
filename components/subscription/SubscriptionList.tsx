@@ -125,7 +125,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                   <div key={sub.id} className="px-4 py-3 flex flex-col gap-3">
                     <div className="flex gap-2">
                       <input
-                        className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
+                        className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
                         value={editState.name}
                         onChange={(e) => setEditState({ ...editState, name: e.target.value })}
                         placeholder="Name"
@@ -134,7 +134,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       />
                       <input
                         type="number"
-                        className="w-28 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         value={editState.amount}
                         onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                         placeholder="Amount"
@@ -146,16 +146,16 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       <button
                         type="button"
                         onClick={() => setShowEditCatDrawer(true)}
-                        className="flex-1 h-11 flex items-center px-3 rounded-lg border border-ink/[0.1] bg-ink/[0.07] text-[15px] text-ink text-left"
+                        className="flex-1 h-11 flex items-center px-3 rounded-lg border border-ink/10 bg-ink/7 text-[15px] text-ink text-left"
                       >
                         {editState.category}
                       </button>
                       <button onClick={() => handleSave(sub.id)} disabled={saving} aria-label="Save changes"
-                        className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0">
+                        className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0">
                         <Check size={15} />
                       </button>
                       <button onClick={() => { setEditingId(null); setEditState(null); }} aria-label="Cancel editing"
-                        className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0">
+                        className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
                         <X size={15} />
                       </button>
                     </div>
@@ -199,7 +199,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-ink text-[15px] font-sans truncate">{sub.name}</p>
-                      <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/[0.1] text-ink/50">
+                      <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/10 text-ink/50">
                         {sub.category}
                       </span>
                     </div>
@@ -229,7 +229,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
         <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
           <div className="p-4 flex flex-col gap-3 w-full">
             <input
-              className="w-full bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-10 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
+              className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Name (e.g. Netflix)"
@@ -238,7 +238,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
             />
             <input
               type="number"
-              className="w-full bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-10 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               value={newAmount}
               onChange={(e) => setNewAmount(e.target.value)}
               placeholder="Amount"
@@ -256,7 +256,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
               <button
                 onClick={handleAdd}
                 disabled={adding}
-                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-full bg-accent-fill text-[#163300] font-semibold text-sm disabled:opacity-50"
+                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-full bg-accent-fill text-accent-on font-semibold text-sm disabled:opacity-50"
               >
                 {adding ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
                 {adding ? "Adding…" : "Add Subscription"}

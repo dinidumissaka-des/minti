@@ -300,7 +300,7 @@ export default function Home() {
 
   if (user === null) {
     return (
-      <main className="relative z-10 text-text sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <main className="relative z-10 text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="w-full sm:max-w-sm">
           <AuthForm />
         </div>
@@ -309,7 +309,7 @@ export default function Home() {
   }
 
   return (
-    <main id="main-content" className="relative z-10 min-h-screen text-text">
+    <main id="main-content" className="relative z-10 min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
@@ -342,7 +342,7 @@ export default function Home() {
             className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
               currency === c.code
                 ? "text-accent bg-accent-fill/10"
-                : "text-ink hover:bg-ink/[0.07]"
+                : "text-ink hover:bg-ink/7"
             }`}
           >
             <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -361,7 +361,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "month" ? null : "month")}
           aria-expanded={expandedSection === "month"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Month</span>
           <div className="flex items-center gap-2">
@@ -374,12 +374,12 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setPickerYear(y => y - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
               >‹</button>
               <span className="font-mono text-sm font-semibold text-ink">{pickerYear}</span>
               <button
                 onClick={() => setPickerYear(y => y + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
               >›</button>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -406,7 +406,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "currency" ? null : "currency")}
           aria-expanded={expandedSection === "currency"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Currency</span>
           <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export default function Home() {
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
-                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/[0.07]"
+                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/7"
                 }`}
               >
                 <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -434,7 +434,7 @@ export default function Home() {
         {/* Insights */}
         <button
           onClick={() => { setShowMoreDrawer(false); setView("insights"); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Insights</span>
           <Lightbulb size={14} className="text-ink/40" />
@@ -443,7 +443,7 @@ export default function Home() {
         {/* Currency converter */}
         <button
           onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Convert currency</span>
           <ArrowsLeftRight size={14} className="text-ink/40" />
@@ -455,7 +455,7 @@ export default function Home() {
             exportCSV();
             setShowMoreDrawer(false);
           }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Export CSV</span>
           <Download size={14} className="text-ink/40" />
@@ -466,7 +466,7 @@ export default function Home() {
             onClick={toggleAppLock}
             role="switch"
             aria-checked={appLock}
-            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
           >
             <span className="text-ink/60">Require Face ID</span>
             <span className={`font-mono text-xs font-semibold ${appLock ? "text-accent" : "text-ink/40"}`}>
@@ -479,7 +479,7 @@ export default function Home() {
             onClick={toggleBillingReminders}
             role="switch"
             aria-checked={billingReminders}
-            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
           >
             <span className="text-ink/60">Billing reminders</span>
             <span className={`font-mono text-xs font-semibold ${billingReminders ? "text-accent" : "text-ink/40"}`}>
@@ -490,7 +490,7 @@ export default function Home() {
         {/* Sign out */}
         <button
           onClick={() => { signOut(); setShowMoreDrawer(false); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-ink/7 transition-colors"
         >
           <span>Sign out</span>
           <LogOut size={14} />
@@ -656,7 +656,7 @@ export default function Home() {
               <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
             </div>
             <GlassSurface borderRadius={28}>
-              <div className="w-full grid grid-cols-2 divide-x divide-ink/[0.07]">
+              <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                 <div className="px-5 py-4 flex flex-col gap-1">
                   <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Active</span>
                   <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
@@ -706,7 +706,7 @@ export default function Home() {
             {/* Expense list / loading / error */}
             <div key={filter} className="animate-fade-slide-in">
               {fetchError ? (
-                <div className="bg-ink/[0.07] rounded-xl border border-danger-fill/40 p-5 text-center">
+                <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
                   <p className="text-danger font-mono text-sm">{fetchError}</p>
                   <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
                     Retry
@@ -766,18 +766,18 @@ function LoadingSkeleton() {
       {[0, 1].map((g) => (
         <div key={g}>
           <div className="flex justify-between mb-2 px-1">
-            <div className="h-3 w-16 bg-ink/[0.07] rounded" />
-            <div className="h-3 w-20 bg-ink/[0.07] rounded" />
+            <div className="h-3 w-16 bg-ink/7 rounded" />
+            <div className="h-3 w-20 bg-ink/7 rounded" />
           </div>
-          <div className="bg-ink/[0.04] rounded-xl border border-ink/[0.07] overflow-hidden divide-y divide-ink/[0.08]">
+          <div className="bg-ink/4 rounded-xl border border-ink/7 overflow-hidden divide-y divide-ink/8">
             {[0, 1, 2].map((r) => (
               <div key={r} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-ink/[0.07] flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-ink/7 flex-shrink-0" />
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <div className="h-3 w-2/3 bg-ink/[0.07] rounded" />
-                  <div className="h-2.5 w-1/4 bg-ink/[0.07] rounded-full" />
+                  <div className="h-3 w-2/3 bg-ink/7 rounded" />
+                  <div className="h-2.5 w-1/4 bg-ink/7 rounded-full" />
                 </div>
-                <div className="h-3 w-20 bg-ink/[0.07] rounded" />
+                <div className="h-3 w-20 bg-ink/7 rounded" />
               </div>
             ))}
           </div>

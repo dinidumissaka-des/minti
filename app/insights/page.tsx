@@ -84,7 +84,7 @@ export default function InsightsPage() {
   }
 
   return (
-    <main id="main-content" className="relative z-10 min-h-screen text-text">
+    <main id="main-content" className="relative z-10 min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       <div
         className="max-w-2xl mx-auto px-4 pb-16 flex flex-col gap-4"

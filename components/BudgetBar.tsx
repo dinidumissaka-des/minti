@@ -68,10 +68,10 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
           aria-label="Monthly budget amount"
           className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] flex-shrink-0">
+        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
           <Check size={13} />
         </button>
-        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0">
+        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
           <X size={13} />
         </button>
       </div>
@@ -93,7 +93,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
         </button>
       </div>
 
-      <div className="h-1.5 w-full bg-ink/[0.08] rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-ink/8 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${over ? "bg-danger-fill" : "bg-accent-fill"}`}
           style={{ width: `${percentage}%` }}

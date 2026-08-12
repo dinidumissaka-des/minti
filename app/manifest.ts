@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
+import { BRAND } from "@/lib/brand";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Minti",
     short_name: "Minti",
     description: "Personal expense tracker",
-    theme_color: "#060e03",
-    background_color: "#060e03",
+    theme_color: BRAND.backgroundDark,
+    background_color: BRAND.backgroundDark,
     start_url: "/",
     display: "standalone",
     icons: [

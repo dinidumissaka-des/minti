@@ -11,10 +11,7 @@ const config: Config = {
       colors: {
         background: "rgb(var(--background) / <alpha-value>)",
         ink:        "rgb(var(--ink)        / <alpha-value>)",
-        surface:    "rgb(var(--ink) / 0.07)",
-        surface2:   "rgb(var(--ink) / 0.12)",
-        border:     "rgb(var(--ink) / 0.10)",
-        text:       "rgb(var(--ink) / 0.88)",
+        scrim:      "rgb(var(--scrim)      / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",
         "accent-fill":"rgb(var(--accent)      / <alpha-value>)",
@@ -22,7 +19,6 @@ const config: Config = {
         primary:      "rgb(var(--accent)      / <alpha-value>)",
         danger:       "rgb(var(--danger-text) / <alpha-value>)",
         "danger-fill":"rgb(var(--danger)      / <alpha-value>)",
-        tertiary:   "#00B67A",
         // shadcn aliases
         foreground:           "rgb(var(--ink) / 0.88)",
         card:                 { DEFAULT: "rgb(var(--ink) / 0.07)", foreground: "rgb(var(--ink) / 0.88)" },
@@ -33,6 +29,16 @@ const config: Config = {
         input:                "rgb(var(--ink) / 0.13)",
         ring:                 "rgb(var(--accent) / <alpha-value>)",
         "primary-foreground": "rgb(var(--accent-on) / <alpha-value>)",
+      },
+      // Low-alpha surface steps the design system uses. Tailwind's default
+      // opacity scale only goes in fives, so without these the class silently
+      // generates nothing.
+      opacity: {
+        3: "0.03",
+        4: "0.04",
+        6: "0.06",
+        7: "0.07",
+        8: "0.08",
       },
       fontFamily: {
         serif:     ["var(--font-manrope)", "sans-serif"],

@@ -52,7 +52,7 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
 
       {/* Today + Avg/Day — one container */}
       <GlassSurface borderRadius={28}>
-        <div className="w-full grid grid-cols-2 divide-x divide-ink/[0.07]">
+        <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
           <div className="px-5 py-4 flex flex-col gap-1">
             <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">
               Today

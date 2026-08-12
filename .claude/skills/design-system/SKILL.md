@@ -9,10 +9,10 @@ GlassSurface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPr
 
 | Use | Class |
 |-----|-------|
-| Card background | `bg-ink/[0.07]` |
+| Card background | `bg-ink/7` |
 | Elevated surface | `bg-ink/10` |
-| Subtle border | `border-ink/[0.1]` |
-| Active border | `border-ink/[0.15]` or `border-ink/25` |
+| Subtle border | `border-ink/10` |
+| Active border | `border-ink/15` or `border-ink/25` |
 | Body text | `text-ink` |
 | Muted text | `text-muted` (= ink/50%) |
 
@@ -38,7 +38,7 @@ className={active ? "flat-chip-active text-ink border" : "text-ink/40 hover:text
 If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS class rather than hardcoding a one-off opacity in the component — keeps every chip in sync.
 
 ## Accent & danger — fill vs bare text (applies on both surface types)
-- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-[#163300]`.
+- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
 - **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#9FE870` for this.
 
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.

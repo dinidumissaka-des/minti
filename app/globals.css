@@ -15,32 +15,27 @@ html.light {
 .dark {
   --background:  10  15  8;
   --ink:         255 255 255;
-  --surface:     255 255 255;
-  --surface2:    255 255 255;
-  --border:      255 255 255;
-  --foreground:  255 255 255;
-  --muted:       255 255 255;
   --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: 159 232 112;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
   --danger-text: 224 92  92;
-  --radius:      1rem;
+  --scrim:       0   0   0;
 }
 
 .light {
   --background:  247 250 243;
   --ink:         15  23  11;
-  --surface:     15  23  11;
-  --surface2:    15  23  11;
-  --border:      15  23  11;
-  --foreground:  15  23  11;
-  --muted:       15  23  11;
   --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: 63  122 31;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
+  --scrim:       15  23  11;
 }
 
 @layer base {

@@ -109,7 +109,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
               aria-label="Amount"
               className="w-full bg-transparent text-right text-6xl font-bold text-ink placeholder:text-ink/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg"
             />
-            <div className="h-px w-16 bg-ink/[0.1] mt-1" />
+            <div className="h-px w-16 bg-ink/10 mt-1" />
           </div>
 
           {/* Description */}

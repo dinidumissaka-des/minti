@@ -110,7 +110,7 @@ const CategoryChart = memo(function CategoryChart({
                   <span className="font-mono text-[15px] text-ink font-medium">{mask(formatAmount(amount, currency))}</span>
                 </div>
               </div>
-              <div className="h-2 w-full bg-ink/[0.06] rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-ink/6 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${pct}%`, backgroundColor: color }}
@@ -284,9 +284,9 @@ const InsightCards = memo(function InsightCards({
             style={{
               minHeight: cardMinH || undefined,
               ...(insight.type === "positive"
-                ? { borderColor: "rgba(159,232,112,0.2)" }
+                ? { borderColor: "rgb(var(--accent) / 0.2)" }
                 : insight.type === "warning"
-                ? { borderColor: "rgba(224,92,92,0.2)" }
+                ? { borderColor: "rgb(var(--danger) / 0.2)" }
                 : {}),
             }}
           >
