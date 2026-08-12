@@ -45,8 +45,12 @@ The same source runs on both targets and branches on `isNative()` (`lib/platform
 | OAuth flow | implicit, redirect to origin | PKCE, in-app browser returning to `com.minti.app://auth/callback` |
 | CSV export | `<a download>` blob | file written to cache, handed to the iOS share sheet |
 | Service worker / install prompt | active | skipped |
+| Haptics | `navigator.vibrate` (no-op on iOS Safari) | Taptic Engine |
+| Face ID lock, billing reminders | unavailable | opt-in from the Menu drawer |
 
 **Before Google sign-in works on device**, add `com.minti.app://auth/callback` to the redirect allow-list in the Supabase dashboard under *Authentication → URL Configuration → Redirect URLs*. Without it Supabase refuses the callback and the in-app browser dead-ends on an error page.
+
+Billing reminders schedule one repeating local notification per subscription, firing at 09:00 on each subscription's `billing_day`. They are rescheduled from scratch whenever the subscription list or currency changes, and cancelled when the setting is turned off.
 
 To learn more about Next.js, take a look at the following resources:
 

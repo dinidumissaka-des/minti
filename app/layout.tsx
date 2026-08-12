@@ -5,6 +5,7 @@ import "./globals.css";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import NativeAuthListener from "@/components/NativeAuthListener";
+import AppLock from "@/components/AppLock";
 import ClientProviders from "@/components/ClientProviders";
 import AppBackground from "@/components/background/AppBackground";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           <InstallPrompt />
           <ServiceWorkerRegistration />
           <NativeAuthListener />
+          <AppLock />
         </ClientProviders>
       </body>
     </html>

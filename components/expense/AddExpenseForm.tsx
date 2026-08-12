@@ -3,6 +3,7 @@
 import { useState, useRef, FormEvent } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
+import { hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import GlassSurface from "@/components/GlassSurface";
@@ -79,10 +80,12 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
       setDescription(""); setCategory(PRESET_CATEGORIES[0]); setCustomCategory("");
       setAmount(""); setDisplayAmount(""); setDate(new Date().toISOString().split("T")[0]);
       setSuccess(true);
+      hapticSuccess();
       setTimeout(() => setSuccess(false), 2000);
       onExpenseAdded();
     } catch {
       setError("Failed to add expense. Please try again.");
+      hapticError();
     } finally {
       setSubmitting(false);
     }

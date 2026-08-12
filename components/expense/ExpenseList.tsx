@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
+import { hapticTap, hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import { CATEGORY_COLORS } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
@@ -91,7 +92,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
   }
 
   async function handleDelete(id: string) {
-    if ("vibrate" in navigator) navigator.vibrate(18);
+    hapticBump();
     setDeletingId(id);
     try {
       await deleteExpense(id);
@@ -140,7 +141,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
     if (dy > 10 && Math.abs(dx) < dy) return; // vertical scroll, ignore
     const clamped = Math.max(-110, Math.min(0, dx));
     if (Math.abs(touchDx.current) < SWIPE_THRESHOLD && Math.abs(clamped) >= SWIPE_THRESHOLD) {
-      if ("vibrate" in navigator) navigator.vibrate(8);
+      hapticTap();
     }
     touchDx.current = clamped;
     const el = rowRefs.current[id];
@@ -150,7 +151,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
   function onTouchEnd(id: string) {
     const dx = touchDx.current;
     if (dx < -SWIPE_THRESHOLD) {
-      if ("vibrate" in navigator) navigator.vibrate(18);
+      hapticBump();
       snapToReveal(id);
     } else {
       snapBack(id);

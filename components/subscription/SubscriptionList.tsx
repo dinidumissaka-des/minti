@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 import { addSubscription, deleteSubscription, updateSubscription } from "@/lib/supabase";
+import { hapticBump, hapticSuccess } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import { CATEGORY_COLORS } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
@@ -48,10 +49,6 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
 
   const monthlyTotal = subscriptions.reduce((s, sub) => s + Number(sub.amount), 0);
 
-  function haptic(ms: number) {
-    if ("vibrate" in navigator) navigator.vibrate(ms);
-  }
-
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -61,7 +58,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
     const deltaX = touchStartX.current - e.changedTouches[0].clientX;
     const deltaY = Math.abs(touchStartY.current - e.changedTouches[0].clientY);
     if (deltaY > 40) return;
-    if (deltaX > 50) { haptic(18); setSwipedId(subId); }
+    if (deltaX > 50) { hapticBump(); setSwipedId(subId); }
     else if (deltaX < -20) setSwipedId(null);
   }
 
@@ -74,6 +71,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
       await addSubscription(data, userId);
       setNewName(""); setNewAmount(""); setNewCategory(PRESET_CATEGORIES[0]);
       setShowAdd(false);
+      hapticSuccess();
       onChanged();
     } finally {
       setAdding(false);
@@ -101,7 +99,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
   }
 
   async function handleDelete(id: string) {
-    haptic(18);
+    hapticBump();
     setSwipedId(null);
     setDeletingId(id);
     try {

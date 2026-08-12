@@ -26,6 +26,9 @@ import BottomDrawer from "@/components/BottomDrawer";
 import CurrencyConverter from "@/components/CurrencyConverter";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { useTheme } from "@/components/ThemeContext";
+import { isNative } from "@/lib/platform";
+import { isBiometryAvailable, isAppLockEnabled, setAppLockEnabled, authenticate } from "@/lib/appLock";
+import { areRemindersEnabled, setRemindersEnabled, requestPermission, syncBillingReminders } from "@/lib/notifications";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
@@ -69,6 +72,10 @@ export default function Home() {
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
   const [expandedSection, setExpandedSection] = useState<"month" | "currency" | null>(null);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
+  const [native, setNative] = useState(false);
+  const [biometryAvailable, setBiometryAvailable] = useState(false);
+  const [appLock, setAppLock] = useState(false);
+  const [billingReminders, setBillingReminders] = useState(false);
   const currencyRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { privacyMode, togglePrivacy, mask } = usePrivacy();
@@ -209,6 +216,33 @@ export default function Home() {
       if (month === 12) return { year: year + 1, month: 1 };
       return { year, month: month + 1 };
     });
+  }
+
+  useEffect(() => {
+    if (!isNative()) return;
+    setNative(true);
+    isBiometryAvailable().then(setBiometryAvailable);
+    isAppLockEnabled().then(setAppLock);
+    areRemindersEnabled().then(setBillingReminders);
+  }, []);
+
+  useEffect(() => {
+    if (!isNative() || !user) return;
+    syncBillingReminders(subscriptions, currency).catch(() => {});
+  }, [user, subscriptions, currency, billingReminders]);
+
+  async function toggleAppLock() {
+    const next = !appLock;
+    if (next && !(await authenticate())) return;
+    await setAppLockEnabled(next);
+    setAppLock(next);
+  }
+
+  async function toggleBillingReminders() {
+    const next = !billingReminders;
+    if (next && !(await requestPermission())) return;
+    await setRemindersEnabled(next);
+    setBillingReminders(next);
   }
 
   function exportCSV() {
@@ -411,6 +445,33 @@ export default function Home() {
           <span className="text-ink/60">Export CSV</span>
           <Download size={14} className="text-ink/40" />
         </button>
+        {/* Native-only settings */}
+        {native && biometryAvailable && (
+          <button
+            onClick={toggleAppLock}
+            role="switch"
+            aria-checked={appLock}
+            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          >
+            <span className="text-ink/60">Require Face ID</span>
+            <span className={`font-mono text-xs font-semibold ${appLock ? "text-accent" : "text-ink/40"}`}>
+              {appLock ? "ON" : "OFF"}
+            </span>
+          </button>
+        )}
+        {native && (
+          <button
+            onClick={toggleBillingReminders}
+            role="switch"
+            aria-checked={billingReminders}
+            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          >
+            <span className="text-ink/60">Billing reminders</span>
+            <span className={`font-mono text-xs font-semibold ${billingReminders ? "text-accent" : "text-ink/40"}`}>
+              {billingReminders ? "ON" : "OFF"}
+            </span>
+          </button>
+        )}
         {/* Sign out */}
         <button
           onClick={() => { signOut(); setShowMoreDrawer(false); }}

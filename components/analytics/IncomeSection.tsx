@@ -5,6 +5,7 @@ import { Plus, Trash2, Check, X, Pencil, Loader2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Subscription, Income } from "@/types";
 import { getIncomeByMonth, addIncome, deleteIncome, upsertUserSettings } from "@/lib/supabase";
+import { hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
@@ -75,7 +76,7 @@ const IncomeSection = memo(function IncomeSection({
     const deltaY = Math.abs(incomeTouchStartY.current - e.changedTouches[0].clientY);
     if (deltaY > 40) return;
     if (deltaX > 50) {
-      if ("vibrate" in navigator) navigator.vibrate(18);
+      hapticBump();
       setSwipedIncomeId(entryId);
     } else if (deltaX < -20) {
       setSwipedIncomeId(null);
