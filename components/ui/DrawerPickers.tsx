@@ -68,7 +68,7 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
             <button
               key={iso}
               onClick={() => { onChange(iso); onClose(); }}
-              className={`aspect-square flex items-center justify-center rounded-full text-[15px] font-mono mx-auto w-10 h-10 transition-colors ${
+              className={`aspect-square flex items-center justify-center rounded-full text-body font-mono mx-auto w-10 h-10 transition-colors ${
                 isSelected
                   ? "bg-accent-fill text-accent-on font-bold"
                   : isToday
@@ -104,7 +104,7 @@ export function CategoryList({
           onClick={() => onSelect(cat)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === cat ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink">{cat}</span>
+          <span className="flex-1 text-body font-sans text-ink">{cat}</span>
           {selected === cat && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
@@ -114,7 +114,7 @@ export function CategoryList({
           onClick={() => onSelect(value)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === value ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink/60">{label}</span>
+          <span className="flex-1 text-body font-sans text-ink/60">{label}</span>
           {selected === value && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
@@ -133,7 +133,7 @@ export function SourceList({ sources, selected, onSelect }: { sources: string[];
           onClick={() => onSelect(source)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === source ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink">{source}</span>
+          <span className="flex-1 text-body font-sans text-ink">{source}</span>
           {selected === source && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}

@@ -82,7 +82,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
           value={amount}
           onChange={handleAmountChange}
           placeholder="0"
-          className="w-full h-[52px] rounded-xl border border-ink/10 bg-ink/7 px-4 text-lg font-mono text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full h-control rounded-xl border border-ink/10 bg-ink/7 px-4 text-lg font-mono text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
         />
       </div>
 
@@ -93,7 +93,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
             id={fromId}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-ink/10 bg-ink/7 px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
+            className="w-full h-control rounded-xl border border-ink/10 bg-ink/7 px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
               <option key={c.code} value={c.code} className="bg-background text-ink">
@@ -106,7 +106,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         <button
           onClick={swap}
           aria-label="Swap currencies"
-          className="h-[52px] w-[52px] shrink-0 flex items-center justify-center rounded-xl border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors"
+          className="h-control w-control shrink-0 flex items-center justify-center rounded-xl border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors"
         >
           <ArrowsLeftRight size={18} />
         </button>
@@ -117,7 +117,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
             id={toId}
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="w-full h-[52px] rounded-xl border border-ink/10 bg-ink/7 px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
+            className="w-full h-control rounded-xl border border-ink/10 bg-ink/7 px-3 text-ink font-mono font-semibold outline-none focus:border-ink/40 appearance-none"
           >
             {CURRENCIES.map((c) => (
               <option key={c.code} value={c.code} className="bg-background text-ink">

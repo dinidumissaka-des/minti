@@ -146,7 +146,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       <button
                         type="button"
                         onClick={() => setShowEditCatDrawer(true)}
-                        className="flex-1 h-11 flex items-center px-3 rounded-lg border border-ink/10 bg-ink/7 text-[15px] text-ink text-left"
+                        className="flex-1 h-11 flex items-center px-3 rounded-lg border border-ink/10 bg-ink/7 text-body text-ink text-left"
                       >
                         {editState.category}
                       </button>
@@ -198,7 +198,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                     style={{ transform: isSwiped ? "translateX(-88px)" : "translateX(0)" }}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-ink text-[15px] font-sans truncate">{sub.name}</p>
+                      <p className="text-ink text-body font-sans truncate">{sub.name}</p>
                       <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/10 text-ink/50">
                         {sub.category}
                       </span>
@@ -207,13 +207,13 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       {mask(formatAmount(Number(sub.amount), currency))}<span className="text-muted text-xs">/mo</span>
                     </span>
                     {/* Hover actions (desktop) */}
-                    <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-[60px] transition-all duration-200 flex-shrink-0">
+                    <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
                       <button onClick={() => startEdit(sub)} aria-label="Edit"
-                        className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink transition-colors flex-shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-ink transition-colors flex-shrink-0">
                         <Pencil size={13} />
                       </button>
                       <button onClick={() => handleDelete(sub.id)} disabled={deletingId === sub.id} aria-label="Delete"
-                        className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0">
                         {deletingId === sub.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
                       </button>
                     </div>

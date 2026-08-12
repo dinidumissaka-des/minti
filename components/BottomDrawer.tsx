@@ -18,7 +18,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-scrim/60 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-scrim/60 z-scrim transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -28,7 +28,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed z-[70] backdrop-blur-2xl border-ink/10 transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed z-drawer backdrop-blur-2xl border-ink/10 transition-transform duration-300 ease-out flex flex-col ${
           fullScreen
             ? `inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
             : `bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`

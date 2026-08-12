@@ -73,7 +73,7 @@ function Button({ className, variant, size, children, ...props }: ButtonProps) {
           <span className="absolute inset-0 w-1/3 bg-[linear-gradient(105deg,transparent,rgba(255,255,255,0.45),transparent)] animate-glass-sheen pointer-events-none" />
           {/* Top glass reflection */}
           <span className="absolute inset-x-0 top-0 h-[45%] rounded-t-full bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,transparent_100%)] pointer-events-none" />
-          <span className="relative z-10 flex items-center gap-2">{children}</span>
+          <span className="relative z-content flex items-center gap-2">{children}</span>
         </span>
       </button>
     );

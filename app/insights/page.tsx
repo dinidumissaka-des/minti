@@ -77,14 +77,14 @@ export default function InsightsPage() {
 
   if (user === undefined) {
     return (
-      <main className="relative z-10 min-h-screen flex items-center justify-center">
+      <main className="relative z-content min-h-screen flex items-center justify-center">
         <Ripple className="w-11 h-11 text-accent" />
       </main>
     );
   }
 
   return (
-    <main id="main-content" className="relative z-10 min-h-screen text-ink/90">
+    <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       <div
         className="max-w-2xl mx-auto px-4 pb-16 flex flex-col gap-4"

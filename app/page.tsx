@@ -292,7 +292,7 @@ export default function Home() {
 
   if (user === undefined) {
     return (
-      <main className="relative z-10 min-h-screen flex items-center justify-center">
+      <main className="relative z-content min-h-screen flex items-center justify-center">
         <Ripple className="w-11 h-11 text-accent" />
       </main>
     );
@@ -300,7 +300,7 @@ export default function Home() {
 
   if (user === null) {
     return (
-      <main className="relative z-10 text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <main className="relative z-content text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="w-full sm:max-w-sm">
           <AuthForm />
         </div>
@@ -309,7 +309,7 @@ export default function Home() {
   }
 
   return (
-    <main id="main-content" className="relative z-10 min-h-screen text-ink/90">
+    <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
@@ -361,7 +361,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "month" ? null : "month")}
           aria-expanded={expandedSection === "month"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Month</span>
           <div className="flex items-center gap-2">
@@ -406,7 +406,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "currency" ? null : "currency")}
           aria-expanded={expandedSection === "currency"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Currency</span>
           <div className="flex items-center gap-2">
@@ -434,7 +434,7 @@ export default function Home() {
         {/* Insights */}
         <button
           onClick={() => { setShowMoreDrawer(false); setView("insights"); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Insights</span>
           <Lightbulb size={14} className="text-ink/40" />
@@ -443,7 +443,7 @@ export default function Home() {
         {/* Currency converter */}
         <button
           onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Convert currency</span>
           <ArrowsLeftRight size={14} className="text-ink/40" />
@@ -455,7 +455,7 @@ export default function Home() {
             exportCSV();
             setShowMoreDrawer(false);
           }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Export CSV</span>
           <Download size={14} className="text-ink/40" />
@@ -466,7 +466,7 @@ export default function Home() {
             onClick={toggleAppLock}
             role="switch"
             aria-checked={appLock}
-            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
           >
             <span className="text-ink/60">Require Face ID</span>
             <span className={`font-mono text-xs font-semibold ${appLock ? "text-accent" : "text-ink/40"}`}>
@@ -479,7 +479,7 @@ export default function Home() {
             onClick={toggleBillingReminders}
             role="switch"
             aria-checked={billingReminders}
-            className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/7 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
           >
             <span className="text-ink/60">Billing reminders</span>
             <span className={`font-mono text-xs font-semibold ${billingReminders ? "text-accent" : "text-ink/40"}`}>
@@ -490,7 +490,7 @@ export default function Home() {
         {/* Sign out */}
         <button
           onClick={() => { signOut(); setShowMoreDrawer(false); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-ink/7 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-danger hover:bg-ink/7 transition-colors"
         >
           <span>Sign out</span>
           <LogOut size={14} />
@@ -498,7 +498,7 @@ export default function Home() {
       </BottomDrawer>
 
       {/* Bottom nav — mobile only */}
-      <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
+      <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-nav px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
         <div className="flex items-center h-16 p-1.5 rounded-3xl border flat-chip">
           {([
             { key: "expenses", label: "Expenses", Icon: CreditCard },
@@ -615,7 +615,7 @@ export default function Home() {
               >
                 ‹
               </button>
-              <span className="font-sans text-[15px] text-ink font-medium min-w-[72px] text-center">
+              <span className="font-sans text-body text-ink font-medium min-w-[72px] text-center">
                 {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
               </span>
               <button

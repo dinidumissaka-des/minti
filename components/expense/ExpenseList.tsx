@@ -227,7 +227,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         type="button"
                         onClick={() => setShowCatDrawer(true)}
-                        className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                        className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                       >
                         {editState.category}
                       </button>
@@ -235,7 +235,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           type="button"
                           onClick={() => setShowDateDrawer(true)}
-                          className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                          className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                         >
                           {formatDateLabel(editState.date)}
                         </button>
@@ -294,7 +294,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       className="group relative flex items-center gap-3 px-4 py-4 sm:hover:bg-ink/5 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-ink/90 text-[15px] font-sans truncate">{expense.description}</p>
+                        <p className="text-ink/90 text-body font-sans truncate">{expense.description}</p>
                         <span className="inline-block mt-0.5 text-xs font-mono px-1.5 py-0.5 rounded-full bg-ink/10 text-ink/50">
                           {expense.category}
                         </span>
@@ -311,11 +311,11 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       </span>
 
                       {/* Desktop hover actions */}
-                      <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-[60px] transition-all duration-200 flex-shrink-0">
+                      <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
                         <button
                           onClick={() => startEdit(expense)}
                           aria-label="Edit expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-ink transition-colors flex-shrink-0"
                         >
                           <Pencil size={13} />
                         </button>
@@ -323,7 +323,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           onClick={() => handleDelete(expense.id)}
                           disabled={deletingId === expense.id}
                           aria-label="Delete expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0"
                         >
                           {deletingId === expense.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
                         </button>

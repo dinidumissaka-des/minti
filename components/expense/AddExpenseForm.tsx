@@ -127,7 +127,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowCategoryDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
+              className="h-control flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
               <span className="font-medium text-sm text-ink truncate">
                 {isCustom ? (customCategory.trim() || "Custom") : category}
@@ -137,7 +137,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowDateDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
+              className="h-control flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
               <span className="font-medium text-sm text-ink">{formatDateLabel(date)}</span>
             </button>

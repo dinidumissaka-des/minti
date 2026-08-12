@@ -284,7 +284,7 @@ const IncomeSection = memo(function IncomeSection({
                 <button
                   type="button"
                   onClick={() => setShowSourceDrawer(true)}
-                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newSource}
                 </button>
@@ -296,14 +296,14 @@ const IncomeSection = memo(function IncomeSection({
                   onKeyDown={(e) => { if (e.key === "Enter") handleAddEntry(); if (e.key === "Escape") setShowAddForm(false); }}
                   placeholder="Amount"
                   aria-label="Amount"
-                  className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDateDrawer(true)}
-                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newDate}
                 </button>
@@ -364,7 +364,7 @@ const IncomeSection = memo(function IncomeSection({
                       style={{ transform: isSwiped ? "translateX(-56px)" : "translateX(0)" }}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-sans text-[15px] text-ink truncate">{entry.source}</p>
+                        <p className="font-sans text-body text-ink truncate">{entry.source}</p>
                         <p className="font-mono text-xs text-muted">{entry.date}</p>
                       </div>
                       <span className="font-mono text-sm text-accent font-semibold flex-shrink-0">
@@ -374,7 +374,7 @@ const IncomeSection = memo(function IncomeSection({
                         onClick={() => handleDeleteEntry(entry.id)}
                         disabled={deletingId === entry.id}
                         aria-label="Delete income entry"
-                        className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
+                        className="w-6 h-6 flex items-center justify-center rounded-lg text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
                       >
                         <Trash2 size={12} />
                       </button>

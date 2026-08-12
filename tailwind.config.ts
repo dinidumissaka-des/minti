@@ -50,12 +50,32 @@ const config: Config = {
         none:    "0",
         sm:      "6px",
         DEFAULT: "10px",
-        md:      "16px",
+        md:      "12px",
         lg:      "16px",
         xl:      "20px",
         "2xl":   "24px",
         "3xl":   "32px",
         full:    "9999px",
+      },
+      // Named layers. Anything overlaying the app belongs on this ladder, so
+      // the next overlay is not chosen by guessing a larger number.
+      zIndex: {
+        background: "0",
+        content:    "10",
+        nav:        "50",
+        prompt:     "55",
+        scrim:      "60",
+        drawer:     "70",
+        skip:       "200",
+        lock:       "300",
+      },
+      fontSize: {
+        // List-row and menu-row body copy: between text-sm (14) and text-base (16).
+        body: "15px",
+      },
+      spacing: {
+        control: "52px",
+        reveal:  "60px",
       },
       keyframes: {
         fadeSlideIn: {

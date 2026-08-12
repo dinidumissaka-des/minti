@@ -47,7 +47,7 @@ export default function InstallPrompt() {
 
   return (
     <div
-      className="fixed left-4 right-4 max-w-2xl mx-auto z-[55] animate-fade-slide-in"
+      className="fixed left-4 right-4 max-w-2xl mx-auto z-prompt animate-fade-slide-in"
       style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
     >
       <div

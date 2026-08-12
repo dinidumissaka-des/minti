@@ -12,7 +12,7 @@ export default function AppBackground() {
 
   return (
     <div
-      className="fixed z-0 bg-background"
+      className="fixed z-background bg-background"
       style={{ inset: 0, top: "calc(-1 * env(safe-area-inset-top))" }}
     >
       <div style={{ width: "100%", height: "100%", opacity: isLight ? 0.3 : 1, transition: "opacity 0.3s ease" }}>

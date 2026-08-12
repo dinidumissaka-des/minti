@@ -59,7 +59,7 @@ export default function AppLock() {
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-8 px-6"
+      className="fixed inset-0 z-lock flex flex-col items-center justify-center gap-8 px-6"
       style={{ backgroundColor: "rgb(var(--background))" }}
     >
       <Logo />
