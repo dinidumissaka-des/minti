@@ -529,7 +529,7 @@ export default function Home() {
       )}
 
       {/* Add-expense sheet — the mobile counterpart of the desktop inline form */}
-      <BottomDrawer fullScreen open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
+      <BottomDrawer open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
         {user && (
           <AddExpenseForm
             bare
@@ -740,23 +740,21 @@ export default function Home() {
             <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
 
             {/* Filter tabs */}
-            <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-              <div className="flex gap-1 p-1 w-full">
-                {filters.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setFilter(key)}
-                    className={`flex-1 py-2 text-sm font-mono rounded-full transition-colors ${
-                      filter === key
-                        ? "flat-chip-active text-ink font-semibold border"
-                        : "text-muted hover:text-ink"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </GlassSurface>
+            <div className="flex gap-2">
+              {filters.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors ${
+                    filter === key
+                      ? "flat-chip-active text-ink border"
+                      : "text-ink/50 hover:text-ink"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
             {/* Expense list / loading / error */}
             <div key={filter} className="animate-fade-slide-in">
