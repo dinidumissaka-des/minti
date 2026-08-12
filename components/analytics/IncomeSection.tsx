@@ -171,8 +171,8 @@ const IncomeSection = memo(function IncomeSection({
         >
           <div className="px-5 py-4 w-full flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
-                Savings this month
+              <span className="font-sans text-xs text-muted font-semibold">
+                Savings This Month
               </span>
               {savingsRate !== null && (
                 <span className={`font-mono text-xs font-semibold ${saved >= 0 ? "text-accent" : "text-danger"}`}>
@@ -225,7 +225,7 @@ const IncomeSection = memo(function IncomeSection({
         ) : monthlyIncome ? (
           <div className="px-4 py-4 flex items-center justify-between w-full">
             <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">Monthly Income</span>
+              <span className="font-sans text-xs text-muted font-semibold">Monthly Income</span>
               <span className="font-mono text-base text-ink font-semibold">
                 {mask(formatAmount(entriesTotal > 0 ? totalIncome : monthlyIncome, currency))}
                 <span className="text-muted text-xs font-normal ml-1">{currency}</span>
@@ -243,7 +243,7 @@ const IncomeSection = memo(function IncomeSection({
         ) : entriesTotal > 0 ? (
           <div className="px-4 py-4 flex items-center justify-between w-full">
             <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">Income this month</span>
+              <span className="font-sans text-xs text-muted font-semibold">Income This Month</span>
               <span className="font-mono text-base text-ink font-semibold">
                 {mask(formatAmount(entriesTotal, currency))}
                 <span className="text-muted text-xs font-normal ml-1">{currency}</span>
@@ -267,7 +267,7 @@ const IncomeSection = memo(function IncomeSection({
       <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
         <div className="w-full">
           <div className="px-4 py-3 flex items-center justify-between border-b border-ink/7">
-            <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">One-off Income</span>
+            <span className="font-sans text-xs text-muted font-semibold">One-off Income</span>
             <button
               onClick={() => setShowAddForm((v) => !v)}
               aria-label="Add income entry"

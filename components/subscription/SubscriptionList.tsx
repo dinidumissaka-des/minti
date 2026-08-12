@@ -115,7 +115,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
       {subscriptions.length > 0 && (
         <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
           <div className="px-5 py-4 flex items-center justify-between w-full">
-            <span className="font-sans text-xs text-muted uppercase tracking-widest font-semibold">Monthly Recurring</span>
+            <span className="font-sans text-xs text-muted font-semibold">Monthly Recurring</span>
             <span className="font-mono text-lg font-bold text-ink">{mask(formatAmount(monthlyTotal, currency))}</span>
           </div>
           <div className="w-full divide-y divide-ink/10 border-t border-ink/10">

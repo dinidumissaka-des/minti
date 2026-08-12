@@ -148,6 +148,26 @@ html.light {
   }
 }
 
+/* Apple: people can "turn on accessibility settings that reduce transparency or
+   motion". Standard native components adapt on their own; these are custom, so
+   they have to opt in explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Activity indicators are exempt. Reduce Motion targets decorative movement,
+     not progress feedback — a spinner that stops after one turn reads broken. */
+  .animate-spin {
+    animation: spin 3s linear infinite !important;
+  }
+}
+
 @media (max-width: 640px) {
   ::-webkit-scrollbar { display: none; }
   * { scrollbar-width: none; }

@@ -102,7 +102,7 @@ style={{ backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)" }}
 ## Typography
 - All text uses Manrope (font-sans, font-mono, font-serif all map to Manrope)
 - Hero numbers: `font-mono text-3xl font-bold text-ink`
-- Section labels: `font-sans text-xs text-muted uppercase tracking-wider font-semibold`
+- Section labels: `font-sans text-xs text-muted font-semibold`, written in Title Case. Not all-caps — Apple's Liquid Glass guidance moved list/table/form section headers to title-style capitalization for legibility
 - Body: `text-sm text-ink font-sans`
 
 ## Spacing & radius

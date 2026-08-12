@@ -186,7 +186,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
         return (
           <div key={date}>
             <div className="flex items-center gap-3 mb-2 px-1">
-              <span className="font-mono text-xs text-muted uppercase tracking-widest whitespace-nowrap">
+              <span className="font-mono text-xs text-muted whitespace-nowrap">
                 {formatDateLabel(date)}
               </span>
               <div className="flex-1 h-px bg-ink/5" />

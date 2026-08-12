@@ -87,7 +87,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
     <div className="px-4 py-4 flex flex-col gap-3 w-full">
       <div className="flex items-center justify-between">
-        <span className="font-sans text-xs text-muted uppercase tracking-widest font-semibold">Monthly Budget</span>
+        <span className="font-sans text-xs text-muted font-semibold">Monthly Budget</span>
         <button onClick={openEdit} aria-label="Edit budget" className="text-muted hover:text-ink transition-colors">
           <Pencil size={12} />
         </button>

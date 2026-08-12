@@ -82,7 +82,7 @@ export default function AuthForm() {
       {/* Inputs — vertically centered on mobile, normal flow on desktop */}
       <div className="flex-1 flex flex-col justify-center gap-5 sm:flex-none">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email" className="font-mono text-xs text-muted uppercase tracking-widest font-semibold">Email</Label>
+          <Label htmlFor="email" className="font-mono text-xs text-muted font-semibold">Email</Label>
           <Input
             id="email"
             type="email"
@@ -94,7 +94,7 @@ export default function AuthForm() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password" className="font-mono text-xs text-muted uppercase tracking-widest font-semibold">Password</Label>
+          <Label htmlFor="password" className="font-mono text-xs text-muted font-semibold">Password</Label>
           <Input
             id="password"
             type="password"

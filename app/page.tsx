@@ -671,17 +671,17 @@ export default function Home() {
         {view === "subscriptions" && (
           <div className="flex flex-col gap-2">
             <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Bills</span>
+              <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Bills</span>
               <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
             </div>
             <GlassSurface borderRadius={28}>
               <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                 <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Active</span>
+                  <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
                   <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
                 </div>
                 <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Per Year</span>
+                  <span className="font-sans text-xs text-muted font-semibold leading-none">Per Year</span>
                   <span className="font-mono text-2xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal * 12, currency))}</span>
                 </div>
               </div>
@@ -690,7 +690,7 @@ export default function Home() {
         )}
         {view === "income" && (
           <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-            <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Income</span>
+            <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Income</span>
             <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(incomeTotalHero, currency))}</span>
           </div>
         )}

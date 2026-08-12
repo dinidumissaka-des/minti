@@ -91,7 +91,7 @@ const CategoryChart = memo(function CategoryChart({
   return (
     <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
-        <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
+        <span className="font-sans text-xs text-muted font-semibold">
           Spending by Category
         </span>
         <div className="flex flex-col gap-4">
@@ -363,7 +363,7 @@ const MomComparison = memo(function MomComparison({
     <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
-          <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
+          <span className="font-sans text-xs text-muted font-semibold">
             vs Last Month
           </span>
           <span className="font-mono text-sm text-muted">{prevLabel}</span>
