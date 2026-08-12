@@ -1,4 +1,4 @@
-# Spendr Design System
+# Minti Design System
 
 Loaded when working on UI, styling, or component tasks.
 

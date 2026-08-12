@@ -1,6 +1,6 @@
 # Review recent changes
 
-Review the current branch diff for quality, correctness, and consistency with Spendr's design system.
+Review the current branch diff for quality, correctness, and consistency with Minti's design system.
 
 Steps:
 1. Run `git diff main` (or `git diff HEAD~1` if on main) to get the full diff
