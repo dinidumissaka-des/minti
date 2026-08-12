@@ -17,7 +17,9 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		69705B10ADFCC17B0C04344D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 33B5AA817128ACEDD7AE8D79 /* PrivacyInfo.xcprivacy */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		C56DE1ECB9150E8CBE0AC674 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA388026C471CB935FCFDD6C /* PrivacyInfo.xcprivacy */; };
 		E02E3D3023E940C1282CFB3E /* MintiWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DF60583BAE3DCB75497CE526 /* MintiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EB84FF525C2B70C31C10D8BA /* MintiWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4C9DED9129A3F50387E4FB /* MintiWidget.swift */; };
 /* End PBXBuildFile section */
@@ -50,6 +52,7 @@
 		1D7B3B4B520ABC7F06298E9F /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2A4C9DED9129A3F50387E4FB /* MintiWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MintiWidget.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		33B5AA817128ACEDD7AE8D79 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3757F6EA1FB52464B1B3E275 /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +68,7 @@
 		A1BC00AD44AEB226FDFE41E2 /* WidgetSync.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetSync.swift; sourceTree = "<group>"; };
 		ABEAE8C64C3B021A2EA0869F /* MintiWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = MintiWidget.entitlements; sourceTree = "<group>"; };
 		DF60583BAE3DCB75497CE526 /* MintiWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MintiWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA388026C471CB935FCFDD6C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +97,7 @@
 				2A4C9DED9129A3F50387E4FB /* MintiWidget.swift */,
 				1D7B3B4B520ABC7F06298E9F /* Info.plist */,
 				ABEAE8C64C3B021A2EA0869F /* MintiWidget.entitlements */,
+				FA388026C471CB935FCFDD6C /* PrivacyInfo.xcprivacy */,
 			);
 			name = MintiWidget;
 			path = MintiWidget;
@@ -132,6 +137,7 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 				3757F6EA1FB52464B1B3E275 /* App.entitlements */,
 				A1BC00AD44AEB226FDFE41E2 /* WidgetSync.swift */,
+				33B5AA817128ACEDD7AE8D79 /* PrivacyInfo.xcprivacy */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -237,6 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C56DE1ECB9150E8CBE0AC674 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,6 +257,7 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				69705B10ADFCC17B0C04344D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

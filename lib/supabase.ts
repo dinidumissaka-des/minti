@@ -77,10 +77,10 @@ export async function signOut() {
   if (error) throw error;
 }
 
-export async function signInWithGoogle() {
+async function startOAuth(provider: "google" | "apple") {
   if (!isNative()) {
     const { error } = await getClient().auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: {
         redirectTo: `${window.location.origin}/`,
       },
@@ -90,7 +90,7 @@ export async function signInWithGoogle() {
   }
 
   const { data, error } = await getClient().auth.signInWithOAuth({
-    provider: "google",
+    provider,
     options: {
       redirectTo: NATIVE_OAUTH_REDIRECT,
       skipBrowserRedirect: true,
@@ -98,6 +98,14 @@ export async function signInWithGoogle() {
   });
   if (error) throw error;
   if (data.url) await Browser.open({ url: data.url });
+}
+
+export async function signInWithGoogle() {
+  await startOAuth("google");
+}
+
+export async function signInWithApple() {
+  await startOAuth("apple");
 }
 
 export async function completeNativeOAuth(callbackUrl: string) {

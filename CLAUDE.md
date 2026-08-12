@@ -39,14 +39,30 @@ lib/
   supabase.ts       All DB + auth functions — expenses CRUD, subscriptions CRUD, auth
   categories.ts     CATEGORY_COLORS_DARK / CATEGORY_COLORS_LIGHT maps + getCategoryColor(category, theme) — keys are the valid category names
   currencies.ts     CURRENCIES list, DEFAULT_CURRENCY, formatAmount()
+  exchangeRates.ts  Live FX rates with a 6h localStorage cache
+  export.ts         CSV export — blob download on web, share sheet on iOS
   utils.ts          cn() — Tailwind class merging
+  platform.ts       isNative() / isIOSNative() — the switch every native branch reads
+  haptics.ts        Taptic Engine on iOS, navigator.vibrate fallback on web
+  appLock.ts        Face ID / passcode gate (native only)
+  notifications.ts  Subscription billing reminders (native only)
+  widget.ts         Publishes the home-screen widget snapshot (native only)
 
 hooks/
   useIsMobile.ts    640px breakpoint hook
 
 types/
-  index.ts          Expense, NewExpense, Subscription, NewSubscription
+  index.ts          Expense, NewExpense, Subscription, NewSubscription, Income, NewIncome
+
+ios/                Capacitor iOS project — two Xcode targets (App, MintiWidget)
+  App/App/          AppDelegate, WidgetSync.swift, entitlements, PrivacyInfo.xcprivacy
+  App/MintiWidget/  WidgetKit extension (SwiftUI)
 ```
+
+## Web and iOS
+One codebase, two build targets. `npm run build` is the web build and is unaffected by anything iOS; `npm run ios:sync` static-exports the same source (`BUILD_TARGET=mobile` turns on `output: "export"`) and copies it into the Xcode project.
+
+Anything that differs between platforms goes behind `isNative()` from `lib/platform.ts` — never a user-agent sniff. Native-only paths today: session storage, OAuth flow, Sign in with Apple, CSV delivery, haptics, app lock, notifications, the widget, and skipping the service worker and install prompt. **After changing web source, run `npm run ios:sync` or the app ships a stale bundle.** See README for the iOS build and the App Group / Supabase redirect setup.
 
 ## Design system rules
 The app supports light and dark themes (toggle in the header, defaults to OS preference, persisted to `localStorage` as `minti_theme`). Theming works via CSS variables that flip on an `.light`/`.dark` class on `<html>` (set in `app/globals.css`). There are two categories of surface — pick the right one, don't guess:
