@@ -15,32 +15,27 @@ html.light {
 .dark {
   --background:  10  15  8;
   --ink:         255 255 255;
-  --surface:     255 255 255;
-  --surface2:    255 255 255;
-  --border:      255 255 255;
-  --foreground:  255 255 255;
-  --muted:       255 255 255;
   --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: 159 232 112;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
   --danger-text: 224 92  92;
-  --radius:      1rem;
+  --scrim:       0   0   0;
 }
 
 .light {
   --background:  247 250 243;
   --ink:         15  23  11;
-  --surface:     15  23  11;
-  --surface2:    15  23  11;
-  --border:      15  23  11;
-  --foreground:  15  23  11;
-  --muted:       15  23  11;
   --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: 63  122 31;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
+  --scrim:       15  23  11;
 }
 
 @layer base {
@@ -92,6 +87,84 @@ html.light {
 
   .flat-chip-dashed {
     border-color: rgb(var(--ink) / 0.2);
+  }
+
+  /* Floating chrome (bottom nav, mobile header controls). The material mostly
+     occludes what is behind it — iOS glass reads as glass through the tinted
+     edge and the specular rim, not through heavy transparency. Letting content
+     stay legible through the bar just looks like a noisy translucent panel.
+     The selected pill must contrast *against the bar*: darker in light mode,
+     lighter in dark mode. */
+  .glass-chip {
+    background-color: rgb(var(--ink) / 0.10);
+    border-color: rgb(var(--ink) / 0.14);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.14),
+      0 8px 32px rgb(0 0 0 / 0.28);
+  }
+  .light .glass-chip {
+    background-color: rgb(255 255 255 / 0.88);
+    border-color: rgb(15 23 11 / 0.07);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 8px 28px rgb(15 23 11 / 0.10);
+  }
+
+  .glass-chip-active {
+    background-color: rgb(var(--ink) / 0.20);
+    border-color: rgb(var(--ink) / 0.16);
+  }
+  .light .glass-chip-active {
+    background-color: rgb(15 23 11 / 0.06);
+    border-color: rgb(15 23 11 / 0.05);
+  }
+
+  /* Apple: "Test your interface with a variety of display and accessibility
+     settings... Ensure you test your app's custom elements." Standard native
+     components adapt on their own; a CSS approximation has to do it here. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-chip,
+    .light .glass-chip {
+      background-color: rgb(var(--background));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-color: rgb(var(--ink) / 0.2);
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .glass-chip,
+    .light .glass-chip {
+      border-color: rgb(var(--ink) / 0.4);
+    }
+    .glass-chip-active {
+      background-color: rgb(var(--ink) / 0.3);
+    }
+    .light .glass-chip-active {
+      background-color: rgb(15 23 11 / 0.14);
+    }
+  }
+}
+
+/* Apple: people can "turn on accessibility settings that reduce transparency or
+   motion". Standard native components adapt on their own; these are custom, so
+   they have to opt in explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Activity indicators are exempt. Reduce Motion targets decorative movement,
+     not progress feedback — a spinner that stops after one turn reads broken. */
+  .animate-spin {
+    animation: spin 3s linear infinite !important;
   }
 }
 

@@ -20,7 +20,49 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## iOS app
+
+The iOS app is the same web bundle running in a native shell via [Capacitor](https://capacitorjs.com). The web build is unaffected — `npm run build` still produces a normal server build for Vercel.
+
+```bash
+npm run ios:sync   # static-export the app and copy it into the Xcode project
+npm run ios:open   # open ios/App in Xcode (macOS only)
+```
+
+`ios:sync` runs `next build` with `BUILD_TARGET=mobile`, which switches on `output: "export"` and writes a fully static bundle to `out/`. Because `NEXT_PUBLIC_*` values are inlined at build time, your real Supabase credentials must be present in the environment when you run it — the bundle ships with whatever was set.
+
+Requirements: macOS with Xcode 16+, an Apple Developer account for device builds and submission. Capacitor 8 uses Swift Package Manager, so there is no CocoaPods step. Deployment target is iOS 15.
+
+`ios/App/App/public/` is generated on every sync and is git-ignored; edit the Next.js source, not the copied bundle.
+
+### Native differences
+
+The same source runs on both targets and branches on `isNative()` (`lib/platform.ts`) where the platforms genuinely differ:
+
+| Concern | Web | iOS |
+| --- | --- | --- |
+| Auth session storage | `localStorage` | `@capacitor/preferences` (survives iOS storage eviction) |
+| OAuth flow | implicit, redirect to origin | PKCE, in-app browser returning to `com.minti.app://auth/callback` |
+| CSV export | `<a download>` blob | file written to cache, handed to the iOS share sheet |
+| Service worker / install prompt | active | skipped |
+| Haptics | `navigator.vibrate` (no-op on iOS Safari) | Taptic Engine |
+| Face ID lock, billing reminders | unavailable | opt-in from the Menu drawer |
+
+**Before Google sign-in works on device**, add `com.minti.app://auth/callback` to the redirect allow-list in the Supabase dashboard under *Authentication → URL Configuration → Redirect URLs*. Without it Supabase refuses the callback and the in-app browser dead-ends on an error page.
+
+Billing reminders schedule one repeating local notification per subscription, firing at 09:00 on each subscription's `billing_day`. They are rescheduled from scratch whenever the subscription list or currency changes, and cancelled when the setting is turned off.
+
+### Home screen widget
+
+`MintiWidget` is a second Xcode target showing month-to-date spend and budget progress. Data reaches it through the `group.com.minti.app` App Group:
+
+1. `lib/widget.ts` writes a JSON snapshot into Capacitor Preferences whenever the current month's totals change (older months are skipped — the widget always shows the live month).
+2. Preferences lands in `UserDefaults.standard`, which an extension cannot read, so `WidgetSync.swift` mirrors it into the App Group container when the app resigns active or backgrounds, then reloads the widget timeline.
+3. The widget reads the App Group and re-renders. It also refreshes itself hourly as a fallback.
+
+The widget therefore updates when you leave the app, not while you are typing in it.
+
+**The App Group must exist in your Apple Developer account** before either target will build with these entitlements: register `group.com.minti.app` under *Certificates, Identifiers & Profiles → Identifiers → App Groups*, then enable it on both the `com.minti.app` and `com.minti.app.MintiWidget` identifiers. Xcode's automatic signing can create these for you when you first select your team on each target.
 
 To learn more about Next.js, take a look at the following resources:
 

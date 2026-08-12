@@ -41,13 +41,13 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
   return (
     <div className="px-3 pb-2">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] text-ink/60 hover:text-ink transition-colors">
+        <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-colors">
           <ChevronLeft size={16} />
         </button>
         <span className="font-sans font-semibold text-ink text-base">
           {MONTH_NAMES[viewMonth]} {viewYear}
         </span>
-        <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] text-ink/60 hover:text-ink transition-colors">
+        <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-colors">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -68,9 +68,9 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
             <button
               key={iso}
               onClick={() => { onChange(iso); onClose(); }}
-              className={`aspect-square flex items-center justify-center rounded-full text-[15px] font-mono mx-auto w-10 h-10 transition-colors ${
+              className={`aspect-square flex items-center justify-center rounded-full text-body font-mono mx-auto w-10 h-10 transition-colors ${
                 isSelected
-                  ? "bg-accent-fill text-[#163300] font-bold"
+                  ? "bg-accent-fill text-accent-on font-bold"
                   : isToday
                   ? "border border-accent-fill/50 text-accent"
                   : "text-ink/80 hover:bg-ink/10"
@@ -104,7 +104,7 @@ export function CategoryList({
           onClick={() => onSelect(cat)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === cat ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink">{cat}</span>
+          <span className="flex-1 text-body font-sans text-ink">{cat}</span>
           {selected === cat && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
@@ -114,7 +114,7 @@ export function CategoryList({
           onClick={() => onSelect(value)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === value ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink/60">{label}</span>
+          <span className="flex-1 text-body font-sans text-ink/60">{label}</span>
           {selected === value && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
@@ -133,7 +133,7 @@ export function SourceList({ sources, selected, onSelect }: { sources: string[];
           onClick={() => onSelect(source)}
           className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-colors ${selected === source ? "bg-ink/10" : "hover:bg-ink/5"}`}
         >
-          <span className="flex-1 text-[15px] font-sans text-ink">{source}</span>
+          <span className="flex-1 text-body font-sans text-ink">{source}</span>
           {selected === source && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}

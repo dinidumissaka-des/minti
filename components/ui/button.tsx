@@ -7,11 +7,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:     "bg-accent-fill text-[#163300] hover:bg-accent-fill/85",
+        default:     "bg-accent-fill text-accent-on hover:bg-accent-fill/85",
         secondary:   "bg-ink text-primary shadow-sm hover:bg-ink/85",
         inverted:    "bg-primary text-ink hover:bg-primary/85",
         outline:     "border-2 border-primary text-primary bg-transparent hover:bg-primary/10",
-        tertiary:    "bg-tertiary text-ink hover:bg-tertiary/85",
         ghost:       "text-primary bg-transparent hover:bg-primary/10",
         destructive: "bg-danger-fill text-ink hover:bg-danger-fill/85",
         link:        "text-primary underline-offset-4 hover:underline rounded-none",
@@ -53,7 +52,7 @@ function Button({ className, variant, size, children, ...props }: ButtonProps) {
         data-slot="button"
         className={cn(
           "group relative inline-flex overflow-hidden rounded-full p-[1px]",
-          "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(159,232,112,0.3)]",
+          "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgb(var(--accent)/0.3)]",
           "disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50",
           resolvedSize === "sm" ? "h-9" : resolvedSize === "lg" ? "h-14" : "h-12",
           className
@@ -66,15 +65,15 @@ function Button({ className, variant, size, children, ...props }: ButtonProps) {
         <span className="absolute inset-0 rounded-full bg-accent-fill transition-opacity duration-300 group-hover:opacity-0" />
         {/* Content with fluid glassy interior */}
         <span className={cn(
-          "relative flex w-full h-full items-center justify-center gap-2 rounded-full font-semibold text-[#163300] whitespace-nowrap select-none overflow-hidden",
-          "bg-[linear-gradient(135deg,#9FE870_0%,#c8f7a0_35%,#78d955_65%,#9FE870_100%)] bg-[length:250%_250%] animate-fluid-bg",
+          "relative flex w-full h-full items-center justify-center gap-2 rounded-full font-semibold text-accent-on whitespace-nowrap select-none overflow-hidden",
+          "bg-[linear-gradient(135deg,rgb(var(--accent))_0%,rgb(var(--accent-hi))_35%,rgb(var(--accent-lo))_65%,rgb(var(--accent))_100%)] bg-[length:250%_250%] animate-fluid-bg",
           sizeInnerClass[resolvedSize]
         )}>
           {/* Glass highlight sheen */}
           <span className="absolute inset-0 w-1/3 bg-[linear-gradient(105deg,transparent,rgba(255,255,255,0.45),transparent)] animate-glass-sheen pointer-events-none" />
           {/* Top glass reflection */}
           <span className="absolute inset-x-0 top-0 h-[45%] rounded-t-full bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,transparent_100%)] pointer-events-none" />
-          <span className="relative z-10 flex items-center gap-2">{children}</span>
+          <span className="relative z-content flex items-center gap-2">{children}</span>
         </span>
       </button>
     );

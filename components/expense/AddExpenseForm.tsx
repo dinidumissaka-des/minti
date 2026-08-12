@@ -3,6 +3,7 @@
 import { useState, useRef, FormEvent } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
+import { hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import GlassSurface from "@/components/GlassSurface";
@@ -16,6 +17,9 @@ interface Props {
   userId: string;
   currency: string;
   onExpenseAdded: () => void;
+  /** Drop the GlassSurface card when the form already sits on one (a sheet).
+      Apple warns against layering Liquid Glass elements on top of each other. */
+  bare?: boolean;
 }
 
 function formatDateLabel(iso: string) {
@@ -29,7 +33,7 @@ function formatDateLabel(iso: string) {
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
-export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Props) {
+export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare = false }: Props) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(PRESET_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState("");
@@ -79,19 +83,19 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
       setDescription(""); setCategory(PRESET_CATEGORIES[0]); setCustomCategory("");
       setAmount(""); setDisplayAmount(""); setDate(new Date().toISOString().split("T")[0]);
       setSuccess(true);
+      hapticSuccess();
       setTimeout(() => setSuccess(false), 2000);
       onExpenseAdded();
     } catch {
       setError("Failed to add expense. Please try again.");
+      hapticError();
     } finally {
       setSubmitting(false);
     }
   }
 
-  return (
-    <>
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-        <div className="p-6 flex flex-col gap-5 w-full">
+  const body = (
+    <div className={bare ? "px-4 py-2 flex flex-col gap-5 w-full" : "p-6 flex flex-col gap-5 w-full"}>
           {/* Hero amount */}
           <div className="flex flex-col items-end gap-1 py-4">
             <span className="font-mono text-xs text-muted uppercase tracking-widest font-semibold">{currency}</span>
@@ -106,7 +110,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
               aria-label="Amount"
               className="w-full bg-transparent text-right text-6xl font-bold text-ink placeholder:text-ink/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg"
             />
-            <div className="h-px w-16 bg-ink/[0.1] mt-1" />
+            <div className="h-px w-16 bg-ink/10 mt-1" />
           </div>
 
           {/* Description */}
@@ -124,7 +128,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowCategoryDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
+              className="h-control flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
               <span className="font-medium text-sm text-ink truncate">
                 {isCustom ? (customCategory.trim() || "Custom") : category}
@@ -134,7 +138,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             <button
               type="button"
               onClick={() => setShowDateDrawer(true)}
-              className="h-[52px] flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
+              className="h-control flex items-center justify-center px-4 rounded-full border border-ink/10 bg-ink/5 hover:border-ink/25 hover:bg-ink/10 transition-colors"
             >
               <span className="font-medium text-sm text-ink">{formatDateLabel(date)}</span>
             </button>
@@ -158,8 +162,16 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             {submitting ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} strokeWidth={2.5} />}
             <span>{submitting ? "Adding…" : "Add Expense"}</span>
           </Button>
-        </div>
-      </GlassSurface>
+    </div>
+  );
+
+  return (
+    <>
+      {bare ? body : (
+        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+          {body}
+        </GlassSurface>
+      )}
 
       {/* Date bottom drawer */}
       <BottomDrawer open={showDateDrawer} onClose={() => setShowDateDrawer(false)} title="Select Date">

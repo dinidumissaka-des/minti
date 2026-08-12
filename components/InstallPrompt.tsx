@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Share } from "lucide-react";
 import Logo from "@/components/Logo";
+import { isNative } from "@/lib/platform";
 
 export default function InstallPrompt() {
   const [prompt, setPrompt] = useState<Event & { prompt?: () => void } | null>(null);
@@ -10,6 +11,7 @@ export default function InstallPrompt() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
+    if (isNative()) return;
     if (localStorage.getItem("minti_install_dismissed")) return;
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as Record<string, unknown>).MSStream;
@@ -45,11 +47,11 @@ export default function InstallPrompt() {
 
   return (
     <div
-      className="fixed left-4 right-4 max-w-2xl mx-auto z-[55] animate-fade-slide-in"
+      className="fixed left-4 right-4 max-w-2xl mx-auto z-prompt animate-fade-slide-in"
       style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
     >
       <div
-        className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-ink/[0.1] backdrop-blur-2xl shadow-2xl"
+        className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-ink/10 backdrop-blur-2xl shadow-2xl"
         style={{ backgroundColor: "rgb(var(--background) / 0.9)" }}
       >
         {/* App icon */}
@@ -74,7 +76,7 @@ export default function InstallPrompt() {
         {!isIOS && (
           <button
             onClick={install}
-            className="flex-shrink-0 h-11 px-5 rounded-full bg-accent-fill text-[#163300] text-sm font-semibold hover:bg-accent-fill/90 transition-colors"
+            className="flex-shrink-0 h-11 px-5 rounded-full bg-accent-fill text-accent-on text-sm font-semibold hover:bg-accent-fill/90 transition-colors"
           >
             Install
           </button>
@@ -83,7 +85,7 @@ export default function InstallPrompt() {
         {/* Dismiss */}
         <button
           onClick={dismiss}
-          className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-ink/[0.07] border border-ink/[0.08] text-ink/30 hover:text-ink/70 transition-colors"
+          className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-ink/7 border border-ink/8 text-ink/30 hover:text-ink/70 transition-colors"
         >
           <X size={12} />
         </button>

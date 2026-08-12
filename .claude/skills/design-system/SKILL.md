@@ -9,10 +9,10 @@ GlassSurface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPr
 
 | Use | Class |
 |-----|-------|
-| Card background | `bg-ink/[0.07]` |
+| Card background | `bg-ink/7` |
 | Elevated surface | `bg-ink/10` |
-| Subtle border | `border-ink/[0.1]` |
-| Active border | `border-ink/[0.15]` or `border-ink/25` |
+| Subtle border | `border-ink/10` |
+| Active border | `border-ink/15` or `border-ink/25` |
 | Body text | `text-ink` |
 | Muted text | `text-muted` (= ink/50%) |
 
@@ -37,8 +37,11 @@ className={active ? "flat-chip-active text-ink border" : "text-ink/40 hover:text
 ```
 If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS class rather than hardcoding a one-off opacity in the component — keeps every chip in sync.
 
+## 3. Glass chrome — mobile bottom nav + mobile header controls
+`.glass-chip` / `.glass-chip-active` (backdrop-blur + inset specular highlight). Only valid where content scrolls beneath — the mobile header is `sticky` so it has something to blur. Desktop header and all other chips stay `flat-chip`.
+
 ## Accent & danger — fill vs bare text (applies on both surface types)
-- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-[#163300]`.
+- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
 - **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#9FE870` for this.
 
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
@@ -99,7 +102,7 @@ style={{ backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)" }}
 ## Typography
 - All text uses Manrope (font-sans, font-mono, font-serif all map to Manrope)
 - Hero numbers: `font-mono text-3xl font-bold text-ink`
-- Section labels: `font-sans text-xs text-muted uppercase tracking-wider font-semibold`
+- Section labels: `font-sans text-xs text-muted font-semibold`, written in Title Case. Not all-caps — Apple's Liquid Glass guidance moved list/table/form section headers to title-style capitalization for legibility
 - Body: `text-sm text-ink font-sans`
 
 ## Spacing & radius

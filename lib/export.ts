@@ -1,6 +1,20 @@
+import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import type { Expense, Subscription } from "@/types";
+import { isNative } from "@/lib/platform";
 
-function downloadCSV(content: string, filename: string) {
+async function downloadCSV(content: string, filename: string) {
+  if (isNative()) {
+    const { uri } = await Filesystem.writeFile({
+      path: filename,
+      data: content,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    });
+    await Share.share({ title: filename, url: uri });
+    return;
+  }
+
   const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -19,7 +33,7 @@ function escapeCell(value: string | number): string {
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-export function exportExpensesCSV(
+export async function exportExpensesCSV(
   expenses: Expense[],
   currency: string,
   month: { year: number; month: number }
@@ -33,14 +47,14 @@ export function exportExpensesCSV(
   ];
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
   const label = `${MONTH_NAMES[month.month - 1]}-${month.year}`;
-  downloadCSV(csv, `minti-expenses-${label}.csv`);
+  await downloadCSV(csv, `minti-expenses-${label}.csv`);
 }
 
-export function exportSubscriptionsCSV(subscriptions: Subscription[], currency: string) {
+export async function exportSubscriptionsCSV(subscriptions: Subscription[], currency: string) {
   const rows = [
     ["Name", "Category", `Amount/Month (${currency})`],
     ...subscriptions.map((s) => [s.name, s.category, s.amount]),
   ];
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
-  downloadCSV(csv, "minti-subscriptions.csv");
+  await downloadCSV(csv, "minti-subscriptions.csv");
 }

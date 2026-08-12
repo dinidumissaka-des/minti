@@ -235,13 +235,35 @@ export default function LightRays({
         } catch { /* swallow webgl errors */ }
       };
 
+      // CSS cannot reach a WebGL render loop, so Reduce Motion is honoured here:
+      // draw one static frame and never start the loop.
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const handleVisibility = () => {
+        if (reduceMotion) return;
+        if (document.hidden) {
+          if (animationIdRef.current !== null) {
+            cancelAnimationFrame(animationIdRef.current);
+            animationIdRef.current = null;
+          }
+        } else if (animationIdRef.current === null) {
+          animationIdRef.current = requestAnimationFrame(loop);
+        }
+      };
+
       window.addEventListener("resize", updatePlacement);
+      document.addEventListener("visibilitychange", handleVisibility);
       updatePlacement();
-      animationIdRef.current = requestAnimationFrame(loop);
+      if (reduceMotion) {
+        try { renderer.render({ scene: mesh }); } catch { /* swallow webgl errors */ }
+      } else {
+        animationIdRef.current = requestAnimationFrame(loop);
+      }
 
       cleanupRef.current = () => {
         if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
         window.removeEventListener("resize", updatePlacement);
+        document.removeEventListener("visibilitychange", handleVisibility);
         try {
           const ext = renderer.gl.getExtension("WEBGL_lose_context");
           ext?.loseContext();

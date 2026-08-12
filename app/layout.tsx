@@ -4,8 +4,11 @@ import Script from "next/script";
 import "./globals.css";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import NativeAuthListener from "@/components/NativeAuthListener";
+import AppLock from "@/components/AppLock";
 import ClientProviders from "@/components/ClientProviders";
 import AppBackground from "@/components/background/AppBackground";
+import { BRAND } from "@/lib/brand";
 
 const THEME_INIT_SCRIPT = `
 (function () {
@@ -31,7 +34,7 @@ const fraunces = Fraunces({
 
 export const viewport: Viewport = {
   viewportFit: "cover",
-  themeColor: "#060e03",
+  themeColor: BRAND.backgroundDark,
   colorScheme: "light dark",
 };
 
@@ -63,7 +66,7 @@ export default function RootLayout({
       <body>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:z-[200] focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-accent-fill focus:text-[#163300] focus:rounded-lg focus:font-semibold focus:text-sm"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-skip focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-accent-fill focus:text-accent-on focus:rounded-lg focus:font-semibold focus:text-sm"
         >
           Skip to main content
         </a>
@@ -72,6 +75,8 @@ export default function RootLayout({
           {children}
           <InstallPrompt />
           <ServiceWorkerRegistration />
+          <NativeAuthListener />
+          <AppLock />
         </ClientProviders>
       </body>
     </html>

@@ -5,6 +5,7 @@ import { Plus, Trash2, Check, X, Pencil, Loader2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Subscription, Income } from "@/types";
 import { getIncomeByMonth, addIncome, deleteIncome, upsertUserSettings } from "@/lib/supabase";
+import { hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
@@ -75,7 +76,7 @@ const IncomeSection = memo(function IncomeSection({
     const deltaY = Math.abs(incomeTouchStartY.current - e.changedTouches[0].clientY);
     if (deltaY > 40) return;
     if (deltaX > 50) {
-      if ("vibrate" in navigator) navigator.vibrate(18);
+      hapticBump();
       setSwipedIncomeId(entryId);
     } else if (deltaX < -20) {
       setSwipedIncomeId(null);
@@ -164,14 +165,14 @@ const IncomeSection = memo(function IncomeSection({
           backgroundOpacity={0.07}
           style={
             saved >= 0
-              ? { borderColor: "rgba(159,232,112,0.25)", boxShadow: "0 0 10px rgba(159,232,112,0.05)" }
-              : { borderColor: "rgba(224,92,92,0.25)" }
+              ? { borderColor: "rgb(var(--accent) / 0.25)", boxShadow: "0 0 10px rgb(var(--accent) / 0.05)" }
+              : { borderColor: "rgb(var(--danger) / 0.25)" }
           }
         >
           <div className="px-5 py-4 w-full flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
-                Savings this month
+              <span className="font-sans text-xs text-muted font-semibold">
+                Savings This Month
               </span>
               {savingsRate !== null && (
                 <span className={`font-mono text-xs font-semibold ${saved >= 0 ? "text-accent" : "text-danger"}`}>
@@ -189,7 +190,7 @@ const IncomeSection = memo(function IncomeSection({
               </span>
             </div>
             {savingsRate !== null && (
-              <div className="h-1.5 w-full bg-ink/[0.08] rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-ink/8 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${saved >= 0 ? "bg-accent-fill" : "bg-danger-fill"}`}
                   style={{ width: `${Math.min(Math.abs(savingsRate), 100)}%` }}
@@ -214,17 +215,17 @@ const IncomeSection = memo(function IncomeSection({
               aria-label="Monthly income"
               className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] flex-shrink-0">
+            <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
               <Check size={13} />
             </button>
-            <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0">
+            <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
               <X size={13} />
             </button>
           </div>
         ) : monthlyIncome ? (
           <div className="px-4 py-4 flex items-center justify-between w-full">
             <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">Monthly Income</span>
+              <span className="font-sans text-xs text-muted font-semibold">Monthly Income</span>
               <span className="font-mono text-base text-ink font-semibold">
                 {mask(formatAmount(entriesTotal > 0 ? totalIncome : monthlyIncome, currency))}
                 <span className="text-muted text-xs font-normal ml-1">{currency}</span>
@@ -242,7 +243,7 @@ const IncomeSection = memo(function IncomeSection({
         ) : entriesTotal > 0 ? (
           <div className="px-4 py-4 flex items-center justify-between w-full">
             <div className="flex flex-col gap-0.5">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">Income this month</span>
+              <span className="font-sans text-xs text-muted font-semibold">Income This Month</span>
               <span className="font-mono text-base text-ink font-semibold">
                 {mask(formatAmount(entriesTotal, currency))}
                 <span className="text-muted text-xs font-normal ml-1">{currency}</span>
@@ -265,25 +266,25 @@ const IncomeSection = memo(function IncomeSection({
 
       <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
         <div className="w-full">
-          <div className="px-4 py-3 flex items-center justify-between border-b border-ink/[0.07]">
-            <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">One-off Income</span>
+          <div className="px-4 py-3 flex items-center justify-between border-b border-ink/7">
+            <span className="font-sans text-xs text-muted font-semibold">One-off Income</span>
             <button
               onClick={() => setShowAddForm((v) => !v)}
               aria-label="Add income entry"
               aria-expanded={showAddForm}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-accent-fill text-[#163300]"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-accent-fill text-accent-on"
             >
               <Plus size={12} />
             </button>
           </div>
 
           {showAddForm && (
-            <div className="px-4 py-3 flex flex-col gap-2 border-b border-ink/[0.07] bg-ink/[0.03]">
+            <div className="px-4 py-3 flex flex-col gap-2 border-b border-ink/7 bg-ink/3">
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowSourceDrawer(true)}
-                  className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newSource}
                 </button>
@@ -295,14 +296,14 @@ const IncomeSection = memo(function IncomeSection({
                   onKeyDown={(e) => { if (e.key === "Enter") handleAddEntry(); if (e.key === "Escape") setShowAddForm(false); }}
                   placeholder="Amount"
                   aria-label="Amount"
-                  className="w-28 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowDateDrawer(true)}
-                  className="flex-1 bg-ink/[0.07] border border-ink/[0.1] rounded-lg px-3 h-11 text-[15px] text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newDate}
                 </button>
@@ -310,14 +311,14 @@ const IncomeSection = memo(function IncomeSection({
                   onClick={handleAddEntry}
                   disabled={saving}
                   aria-label="Save income entry"
-                  className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-[#163300] disabled:opacity-50 flex-shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on disabled:opacity-50 flex-shrink-0"
                 >
                   <Check size={15} />
                 </button>
                 <button
                   onClick={() => { setShowAddForm(false); setSaveError(null); }}
                   aria-label="Cancel"
-                  className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/[0.1] text-muted hover:text-ink flex-shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0"
                 >
                   <X size={15} />
                 </button>
@@ -337,7 +338,7 @@ const IncomeSection = memo(function IncomeSection({
               <span className="font-mono text-xs text-muted">No one-off income logged</span>
             </div>
           ) : (
-            <div className="divide-y divide-ink/[0.07]">
+            <div className="divide-y divide-ink/7">
               {incomeEntries.map((entry) => {
                 const isSwiped = swipedIncomeId === entry.id;
                 return (
@@ -363,7 +364,7 @@ const IncomeSection = memo(function IncomeSection({
                       style={{ transform: isSwiped ? "translateX(-56px)" : "translateX(0)" }}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-sans text-[15px] text-ink truncate">{entry.source}</p>
+                        <p className="font-sans text-body text-ink truncate">{entry.source}</p>
                         <p className="font-mono text-xs text-muted">{entry.date}</p>
                       </div>
                       <span className="font-mono text-sm text-accent font-semibold flex-shrink-0">
@@ -373,7 +374,7 @@ const IncomeSection = memo(function IncomeSection({
                         onClick={() => handleDeleteEntry(entry.id)}
                         disabled={deletingId === entry.id}
                         aria-label="Delete income entry"
-                        className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
+                        className="w-6 h-6 flex items-center justify-center rounded-lg text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
                       >
                         <Trash2 size={12} />
                       </button>
@@ -382,7 +383,7 @@ const IncomeSection = memo(function IncomeSection({
                 );
               })}
               {entriesTotal > 0 && (
-                <div className="flex items-center justify-between px-4 py-2.5 bg-ink/[0.03]">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-ink/3">
                   <span className="font-sans text-xs text-muted">One-off total</span>
                   <span className="font-mono text-xs text-accent font-semibold">
                     +{mask(formatAmount(entriesTotal, currency))} {currency}

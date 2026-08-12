@@ -11,10 +11,7 @@ const config: Config = {
       colors: {
         background: "rgb(var(--background) / <alpha-value>)",
         ink:        "rgb(var(--ink)        / <alpha-value>)",
-        surface:    "rgb(var(--ink) / 0.07)",
-        surface2:   "rgb(var(--ink) / 0.12)",
-        border:     "rgb(var(--ink) / 0.10)",
-        text:       "rgb(var(--ink) / 0.88)",
+        scrim:      "rgb(var(--scrim)      / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",
         "accent-fill":"rgb(var(--accent)      / <alpha-value>)",
@@ -22,7 +19,6 @@ const config: Config = {
         primary:      "rgb(var(--accent)      / <alpha-value>)",
         danger:       "rgb(var(--danger-text) / <alpha-value>)",
         "danger-fill":"rgb(var(--danger)      / <alpha-value>)",
-        tertiary:   "#00B67A",
         // shadcn aliases
         foreground:           "rgb(var(--ink) / 0.88)",
         card:                 { DEFAULT: "rgb(var(--ink) / 0.07)", foreground: "rgb(var(--ink) / 0.88)" },
@@ -34,6 +30,16 @@ const config: Config = {
         ring:                 "rgb(var(--accent) / <alpha-value>)",
         "primary-foreground": "rgb(var(--accent-on) / <alpha-value>)",
       },
+      // Low-alpha surface steps the design system uses. Tailwind's default
+      // opacity scale only goes in fives, so without these the class silently
+      // generates nothing.
+      opacity: {
+        3: "0.03",
+        4: "0.04",
+        6: "0.06",
+        7: "0.07",
+        8: "0.08",
+      },
       fontFamily: {
         serif:     ["var(--font-manrope)", "sans-serif"],
         sans:      ["var(--font-manrope)", "sans-serif"],
@@ -44,12 +50,32 @@ const config: Config = {
         none:    "0",
         sm:      "6px",
         DEFAULT: "10px",
-        md:      "16px",
+        md:      "12px",
         lg:      "16px",
         xl:      "20px",
         "2xl":   "24px",
         "3xl":   "32px",
         full:    "9999px",
+      },
+      // Named layers. Anything overlaying the app belongs on this ladder, so
+      // the next overlay is not chosen by guessing a larger number.
+      zIndex: {
+        background: "0",
+        content:    "10",
+        nav:        "50",
+        prompt:     "55",
+        scrim:      "60",
+        drawer:     "70",
+        skip:       "200",
+        lock:       "300",
+      },
+      fontSize: {
+        // List-row and menu-row body copy: between text-sm (14) and text-base (16).
+        body: "15px",
+      },
+      spacing: {
+        control: "52px",
+        reveal:  "60px",
       },
       keyframes: {
         fadeSlideIn: {

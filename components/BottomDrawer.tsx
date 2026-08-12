@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface Props {
@@ -12,13 +14,21 @@ interface Props {
 }
 
 export default function BottomDrawer({ open, onClose, title, children, contentClassName, fullScreen }: Props) {
+  // Portalled to body because the sheet animates with translate-y, and a
+  // transform makes position:fixed descendants resolve against it instead of
+  // the viewport. Without this a drawer opened from inside another drawer
+  // (the date/category pickers in AddExpenseForm) lays itself out inside its
+  // parent sheet.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-black/60 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-scrim/60 z-scrim transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -28,7 +38,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed z-[70] backdrop-blur-2xl border-ink/10 transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed z-drawer backdrop-blur-2xl border-ink/10 transition-transform duration-300 ease-out flex flex-col ${
           fullScreen
             ? `inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
             : `bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
@@ -55,7 +65,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
             <button
               onClick={onClose}
               aria-label="Close"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/[0.07] border border-ink/[0.1] text-ink/40 hover:text-ink/90 hover:border-ink/[0.3] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 border border-ink/10 text-ink/40 hover:text-ink/90 hover:border-ink/30 transition-colors"
             >
               <X size={13} />
             </button>
@@ -69,6 +79,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
           {children}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

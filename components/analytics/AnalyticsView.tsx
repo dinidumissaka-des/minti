@@ -82,7 +82,7 @@ const CategoryChart = memo(function CategoryChart({
     return (
       <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
         <div className="px-6 py-10 text-center w-full">
-          <p className="text-muted text-[15px] font-mono">No spending data yet</p>
+          <p className="text-muted text-body font-mono">No spending data yet</p>
         </div>
       </GlassSurface>
     );
@@ -91,7 +91,7 @@ const CategoryChart = memo(function CategoryChart({
   return (
     <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
-        <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
+        <span className="font-sans text-xs text-muted font-semibold">
           Spending by Category
         </span>
         <div className="flex flex-col gap-4">
@@ -103,14 +103,14 @@ const CategoryChart = memo(function CategoryChart({
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <span className="font-sans text-[15px] text-ink/80">{category}</span>
+                  <span className="font-sans text-body text-ink/80">{category}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm text-muted">{pct.toFixed(0)}%</span>
-                  <span className="font-mono text-[15px] text-ink font-medium">{mask(formatAmount(amount, currency))}</span>
+                  <span className="font-mono text-body text-ink font-medium">{mask(formatAmount(amount, currency))}</span>
                 </div>
               </div>
-              <div className="h-2 w-full bg-ink/[0.06] rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-ink/6 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${pct}%`, backgroundColor: color }}
@@ -284,9 +284,9 @@ const InsightCards = memo(function InsightCards({
             style={{
               minHeight: cardMinH || undefined,
               ...(insight.type === "positive"
-                ? { borderColor: "rgba(159,232,112,0.2)" }
+                ? { borderColor: "rgb(var(--accent) / 0.2)" }
                 : insight.type === "warning"
-                ? { borderColor: "rgba(224,92,92,0.2)" }
+                ? { borderColor: "rgb(var(--danger) / 0.2)" }
                 : {}),
             }}
           >
@@ -295,7 +295,7 @@ const InsightCards = memo(function InsightCards({
                 <span className="flex-shrink-0">{insight.icon}</span>
               )}
               <div className="flex flex-col gap-1 min-w-0">
-                <p className="font-sans text-[15px] text-ink leading-snug">{insight.text}</p>
+                <p className="font-sans text-body text-ink leading-snug">{insight.text}</p>
                 {insight.sub && (
                   <p className="font-mono text-xs text-muted leading-relaxed">{insight.sub}</p>
                 )}
@@ -363,7 +363,7 @@ const MomComparison = memo(function MomComparison({
     <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
-          <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold">
+          <span className="font-sans text-xs text-muted font-semibold">
             vs Last Month
           </span>
           <span className="font-mono text-sm text-muted">{prevLabel}</span>
@@ -375,8 +375,8 @@ const MomComparison = memo(function MomComparison({
             return (
               <div key={cat} className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                <span className="font-sans text-[15px] text-ink/80 flex-1 truncate">{cat}</span>
-                <span className="font-mono text-[15px] text-ink flex-shrink-0">{mask(formatAmount(curr, currency))}</span>
+                <span className="font-sans text-body text-ink/80 flex-1 truncate">{cat}</span>
+                <span className="font-mono text-body text-ink flex-shrink-0">{mask(formatAmount(curr, currency))}</span>
                 {pctChange !== null ? (
                   <span className={`font-mono text-sm font-semibold flex-shrink-0 w-16 text-right ${isUp ? "text-danger" : "text-accent"}`}>
                     {isUp ? "+" : ""}{pctChange.toFixed(0)}%

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon } from "lucide-react";
+import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
@@ -26,6 +26,11 @@ import BottomDrawer from "@/components/BottomDrawer";
 import CurrencyConverter from "@/components/CurrencyConverter";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { useTheme } from "@/components/ThemeContext";
+import { isNative } from "@/lib/platform";
+import { isBiometryAvailable, isAppLockEnabled, setAppLockEnabled, authenticate } from "@/lib/appLock";
+import { areRemindersEnabled, setRemindersEnabled, requestPermission, syncBillingReminders } from "@/lib/notifications";
+import { publishWidgetSnapshot } from "@/lib/widget";
+import { hapticTap } from "@/lib/haptics";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
@@ -41,6 +46,11 @@ function startOfWeekISO() {
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   return new Date(d.setDate(diff)).toISOString().split("T")[0];
 }
+
+// GradualBlur adds +100 to zIndex for page targets, so this lands the scroll
+// edge effect at 5: above scrolling content, below the sticky header (z-content).
+// Passing 10 here would put it at 110 and blur the header itself.
+const SCROLL_EDGE_Z = -95;
 
 function todayISO() {
   return new Date().toISOString().split("T")[0];
@@ -67,8 +77,13 @@ export default function Home() {
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [expandedSection, setExpandedSection] = useState<"month" | "currency" | null>(null);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
+  const [native, setNative] = useState(false);
+  const [biometryAvailable, setBiometryAvailable] = useState(false);
+  const [appLock, setAppLock] = useState(false);
+  const [billingReminders, setBillingReminders] = useState(false);
   const currencyRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { privacyMode, togglePrivacy, mask } = usePrivacy();
@@ -211,6 +226,41 @@ export default function Home() {
     });
   }
 
+  useEffect(() => {
+    if (!isNative()) return;
+    setNative(true);
+    isBiometryAvailable().then(setBiometryAvailable);
+    isAppLockEnabled().then(setAppLock);
+    areRemindersEnabled().then(setBillingReminders);
+  }, []);
+
+  useEffect(() => {
+    if (!isNative() || !user) return;
+    syncBillingReminders(subscriptions, currency).catch(() => {});
+  }, [user, subscriptions, currency, billingReminders]);
+
+  async function toggleAppLock() {
+    const next = !appLock;
+    if (next && !(await authenticate())) return;
+    await setAppLockEnabled(next);
+    setAppLock(next);
+  }
+
+  async function toggleBillingReminders() {
+    const next = !billingReminders;
+    if (next && !(await requestPermission())) return;
+    await setRemindersEnabled(next);
+    setBillingReminders(next);
+  }
+
+  function exportCSV() {
+    const done =
+      view === "expenses"
+        ? exportExpensesCSV(expenses, currency, selectedMonth)
+        : exportSubscriptionsCSV(subscriptions, currency);
+    done.catch(() => {});
+  }
+
   const subscriptionsTotal = useMemo(
     () => subscriptions.reduce((s, sub) => s + Number(sub.amount), 0),
     [subscriptions]
@@ -220,6 +270,20 @@ export default function Home() {
     () => expenses.reduce((s, e) => s + Number(e.amount), 0),
     [expenses]
   );
+
+  useEffect(() => {
+    if (!native || !user) return;
+    const today = new Date();
+    const isCurrentMonth =
+      selectedMonth.year === today.getFullYear() && selectedMonth.month === today.getMonth() + 1;
+    if (!isCurrentMonth) return;
+    publishWidgetSnapshot({
+      spent: expensesTotal + subscriptionsTotal,
+      budget,
+      currency,
+      month: `${MONTH_NAMES[selectedMonth.month - 1]} ${selectedMonth.year}`,
+    }).catch(() => {});
+  }, [native, user, expensesTotal, subscriptionsTotal, budget, currency, selectedMonth]);
 
   const filteredExpenses = useMemo(() => {
     if (filter === "today") return expenses.filter((e) => e.date === todayISO());
@@ -235,7 +299,7 @@ export default function Home() {
 
   if (user === undefined) {
     return (
-      <main className="relative z-10 min-h-screen flex items-center justify-center">
+      <main className="relative z-content min-h-screen flex items-center justify-center">
         <Ripple className="w-11 h-11 text-accent" />
       </main>
     );
@@ -243,7 +307,7 @@ export default function Home() {
 
   if (user === null) {
     return (
-      <main className="relative z-10 text-text sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <main className="relative z-content text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="w-full sm:max-w-sm">
           <AuthForm />
         </div>
@@ -252,8 +316,13 @@ export default function Home() {
   }
 
   return (
-    <main id="main-content" className="relative z-10 min-h-screen text-text">
+    <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
+      {/* Scroll edge effect. Apple: "Optimize for legibility when content
+          scrolls beneath controls... obscuring content that scrolls beneath
+          them." System bars get this free; the sticky mobile header has to
+          ask for it, otherwise the logo sits on raw scrolling text. */}
+      <GradualBlur target="page" position="top" height="7.5rem" strength={1.2} divCount={4} curve="bezier" zIndex={SCROLL_EDGE_Z} className="sm:hidden" />
       <div
         className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
         style={{
@@ -285,7 +354,7 @@ export default function Home() {
             className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
               currency === c.code
                 ? "text-accent bg-accent-fill/10"
-                : "text-ink hover:bg-ink/[0.07]"
+                : "text-ink hover:bg-ink/7"
             }`}
           >
             <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -304,7 +373,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "month" ? null : "month")}
           aria-expanded={expandedSection === "month"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Month</span>
           <div className="flex items-center gap-2">
@@ -317,12 +386,12 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setPickerYear(y => y - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
               >‹</button>
               <span className="font-mono text-sm font-semibold text-ink">{pickerYear}</span>
               <button
                 onClick={() => setPickerYear(y => y + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/[0.1] bg-ink/[0.07] text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
               >›</button>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -349,7 +418,7 @@ export default function Home() {
         <button
           onClick={() => setExpandedSection(s => s === "currency" ? null : "currency")}
           aria-expanded={expandedSection === "currency"}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Currency</span>
           <div className="flex items-center gap-2">
@@ -364,7 +433,7 @@ export default function Home() {
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
-                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/[0.07]"
+                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/7"
                 }`}
               >
                 <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -377,7 +446,7 @@ export default function Home() {
         {/* Insights */}
         <button
           onClick={() => { setShowMoreDrawer(false); setView("insights"); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Insights</span>
           <Lightbulb size={14} className="text-ink/40" />
@@ -386,7 +455,7 @@ export default function Home() {
         {/* Currency converter */}
         <button
           onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Convert currency</span>
           <ArrowsLeftRight size={14} className="text-ink/40" />
@@ -395,29 +464,85 @@ export default function Home() {
         {/* Export CSV */}
         <button
           onClick={() => {
-            view === "expenses"
-              ? exportExpensesCSV(expenses, currency, selectedMonth)
-              : exportSubscriptionsCSV(subscriptions, currency);
+            exportCSV();
             setShowMoreDrawer(false);
           }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Export CSV</span>
           <Download size={14} className="text-ink/40" />
         </button>
+        {/* Native-only settings */}
+        {native && biometryAvailable && (
+          <button
+            onClick={toggleAppLock}
+            role="switch"
+            aria-checked={appLock}
+            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
+          >
+            <span className="text-ink/60">Require Face ID</span>
+            <span className={`font-mono text-xs font-semibold ${appLock ? "text-accent" : "text-ink/40"}`}>
+              {appLock ? "ON" : "OFF"}
+            </span>
+          </button>
+        )}
+        {native && (
+          <button
+            onClick={toggleBillingReminders}
+            role="switch"
+            aria-checked={billingReminders}
+            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
+          >
+            <span className="text-ink/60">Billing reminders</span>
+            <span className={`font-mono text-xs font-semibold ${billingReminders ? "text-accent" : "text-ink/40"}`}>
+              {billingReminders ? "ON" : "OFF"}
+            </span>
+          </button>
+        )}
         {/* Sign out */}
         <button
           onClick={() => { signOut(); setShowMoreDrawer(false); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-danger hover:bg-ink/[0.07] transition-colors"
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-danger hover:bg-ink/7 transition-colors"
         >
           <span>Sign out</span>
           <LogOut size={14} />
         </button>
       </BottomDrawer>
 
+      {/* Floating "+ Add" — mobile only, sits above the bottom nav.
+          Accent fill rather than glass: Apple asks to limit Liquid Glass to
+          navigation chrome so the primary action stays the thing that pops. */}
+      {view === "expenses" && (
+        <div
+          className="sm:hidden fixed right-4 z-nav"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.25rem)" }}
+        >
+          <button
+            onClick={() => { hapticTap(); setShowAddSheet(true); }}
+            aria-label="Add expense"
+            className="h-12 pl-4 pr-5 flex items-center gap-1.5 rounded-full bg-accent-fill text-accent-on font-semibold text-sm shadow-lg shadow-black/20 active:scale-95 transition-transform"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            Add
+          </button>
+        </div>
+      )}
+
+      {/* Add-expense sheet — the mobile counterpart of the desktop inline form */}
+      <BottomDrawer fullScreen open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
+        {user && (
+          <AddExpenseForm
+            bare
+            userId={user.id}
+            currency={currency}
+            onExpenseAdded={() => { fetchExpenses(); setShowAddSheet(false); }}
+          />
+        )}
+      </BottomDrawer>
+
       {/* Bottom nav — mobile only */}
-      <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
-        <div className="flex items-center h-16 p-1.5 rounded-3xl border flat-chip">
+      <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-nav px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
+        <div className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip">
           {([
             { key: "expenses", label: "Expenses", Icon: CreditCard },
             { key: "subscriptions", label: "Bills", Icon: ArrowsClockwise },
@@ -430,8 +555,8 @@ export default function Home() {
                 onClick={() => setView(key)}
                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
                   active
-                    ? "flat-chip-active text-ink border"
-                    : "text-ink/35 hover:text-ink/70"
+                    ? "glass-chip-active text-ink border"
+                    : "text-ink/55 hover:text-ink/80"
                 }`}
               >
                 <Icon size={22} weight={active ? "fill" : "regular"} />
@@ -443,8 +568,8 @@ export default function Home() {
             onClick={() => setView("insights")}
             className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
               view === "insights"
-                ? "flat-chip-active text-ink border"
-                : "text-ink/35 hover:text-ink/70"
+                ? "glass-chip-active text-ink border"
+                : "text-ink/55 hover:text-ink/80"
             }`}
           >
             <Lightbulb size={22} weight={view === "insights" ? "fill" : "regular"} />
@@ -453,21 +578,30 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="max-w-2xl mx-auto px-4 pb-28 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
+      <div className="max-w-2xl mx-auto px-4 pb-36 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
 
         {/* Header */}
-        <header className="flex flex-col gap-5">
+        <header
+          className="flex flex-col gap-5 sticky sm:static z-content"
+          style={{ top: "env(safe-area-inset-top)" }}
+        >
           {/* Row 1: Logo + Sign out */}
           <div className="flex items-center justify-between pt-1 pb-2">
             <Logo className="h-5 w-auto" />
-            <div className="flex items-center gap-2">
+            {/* One shared glass background rather than four floating ones:
+                Apple groups toolbar items and warns against layering separate
+                Liquid Glass elements, and combining the effect also means one
+                backdrop-filter pass instead of four. Inner buttons are 44px to
+                clear the minimum touch target; radii stay concentric (26 outer
+                - 4 padding = 22 inner). */}
+            <div className="flex items-center gap-0.5 p-1 h-control rounded-full border glass-chip">
               <button
                 onClick={togglePrivacy}
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
-                className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors ${
+                className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${
                   privacyMode
-                    ? "border-accent-fill/40 bg-accent-fill/10 text-accent"
-                    : "flat-chip text-ink/40 hover:text-ink/90"
+                    ? "bg-accent-fill/15 text-accent"
+                    : "text-ink/55 hover:text-ink/90"
                 }`}
               >
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
@@ -475,23 +609,23 @@ export default function Home() {
               <button
                 onClick={toggleTheme}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
               <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
-                <MoreHorizontal size={14} />
+                <MoreHorizontal size={16} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors"
               >
-                <LogOut size={14} />
+                <LogOut size={16} />
               </button>
             </div>
           </div>
@@ -512,11 +646,7 @@ export default function Home() {
             {/* Export + Month nav */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() =>
-                  view === "expenses"
-                    ? exportExpensesCSV(expenses, currency, selectedMonth)
-                    : exportSubscriptionsCSV(subscriptions, currency)
-                }
+                onClick={exportCSV}
                 aria-label="Export CSV"
                 className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
               >
@@ -537,7 +667,7 @@ export default function Home() {
               >
                 ‹
               </button>
-              <span className="font-sans text-[15px] text-ink font-medium min-w-[72px] text-center">
+              <span className="font-sans text-body text-ink font-medium min-w-[72px] text-center">
                 {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
               </span>
               <button
@@ -574,17 +704,17 @@ export default function Home() {
         {view === "subscriptions" && (
           <div className="flex flex-col gap-2">
             <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-              <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Bills</span>
+              <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Bills</span>
               <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
             </div>
             <GlassSurface borderRadius={28}>
-              <div className="w-full grid grid-cols-2 divide-x divide-ink/[0.07]">
+              <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                 <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Active</span>
+                  <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
                   <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
                 </div>
                 <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Per Year</span>
+                  <span className="font-sans text-xs text-muted font-semibold leading-none">Per Year</span>
                   <span className="font-mono text-2xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal * 12, currency))}</span>
                 </div>
               </div>
@@ -593,15 +723,18 @@ export default function Home() {
         )}
         {view === "income" && (
           <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-            <span className="font-sans text-xs text-muted uppercase tracking-wider font-semibold leading-none">Monthly Income</span>
+            <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Income</span>
             <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(incomeTotalHero, currency))}</span>
           </div>
         )}
 
         {view === "expenses" ? (
           <>
-            {/* Add form */}
-            <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+            {/* Add form — desktop only. Mobile uses the floating "+ Add"
+                button above the bottom nav, which opens the same form in a sheet. */}
+            {!isMobile && (
+              <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+            )}
 
             {/* Budget */}
             <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
@@ -628,7 +761,7 @@ export default function Home() {
             {/* Expense list / loading / error */}
             <div key={filter} className="animate-fade-slide-in">
               {fetchError ? (
-                <div className="bg-ink/[0.07] rounded-xl border border-danger-fill/40 p-5 text-center">
+                <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
                   <p className="text-danger font-mono text-sm">{fetchError}</p>
                   <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
                     Retry
@@ -688,18 +821,18 @@ function LoadingSkeleton() {
       {[0, 1].map((g) => (
         <div key={g}>
           <div className="flex justify-between mb-2 px-1">
-            <div className="h-3 w-16 bg-ink/[0.07] rounded" />
-            <div className="h-3 w-20 bg-ink/[0.07] rounded" />
+            <div className="h-3 w-16 bg-ink/7 rounded" />
+            <div className="h-3 w-20 bg-ink/7 rounded" />
           </div>
-          <div className="bg-ink/[0.04] rounded-xl border border-ink/[0.07] overflow-hidden divide-y divide-ink/[0.08]">
+          <div className="bg-ink/4 rounded-xl border border-ink/7 overflow-hidden divide-y divide-ink/8">
             {[0, 1, 2].map((r) => (
               <div key={r} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-ink/[0.07] flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-ink/7 flex-shrink-0" />
                 <div className="flex-1 flex flex-col gap-1.5">
-                  <div className="h-3 w-2/3 bg-ink/[0.07] rounded" />
-                  <div className="h-2.5 w-1/4 bg-ink/[0.07] rounded-full" />
+                  <div className="h-3 w-2/3 bg-ink/7 rounded" />
+                  <div className="h-2.5 w-1/4 bg-ink/7 rounded-full" />
                 </div>
-                <div className="h-3 w-20 bg-ink/[0.07] rounded" />
+                <div className="h-3 w-20 bg-ink/7 rounded" />
               </div>
             ))}
           </div>
