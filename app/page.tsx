@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon } from "lucide-react";
+import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
@@ -30,6 +30,7 @@ import { isNative } from "@/lib/platform";
 import { isBiometryAvailable, isAppLockEnabled, setAppLockEnabled, authenticate } from "@/lib/appLock";
 import { areRemindersEnabled, setRemindersEnabled, requestPermission, syncBillingReminders } from "@/lib/notifications";
 import { publishWidgetSnapshot } from "@/lib/widget";
+import { hapticTap } from "@/lib/haptics";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
@@ -76,6 +77,7 @@ export default function Home() {
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [expandedSection, setExpandedSection] = useState<"month" | "currency" | null>(null);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
   const [native, setNative] = useState(false);
@@ -507,6 +509,37 @@ export default function Home() {
         </button>
       </BottomDrawer>
 
+      {/* Floating "+ Add" — mobile only, sits above the bottom nav.
+          Accent fill rather than glass: Apple asks to limit Liquid Glass to
+          navigation chrome so the primary action stays the thing that pops. */}
+      {view === "expenses" && (
+        <div
+          className="sm:hidden fixed right-4 z-nav"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.25rem)" }}
+        >
+          <button
+            onClick={() => { hapticTap(); setShowAddSheet(true); }}
+            aria-label="Add expense"
+            className="h-12 pl-4 pr-5 flex items-center gap-1.5 rounded-full bg-accent-fill text-accent-on font-semibold text-sm shadow-lg shadow-black/20 active:scale-95 transition-transform"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            Add
+          </button>
+        </div>
+      )}
+
+      {/* Add-expense sheet — the mobile counterpart of the desktop inline form */}
+      <BottomDrawer fullScreen open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
+        {user && (
+          <AddExpenseForm
+            bare
+            userId={user.id}
+            currency={currency}
+            onExpenseAdded={() => { fetchExpenses(); setShowAddSheet(false); }}
+          />
+        )}
+      </BottomDrawer>
+
       {/* Bottom nav — mobile only */}
       <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-nav px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
         <div className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip">
@@ -545,7 +578,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="max-w-2xl mx-auto px-4 pb-28 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
+      <div className="max-w-2xl mx-auto px-4 pb-36 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
 
         {/* Header */}
         <header
@@ -697,8 +730,11 @@ export default function Home() {
 
         {view === "expenses" ? (
           <>
-            {/* Add form */}
-            <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+            {/* Add form — desktop only. Mobile uses the floating "+ Add"
+                button above the bottom nav, which opens the same form in a sheet. */}
+            {!isMobile && (
+              <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+            )}
 
             {/* Budget */}
             <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />

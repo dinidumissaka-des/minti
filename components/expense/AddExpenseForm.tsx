@@ -17,6 +17,9 @@ interface Props {
   userId: string;
   currency: string;
   onExpenseAdded: () => void;
+  /** Drop the GlassSurface card when the form already sits on one (a sheet).
+      Apple warns against layering Liquid Glass elements on top of each other. */
+  bare?: boolean;
 }
 
 function formatDateLabel(iso: string) {
@@ -30,7 +33,7 @@ function formatDateLabel(iso: string) {
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
-export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Props) {
+export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare = false }: Props) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(PRESET_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState("");
@@ -91,10 +94,8 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
     }
   }
 
-  return (
-    <>
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
-        <div className="p-6 flex flex-col gap-5 w-full">
+  const body = (
+    <div className={bare ? "px-4 py-2 flex flex-col gap-5 w-full" : "p-6 flex flex-col gap-5 w-full"}>
           {/* Hero amount */}
           <div className="flex flex-col items-end gap-1 py-4">
             <span className="font-mono text-xs text-muted uppercase tracking-widest font-semibold">{currency}</span>
@@ -161,8 +162,16 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded }: Pro
             {submitting ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} strokeWidth={2.5} />}
             <span>{submitting ? "Adding…" : "Add Expense"}</span>
           </Button>
-        </div>
-      </GlassSurface>
+    </div>
+  );
+
+  return (
+    <>
+      {bare ? body : (
+        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+          {body}
+        </GlassSurface>
+      )}
 
       {/* Date bottom drawer */}
       <BottomDrawer open={showDateDrawer} onClose={() => setShowDateDrawer(false)} title="Select Date">

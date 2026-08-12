@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface Props {
@@ -12,8 +14,16 @@ interface Props {
 }
 
 export default function BottomDrawer({ open, onClose, title, children, contentClassName, fullScreen }: Props) {
+  // Portalled to body because the sheet animates with translate-y, and a
+  // transform makes position:fixed descendants resolve against it instead of
+  // the viewport. Without this a drawer opened from inside another drawer
+  // (the date/category pickers in AddExpenseForm) lays itself out inside its
+  // parent sheet.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -69,6 +79,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
           {children}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
