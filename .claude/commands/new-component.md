@@ -1,6 +1,6 @@
 # Scaffold a new component
 
-Create a new React component for Spendr following project conventions.
+Create a new React component for Minti following project conventions.
 
 Arguments: $ARGUMENTS (component name and optional folder, e.g. "BudgetHistory" or "expense/SpendingChart")
 

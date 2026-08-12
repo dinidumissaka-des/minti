@@ -1,4 +1,4 @@
-# Spendr Supabase Patterns
+# Minti Supabase Patterns
 
 Loaded when working on database queries, auth, or data fetching.
 
