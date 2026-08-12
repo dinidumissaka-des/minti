@@ -283,7 +283,7 @@ const InsightCards = memo(function InsightCards({
               <span className="flex-shrink-0">{insight.icon}</span>
             )}
             <div className="flex flex-col gap-1 min-w-0">
-              <p className="font-sans text-lg font-semibold text-ink leading-snug">{insight.text}</p>
+              <p className="font-sans text-sm font-semibold text-ink leading-snug">{insight.text}</p>
               {insight.sub && (
                 <p className="font-mono text-sm text-muted leading-relaxed">{insight.sub}</p>
               )}

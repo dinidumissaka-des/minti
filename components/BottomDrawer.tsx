@@ -43,7 +43,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
             ? `inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
             : `bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl ${open ? "translate-y-0" : "translate-y-full"}`
         }`}
-        style={{ backgroundColor: "rgb(var(--background) / 0.85)" }}
+        style={{ backgroundColor: "rgb(var(--sheet) / 0.9)" }}
       >
         {!fullScreen && (
           <div className="flex justify-center pt-3 pb-2 shrink-0">
