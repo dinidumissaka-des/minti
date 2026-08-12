@@ -499,7 +499,7 @@ export default function Home() {
 
       {/* Bottom nav — mobile only */}
       <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-nav px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
-        <div className="flex items-center h-16 p-1.5 rounded-3xl border flat-chip">
+        <div className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip">
           {([
             { key: "expenses", label: "Expenses", Icon: CreditCard },
             { key: "subscriptions", label: "Bills", Icon: ArrowsClockwise },
@@ -512,7 +512,7 @@ export default function Home() {
                 onClick={() => setView(key)}
                 className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
                   active
-                    ? "flat-chip-active text-ink border"
+                    ? "glass-chip-active text-ink border"
                     : "text-ink/35 hover:text-ink/70"
                 }`}
               >
@@ -525,7 +525,7 @@ export default function Home() {
             onClick={() => setView("insights")}
             className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
               view === "insights"
-                ? "flat-chip-active text-ink border"
+                ? "glass-chip-active text-ink border"
                 : "text-ink/35 hover:text-ink/70"
             }`}
           >
@@ -538,7 +538,10 @@ export default function Home() {
       <div className="max-w-2xl mx-auto px-4 pb-28 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
 
         {/* Header */}
-        <header className="flex flex-col gap-5">
+        <header
+          className="flex flex-col gap-5 sticky sm:static z-content"
+          style={{ top: "env(safe-area-inset-top)" }}
+        >
           {/* Row 1: Logo + Sign out */}
           <div className="flex items-center justify-between pt-1 pb-2">
             <Logo className="h-5 w-auto" />
@@ -549,7 +552,7 @@ export default function Home() {
                 className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors ${
                   privacyMode
                     ? "border-accent-fill/40 bg-accent-fill/10 text-accent"
-                    : "flat-chip text-ink/40 hover:text-ink/90"
+                    : "glass-chip text-ink/40 hover:text-ink/90"
                 }`}
               >
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
@@ -557,21 +560,21 @@ export default function Home() {
               <button
                 onClick={toggleTheme}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
               <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 <MoreHorizontal size={14} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full border glass-chip text-ink/40 hover:text-ink/90 transition-colors"
               >
                 <LogOut size={14} />
               </button>

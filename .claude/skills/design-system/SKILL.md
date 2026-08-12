@@ -37,6 +37,9 @@ className={active ? "flat-chip-active text-ink border" : "text-ink/40 hover:text
 ```
 If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS class rather than hardcoding a one-off opacity in the component — keeps every chip in sync.
 
+## 3. Glass chrome — mobile bottom nav + mobile header controls
+`.glass-chip` / `.glass-chip-active` (backdrop-blur + inset specular highlight). Only valid where content scrolls beneath — the mobile header is `sticky` so it has something to blur. Desktop header and all other chips stay `flat-chip`.
+
 ## Accent & danger — fill vs bare text (applies on both surface types)
 - **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
 - **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#9FE870` for this.
