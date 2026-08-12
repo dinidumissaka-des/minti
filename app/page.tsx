@@ -211,6 +211,14 @@ export default function Home() {
     });
   }
 
+  function exportCSV() {
+    const done =
+      view === "expenses"
+        ? exportExpensesCSV(expenses, currency, selectedMonth)
+        : exportSubscriptionsCSV(subscriptions, currency);
+    done.catch(() => {});
+  }
+
   const subscriptionsTotal = useMemo(
     () => subscriptions.reduce((s, sub) => s + Number(sub.amount), 0),
     [subscriptions]
@@ -395,9 +403,7 @@ export default function Home() {
         {/* Export CSV */}
         <button
           onClick={() => {
-            view === "expenses"
-              ? exportExpensesCSV(expenses, currency, selectedMonth)
-              : exportSubscriptionsCSV(subscriptions, currency);
+            exportCSV();
             setShowMoreDrawer(false);
           }}
           className="w-full flex items-center justify-between px-4 py-4 text-[15px] text-ink hover:bg-ink/[0.07] transition-colors"
@@ -512,11 +518,7 @@ export default function Home() {
             {/* Export + Month nav */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() =>
-                  view === "expenses"
-                    ? exportExpensesCSV(expenses, currency, selectedMonth)
-                    : exportSubscriptionsCSV(subscriptions, currency)
-                }
+                onClick={exportCSV}
                 aria-label="Export CSV"
                 className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors text-xs font-mono"
               >

@@ -35,6 +35,19 @@ Requirements: macOS with Xcode 16+, an Apple Developer account for device builds
 
 `ios/App/App/public/` is generated on every sync and is git-ignored; edit the Next.js source, not the copied bundle.
 
+### Native differences
+
+The same source runs on both targets and branches on `isNative()` (`lib/platform.ts`) where the platforms genuinely differ:
+
+| Concern | Web | iOS |
+| --- | --- | --- |
+| Auth session storage | `localStorage` | `@capacitor/preferences` (survives iOS storage eviction) |
+| OAuth flow | implicit, redirect to origin | PKCE, in-app browser returning to `com.minti.app://auth/callback` |
+| CSV export | `<a download>` blob | file written to cache, handed to the iOS share sheet |
+| Service worker / install prompt | active | skipped |
+
+**Before Google sign-in works on device**, add `com.minti.app://auth/callback` to the redirect allow-list in the Supabase dashboard under *Authentication → URL Configuration → Redirect URLs*. Without it Supabase refuses the callback and the in-app browser dead-ends on an error page.
+
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.

@@ -235,13 +235,26 @@ export default function LightRays({
         } catch { /* swallow webgl errors */ }
       };
 
+      const handleVisibility = () => {
+        if (document.hidden) {
+          if (animationIdRef.current !== null) {
+            cancelAnimationFrame(animationIdRef.current);
+            animationIdRef.current = null;
+          }
+        } else if (animationIdRef.current === null) {
+          animationIdRef.current = requestAnimationFrame(loop);
+        }
+      };
+
       window.addEventListener("resize", updatePlacement);
+      document.addEventListener("visibilitychange", handleVisibility);
       updatePlacement();
       animationIdRef.current = requestAnimationFrame(loop);
 
       cleanupRef.current = () => {
         if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
         window.removeEventListener("resize", updatePlacement);
+        document.removeEventListener("visibilitychange", handleVisibility);
         try {
           const ext = renderer.gl.getExtension("WEBGL_lose_context");
           ext?.loseContext();

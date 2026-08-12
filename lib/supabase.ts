@@ -1,5 +1,20 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { Preferences } from '@capacitor/preferences';
+import { Browser } from '@capacitor/browser';
 import type { Expense, NewExpense, Subscription, NewSubscription, Income, NewIncome } from '@/types';
+import { isNative } from '@/lib/platform';
+
+export const NATIVE_OAUTH_REDIRECT = 'com.minti.app://auth/callback';
+
+const nativeStorage = {
+  getItem: async (key: string) => (await Preferences.get({ key })).value,
+  setItem: async (key: string, value: string) => {
+    await Preferences.set({ key, value });
+  },
+  removeItem: async (key: string) => {
+    await Preferences.remove({ key });
+  },
+};
 
 let _client: SupabaseClient | null = null;
 
@@ -7,7 +22,17 @@ function getClient(): SupabaseClient {
   if (!_client) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    _client = createClient(url, key);
+    _client = isNative()
+      ? createClient(url, key, {
+          auth: {
+            storage: nativeStorage,
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+            flowType: 'pkce',
+          },
+        })
+      : createClient(url, key);
   }
   return _client;
 }
@@ -53,12 +78,42 @@ export async function signOut() {
 }
 
 export async function signInWithGoogle() {
-  const { error } = await getClient().auth.signInWithOAuth({
+  if (!isNative()) {
+    const { error } = await getClient().auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+    if (error) throw error;
+    return;
+  }
+
+  const { data, error } = await getClient().auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/`,
+      redirectTo: NATIVE_OAUTH_REDIRECT,
+      skipBrowserRedirect: true,
     },
   });
+  if (error) throw error;
+  if (data.url) await Browser.open({ url: data.url });
+}
+
+export async function completeNativeOAuth(callbackUrl: string) {
+  const params = new URL(callbackUrl).searchParams;
+
+  const errorDescription = params.get("error_description") ?? params.get("error");
+  if (errorDescription) {
+    await Browser.close().catch(() => {});
+    throw new Error(errorDescription);
+  }
+
+  const code = params.get("code");
+  if (!code) return;
+
+  const { error } = await getClient().auth.exchangeCodeForSession(code);
+  await Browser.close().catch(() => {});
   if (error) throw error;
 }
 

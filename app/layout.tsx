@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import NativeAuthListener from "@/components/NativeAuthListener";
 import ClientProviders from "@/components/ClientProviders";
 import AppBackground from "@/components/background/AppBackground";
 
@@ -72,6 +73,7 @@ export default function RootLayout({
           {children}
           <InstallPrompt />
           <ServiceWorkerRegistration />
+          <NativeAuthListener />
         </ClientProviders>
       </body>
     </html>
