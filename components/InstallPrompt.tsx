@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Share } from "lucide-react";
 import Logo from "@/components/Logo";
+import { isNative } from "@/lib/platform";
 
 export default function InstallPrompt() {
   const [prompt, setPrompt] = useState<Event & { prompt?: () => void } | null>(null);
@@ -10,6 +11,7 @@ export default function InstallPrompt() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
+    if (isNative()) return;
     if (localStorage.getItem("minti_install_dismissed")) return;
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as Record<string, unknown>).MSStream;

@@ -20,7 +20,20 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## iOS app
+
+The iOS app is the same web bundle running in a native shell via [Capacitor](https://capacitorjs.com). The web build is unaffected — `npm run build` still produces a normal server build for Vercel.
+
+```bash
+npm run ios:sync   # static-export the app and copy it into the Xcode project
+npm run ios:open   # open ios/App in Xcode (macOS only)
+```
+
+`ios:sync` runs `next build` with `BUILD_TARGET=mobile`, which switches on `output: "export"` and writes a fully static bundle to `out/`. Because `NEXT_PUBLIC_*` values are inlined at build time, your real Supabase credentials must be present in the environment when you run it — the bundle ships with whatever was set.
+
+Requirements: macOS with Xcode 16+, an Apple Developer account for device builds and submission. Capacitor 8 uses Swift Package Manager, so there is no CocoaPods step. Deployment target is iOS 15.
+
+`ios/App/App/public/` is generated on every sync and is git-ignored; edit the Next.js source, not the copied bundle.
 
 To learn more about Next.js, take a look at the following resources:
 
