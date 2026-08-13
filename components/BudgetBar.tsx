@@ -46,7 +46,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     return (
       <button
         onClick={openEdit}
-        className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-[28px]"
+        className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-full"
       >
         + Set a monthly budget
       </button>
@@ -68,10 +68,10 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
           aria-label="Monthly budget amount"
           className="flex-1 h-11 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
+        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
           <Check size={13} />
         </button>
-        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
+        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0">
           <X size={13} />
         </button>
       </div>

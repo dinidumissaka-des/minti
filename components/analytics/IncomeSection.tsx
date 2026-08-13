@@ -228,10 +228,10 @@ const IncomeSection = memo(function IncomeSection({
                 aria-label="Monthly income"
                 className="flex-1 h-10 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
+              <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
                 <Check size={13} />
               </button>
-              <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
+              <button onClick={() => setEditingBaseline(false)} aria-label="Cancel" className="w-9 h-9 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0">
                 <X size={13} />
               </button>
             </div>
@@ -272,7 +272,7 @@ const IncomeSection = memo(function IncomeSection({
       ) : (
         <button
           onClick={openBaselineEdit}
-          className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-[28px]"
+          className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-full"
         >
           + Set monthly income baseline
         </button>
@@ -300,7 +300,7 @@ const IncomeSection = memo(function IncomeSection({
                 <button
                   type="button"
                   onClick={() => setShowSourceDrawer(true)}
-                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-full px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newSource}
                 </button>
@@ -319,7 +319,7 @@ const IncomeSection = memo(function IncomeSection({
                 <button
                   type="button"
                   onClick={() => setShowDateDrawer(true)}
-                  className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
+                  className="flex-1 bg-ink/7 border border-ink/10 rounded-full px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                 >
                   {newDate}
                 </button>
@@ -327,14 +327,14 @@ const IncomeSection = memo(function IncomeSection({
                   onClick={handleAddEntry}
                   disabled={saving}
                   aria-label="Save income entry"
-                  className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on disabled:opacity-50 flex-shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on disabled:opacity-50 flex-shrink-0"
                 >
                   <Check size={15} />
                 </button>
                 <button
                   onClick={() => { setShowAddForm(false); setSaveError(null); }}
                   aria-label="Cancel"
-                  className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0"
                 >
                   <X size={15} />
                 </button>
@@ -377,7 +377,7 @@ const IncomeSection = memo(function IncomeSection({
                         onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id); }}
                         disabled={deletingId === entry.id}
                         aria-label="Delete income entry"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-danger-fill/20 text-danger disabled:opacity-30"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger disabled:opacity-30"
                       >
                         {deletingId === entry.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
@@ -397,7 +397,7 @@ const IncomeSection = memo(function IncomeSection({
                         onClick={() => handleDeleteEntry(entry.id)}
                         disabled={deletingId === entry.id}
                         aria-label="Delete income entry"
-                        className="w-6 h-6 flex items-center justify-center rounded-lg text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
+                        className="w-6 h-6 flex items-center justify-center rounded-full text-muted hover:text-danger opacity-0 group-hover:opacity-100 sm:flex hidden transition-all disabled:opacity-30 flex-shrink-0"
                       >
                         <Trash2 size={12} />
                       </button>
