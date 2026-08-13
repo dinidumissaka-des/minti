@@ -800,7 +800,7 @@ export default function Home() {
                 ariaLabel="Filter expenses"
                 className="flex gap-2"
                 itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border"
-                pillClassName="accent-chip-active border rounded-full"
+                pillClassName="accent-chip-active border-2 rounded-full"
                 activeClassName="text-accent border-transparent"
                 inactiveClassName="border-transparent text-ink/60 hover:text-ink"
               />

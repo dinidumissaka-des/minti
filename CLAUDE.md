@@ -89,9 +89,9 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
   - Everything else — filter tabs, category tags, the desktop segmented nav, the desktop header rows — stays `flat-chip`. The Wise-style flat look is still the default; glass is the exception for floating chrome.
   - Apple's real Liquid Glass is a native material (`.glassEffect()`, iOS 26+) and is unavailable to a WKWebView. This is a CSS approximation: it gets the frost and saturation, not the edge refraction or motion-tracked highlights.
 
-**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border` element, with `border-transparent text-ink/60` when unselected. A tint of the brand green rather than a fill, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
-- Light caps at `--accent / 0.22`; past ~0.28 the accent text drops under 4.5:1.
-- The border is doing the work of showing the state — the tint alone is 1.08:1 against the page in light mode, so it cannot be seen. `--accent-text / 0.8` gives a 3.41:1 boundary.
+**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border-2` element, with `border-transparent text-ink/60` when unselected. An outline in the brand green with **no fill**, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
+- The border is the entire state signal, so it runs at full strength and 2px: `--accent / 0.9` in dark (10.72:1), `--accent-text` at full alpha in light (4.56:1). UI boundaries need 3:1.
+- Removing the tint put accent text directly on the page background. That is the worst case for `text-accent` — 4.15:1 at the old `--accent-text` — so the light token moved from `63 122 31` to `59 115 29` (4.56:1 on the page, 5.24:1 on a glass card). Don't lighten it back without re-measuring against `--background`, not against a card.
 - Unselected chips are `text-ink/60`; `/50` measured 3.42:1 in light mode and failed AA.
 
 **Accent & danger — fill vs bare text, in both surface types:**
