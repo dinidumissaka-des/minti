@@ -441,10 +441,10 @@ export default function AnalyticsView({
         onChange={changeTab}
         ariaLabel="Insight views"
         className="flex gap-2"
-        itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border border-transparent"
+        itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
         pillClassName="flat-chip-active border rounded-full"
-        activeClassName="text-ink"
-        inactiveClassName="text-ink/50 hover:text-ink"
+        activeClassName="text-accent border-transparent"
+        inactiveClassName="flat-chip text-ink/60 hover:text-ink"
       />
 
       <ViewTransition trigger={tab} direction={tabDir}>
