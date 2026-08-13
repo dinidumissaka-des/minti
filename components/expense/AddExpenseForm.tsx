@@ -109,9 +109,13 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               placeholder="0.00"
               aria-label="Amount"
-              className="w-full bg-transparent text-right text-6xl font-bold text-ink placeholder:text-ink/25 outline-none border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg"
+              className="peer w-full bg-transparent text-right text-6xl font-bold text-ink placeholder:text-ink/25 outline-none border-none focus-visible:outline-none"
             />
-            <div className="h-px w-16 bg-ink/10 mt-1" />
+            {/* The rule under the amount is the focus indicator: a ring around
+                a field with no visible box reads as a pill floating on the card.
+                `bg-accent` not `bg-accent-fill` — a hairline has to carry its own
+                contrast, and the fill green is 1.6:1 on a light card. */}
+            <div className="h-px w-16 bg-ink/10 mt-1 origin-right transition-[transform,background-color] duration-slow ease-out peer-focus-visible:scale-x-150 peer-focus-visible:scale-y-[2] peer-focus-visible:bg-accent" />
           </div>
 
           {/* Description */}

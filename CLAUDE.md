@@ -77,6 +77,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 - For a genuinely opaque panel that needs a solid backdrop (BottomDrawer, InstallPrompt), use `style={{ backgroundColor: "rgb(var(--background) / 0.85)" }}` — not a hardcoded hex — so it flips light/dark too.
 - **Glass cards**: always use `<GlassSurface borderRadius={28} backgroundOpacity={0.07}>`, not raw divs — it already adapts its frost/border per theme via `.light` CSS overrides in `GlassSurface.css` (no drop shadow — removed intentionally).
 - **Inputs**: `bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink outline-none focus:border-ink/30` — hide number spinners with `[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`
+- **Focus is a border change, never a ring** — on a boxed field the border darkens (`focus:border-ink/40`); on the bare hero amount in AddExpenseForm the rule beneath it thickens and turns accent (`peer-focus-visible:`). A `ring` around a `bg-transparent` field draws a pill in empty space with nothing to attach to, which is what the budget and income editors shipped with. A focus mark that has to read on its own uses `bg-accent`/`text-accent`, not `-fill` — the fill green is 1.6:1 on a light card.
 
 **2. Flat chips** (desktop header pills — currency/CSV/converter/month-nav, the desktop Sections segmented nav, filter tabs, category tags) — a Wise-style flat fintech look: solid fill, no blur/translucent glass, fully theme-adaptive via three shared utility classes in `globals.css` (all driven by `--ink`, so no `.light` override needed per-component):
   - `.flat-chip` (unselected/track state), `.flat-chip-active` (selected state), `.flat-chip-dashed` (dashed empty-state border).
@@ -89,9 +90,9 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
   - Everything else — filter tabs, category tags, the desktop segmented nav, the desktop header rows — stays `flat-chip`. The Wise-style flat look is still the default; glass is the exception for floating chrome.
   - Apple's real Liquid Glass is a native material (`.glassEffect()`, iOS 26+) and is unavailable to a WKWebView. This is a CSS approximation: it gets the frost and saturation, not the edge refraction or motion-tracked highlights.
 
-**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border` element, with `border-transparent text-ink/60` when unselected. A tint of the brand green rather than a fill, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
-- Light caps at `--accent / 0.22`; past ~0.28 the accent text drops under 4.5:1.
-- The border is doing the work of showing the state — the tint alone is 1.08:1 against the page in light mode, so it cannot be seen. `--accent-text / 0.8` gives a 3.41:1 boundary.
+**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border-2` element, with `border-transparent text-ink/60` when unselected. An outline in the brand green with **no fill**, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
+- The border is the entire state signal, so it runs at full strength and 2px: `--accent / 0.9` in dark (10.72:1), `--accent-text` at full alpha in light (4.56:1). UI boundaries need 3:1.
+- Removing the tint put accent text directly on the page background. That is the worst case for `text-accent` — 4.15:1 at the old `--accent-text` — so the light token moved from `63 122 31` to `59 115 29` (4.56:1 on the page, 5.24:1 on a glass card). Don't lighten it back without re-measuring against `--background`, not against a card.
 - Unselected chips are `text-ink/60`; `/50` measured 3.42:1 in light mode and failed AA.
 
 **Accent & danger — fill vs bare text, in both surface types:**
