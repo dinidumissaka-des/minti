@@ -127,7 +127,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 
 **Other rules:**
 - **Pill buttons** (active state, on a content surface): `bg-ink/10 backdrop-blur-md text-ink font-semibold border border-ink/15`
-- **Rounded**: use `rounded-full` for filter tabs and toggle pills, `rounded-lg` for inputs, `borderRadius={28}` for GlassSurface cards
+- **Rounded**: **every button is `rounded-full`** — pills for anything with a label, circles for icon-only actions (save/cancel, swipe actions, hover-reveal icons, the converter swap). No `rounded-lg`/`rounded-xl` buttons; they read as a different control language next to the pills. `rounded-lg` is for inputs, `borderRadius={28}` for GlassSurface cards. The exceptions are things that are not buttons in the visual sense: full-bleed drawer menu rows and picker rows (a divided list, no radius or `rounded-xl`), and bare text/icon buttons with no fill or border, where the radius never paints.
 - **Font**: Manrope for everything. `font-mono` class still uses Manrope (overridden in tailwind.config.ts)
 - **No comments** unless the WHY is non-obvious. No docstrings.
 

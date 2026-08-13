@@ -111,7 +111,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         <button
           onClick={swap}
           aria-label="Swap currencies"
-          className="h-control w-control shrink-0 flex items-center justify-center rounded-xl border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-[color,border-color,transform] duration-fast active:scale-90"
+          className="h-control w-control shrink-0 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-[color,border-color,transform] duration-fast active:scale-90"
         >
           <ArrowsLeftRight
             size={18}

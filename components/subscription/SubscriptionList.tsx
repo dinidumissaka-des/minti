@@ -160,16 +160,16 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       <button
                         type="button"
                         onClick={() => setShowEditCatDrawer(true)}
-                        className="flex-1 h-11 flex items-center px-3 rounded-lg border border-ink/10 bg-ink/7 text-body text-ink text-left"
+                        className="flex-1 h-11 flex items-center px-3 rounded-full border border-ink/10 bg-ink/7 text-body text-ink text-left"
                       >
                         {editState.category}
                       </button>
                       <button onClick={() => handleSave(sub.id)} disabled={saving} aria-label="Save changes"
-                        className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0">
+                        className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0">
                         <Check size={15} />
                       </button>
                       <button onClick={() => { setEditingId(null); setEditState(null); }} aria-label="Cancel editing"
-                        className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
+                        className="w-11 h-11 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0">
                         <X size={15} />
                       </button>
                     </div>
@@ -199,7 +199,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                     <button
                       onClick={() => startEdit(sub)}
                       aria-label="Edit subscription"
-                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-ink/10 text-ink"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/10 text-ink"
                     >
                       <Pencil size={14} />
                     </button>
@@ -207,7 +207,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       onClick={() => handleDelete(sub.id)}
                       disabled={deletingId === sub.id}
                       aria-label="Delete subscription"
-                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-danger-fill/20 text-danger disabled:opacity-30"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger disabled:opacity-30"
                     >
                       {deletingId === sub.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                     </button>
@@ -230,11 +230,11 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                     {/* Hover actions (desktop) */}
                     <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
                       <button onClick={() => startEdit(sub)} aria-label="Edit"
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-ink transition-colors flex-shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-ink transition-colors flex-shrink-0">
                         <Pencil size={13} />
                       </button>
                       <button onClick={() => handleDelete(sub.id)} disabled={deletingId === sub.id} aria-label="Delete"
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0">
                         {deletingId === sub.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
                       </button>
                     </div>

@@ -241,7 +241,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         type="button"
                         onClick={() => setShowCatDrawer(true)}
-                        className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
+                        className="w-full bg-ink/7 border border-ink/10 rounded-full px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                       >
                         {editState.category}
                       </button>
@@ -249,7 +249,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           type="button"
                           onClick={() => setShowDateDrawer(true)}
-                          className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
+                          className="flex-1 bg-ink/7 border border-ink/10 rounded-full px-3 h-11 text-body text-ink text-left hover:border-ink/30 transition-colors"
                         >
                           {formatDateLabel(editState.date)}
                         </button>
@@ -257,14 +257,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           onClick={() => handleSave(expense.id)}
                           disabled={saving}
                           aria-label="Save changes"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0"
                         >
                           <Check size={15} />
                         </button>
                         <button
                           onClick={cancelEdit}
                           aria-label="Cancel editing"
-                          className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0"
+                          className="w-11 h-11 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0"
                         >
                           <X size={15} />
                         </button>
@@ -291,7 +291,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                       <button
                         onClick={(e) => { e.stopPropagation(); startEdit(expense); }}
                         aria-label="Edit expense"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-ink/10 text-ink"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/10 text-ink"
                       >
                         <Pencil size={14} />
                       </button>
@@ -299,7 +299,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
                         disabled={deletingId === expense.id}
                         aria-label="Delete expense"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-danger-fill/20 text-danger disabled:opacity-30"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger disabled:opacity-30"
                       >
                         {deletingId === expense.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
@@ -336,7 +336,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <button
                           onClick={() => startEdit(expense)}
                           aria-label="Edit expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-ink transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-ink transition-colors flex-shrink-0"
                         >
                           <Pencil size={13} />
                         </button>
@@ -344,7 +344,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           onClick={() => handleDelete(expense.id)}
                           disabled={deletingId === expense.id}
                           aria-label="Delete expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0"
                         >
                           {deletingId === expense.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
                         </button>
