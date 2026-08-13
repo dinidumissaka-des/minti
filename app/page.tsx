@@ -745,10 +745,10 @@ export default function Home() {
                 <button
                   key={key}
                   onClick={() => setFilter(key)}
-                  className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors ${
+                  className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors border ${
                     filter === key
-                      ? "flat-chip-active text-ink border"
-                      : "text-ink/50 hover:text-ink"
+                      ? "accent-chip-active text-accent"
+                      : "border-transparent text-ink/60 hover:text-ink"
                   }`}
                 >
                   {label}

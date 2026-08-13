@@ -89,6 +89,20 @@ html.light {
     border-color: rgb(var(--ink) / 0.2);
   }
 
+  /* Selected filter chip: a tint of the brand green, deliberately weaker than
+     the solid accent-fill button so the primary action still wins.
+     Alphas are set by contrast, not taste — the tint is capped where the
+     accent text would drop below 4.5:1, and the border carries the state
+     boundary because the tint alone is only 1.08:1 against the page. */
+  .accent-chip-active {
+    background-color: rgb(var(--accent) / 0.18);   /* text 8.78:1 */
+    border-color: rgb(var(--accent) / 0.5);        /* boundary 3.97:1 */
+  }
+  .light .accent-chip-active {
+    background-color: rgb(var(--accent) / 0.22);   /* text 4.59:1 */
+    border-color: rgb(var(--accent-text) / 0.8);   /* boundary 3.41:1 */
+  }
+
   /* Floating chrome (bottom nav, mobile header controls). The material mostly
      occludes what is behind it — iOS glass reads as glass through the tinted
      edge and the specular rim, not through heavy transparency. Letting content

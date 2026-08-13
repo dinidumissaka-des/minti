@@ -89,6 +89,11 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
   - Everything else — filter tabs, category tags, the desktop segmented nav, the desktop header rows — stays `flat-chip`. The Wise-style flat look is still the default; glass is the exception for floating chrome.
   - Apple's real Liquid Glass is a native material (`.glassEffect()`, iOS 26+) and is unavailable to a WKWebView. This is a CSS approximation: it gets the frost and saturation, not the edge refraction or motion-tracked highlights.
 
+**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border` element, with `border-transparent text-ink/60` when unselected. A tint of the brand green rather than a fill, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
+- Light caps at `--accent / 0.22`; past ~0.28 the accent text drops under 4.5:1.
+- The border is doing the work of showing the state — the tint alone is 1.08:1 against the page in light mode, so it cannot be seen. `--accent-text / 0.8` gives a 3.41:1 boundary.
+- Unselected chips are `text-ink/60`; `/50` measured 3.42:1 in light mode and failed AA.
+
 **Accent & danger — fill vs bare text, in both surface types:**
 - **Fill** (buttons, badges, progress bars, active-pill highlights — dark text sits on top, or it's just a colored bar): `bg-accent-fill`, `border-accent-fill`, `ring-accent-fill` (and `-fill` for danger) — same bright green/red in both themes. Text on an accent fill: `text-accent-on`.
 - **Bare text/icon** (needs to read directly against a background, not sit on a solid fill): `text-accent` / `text-danger` — these are theme-adaptive (darker in light mode for contrast). Never use the raw hex `#9FE870` for this — that's what `text-accent` breaks contrast on light backgrounds.
