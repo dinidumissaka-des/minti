@@ -799,10 +799,10 @@ export default function Home() {
                 onChange={setFilter}
                 ariaLabel="Filter expenses"
                 className="flex gap-2"
-                itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border"
-                pillClassName="accent-chip-active border-2 rounded-full"
+                itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
+                pillClassName="flat-chip-active border rounded-full"
                 activeClassName="text-accent border-transparent"
-                inactiveClassName="border-transparent text-ink/60 hover:text-ink"
+                inactiveClassName="flat-chip text-ink/60 hover:text-ink"
               />
 
               {/* Expense list / loading / error. Keyed on filter and month so

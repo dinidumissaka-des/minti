@@ -77,48 +77,38 @@ html.light {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Flat chips (header buttons, nav pills, filter tabs, tags): solid, theme-adaptive
-     fills — white tint in both themes (dark mode via --ink, light mode overridden
-     below since --ink is near-black there and would otherwise read as gray/black). */
+  /* Flat chips (header buttons, nav pills, filter tabs, tags): a light brand-green
+     wash in both themes. Dark mode tints with --accent — already high-contrast
+     against the near-black background even at low alpha. Light mode tints with
+     --accent-text (the darker green also used for bare accent text there) since
+     the pale --accent barely registers against the light gray background at the
+     same alpha. Active state doubles the wash so selection still pops. */
   .flat-chip {
-    background-color: rgb(var(--ink) / 0.08);
-    border-color: rgb(var(--ink) / 0.14);
+    background-color: rgb(var(--accent) / 0.06);
+    border-color: rgb(var(--accent) / 0.14);
   }
   .flat-chip:hover {
-    border-color: rgb(var(--ink) / 0.24);
+    border-color: rgb(var(--accent) / 0.24);
   }
   .light .flat-chip {
-    background-color: rgba(255, 255, 255, 0.45);
-    border-color: rgba(0, 0, 0, 0.08);
+    background-color: rgb(var(--accent-text) / 0.05);
+    border-color: rgb(var(--accent-text) / 0.12);
   }
   .light .flat-chip:hover {
-    border-color: rgba(0, 0, 0, 0.16);
+    border-color: rgb(var(--accent-text) / 0.22);
   }
 
   .flat-chip-active {
-    background-color: rgb(var(--ink) / 0.16);
-    border-color: rgb(var(--ink) / 0.2);
+    background-color: rgb(var(--accent) / 0.14);
+    border-color: rgb(var(--accent) / 0.28);
   }
   .light .flat-chip-active {
-    background-color: rgba(255, 255, 255, 0.85);
-    border-color: rgba(0, 0, 0, 0.06);
+    background-color: rgb(var(--accent-text) / 0.1);
+    border-color: rgb(var(--accent-text) / 0.22);
   }
 
   .flat-chip-dashed {
     border-color: rgb(var(--ink) / 0.2);
-  }
-
-  /* Selected filter chip: an outline in the brand green, no fill, so it stays
-     visibly below the solid bg-accent-fill button in the hierarchy.
-     With the tint gone the border is the entire state signal, so it runs at
-     full strength and 2px — alphas set by contrast, not taste. */
-  .accent-chip-active {
-    background-color: transparent;
-    border-color: rgb(var(--accent) / 0.9);        /* boundary 10.72:1 */
-  }
-  .light .accent-chip-active {
-    background-color: transparent;
-    border-color: rgb(var(--accent-text));         /* boundary 4.56:1 */
   }
 
   /* Floating chrome (bottom nav, mobile header controls). The material mostly
