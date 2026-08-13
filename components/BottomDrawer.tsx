@@ -1,9 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { hapticTap } from "@/lib/haptics";
+
+// Which drawers are open, oldest first. Drawers portal to <body>, so a nested
+// one (the date picker inside the mobile Add Expense sheet) is a DOM sibling of
+// its parent rather than a descendant — there is no tree to read depth from.
+// A module-level stack is the only thing both of them can see.
+let openStack: string[] = [];
+const EMPTY: string[] = [];
+const listeners = new Set<() => void>();
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+function pushDrawer(id: string) {
+  if (openStack.includes(id)) return;
+  openStack = [...openStack, id];
+  emit();
+}
+
+function removeDrawer(id: string) {
+  if (!openStack.includes(id)) return;
+  openStack = openStack.filter((x) => x !== id);
+  emit();
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 interface Props {
   open: boolean;
@@ -27,7 +58,31 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  const id = useId();
+  const stack = useSyncExternalStore(subscribe, () => openStack, () => EMPTY);
+
+  useEffect(() => {
+    if (open) pushDrawer(id);
+    else removeDrawer(id);
+  }, [open, id]);
+
+  useEffect(() => () => removeDrawer(id), [id]);
+
+  const isTop = stack[stack.length - 1] === id;
+  // Open, but another sheet is stacked on top of it.
+  const isBehind = open && !isTop;
+
   const sheetRef = useRef<HTMLDivElement>(null);
+
+  // Sheets sit above the scrim, so a sheet left behind stays reachable around
+  // the front sheet's edges — clickable, and still in the tab order. Set as an
+  // attribute rather than a prop: React 18's types don't know `inert`.
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    if (isBehind) el.setAttribute("inert", "");
+    else el.removeAttribute("inert");
+  }, [isBehind]);
   const [drag, setDrag] = useState(0);
   const dragging = useRef(false);
   const startY = useRef(0);
@@ -67,14 +122,15 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
     }
   }, [drag, onClose]);
 
+  // Only the front sheet answers Escape, or one press closes the whole stack.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isTop) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, isTop, onClose]);
 
   if (!mounted) return null;
 
@@ -86,13 +142,16 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
 
   return createPortal(
     <>
-      {/* Backdrop — fades with the drag so the sheet feels attached to it. */}
+      {/* Backdrop — fades with the drag so the sheet feels attached to it.
+          Only the front sheet draws one: two stacked drawers each rendering a
+          60% scrim compounds to ~84% and reads as a different, much darker
+          screen the moment a nested picker opens. */}
       <div
         onClick={onClose}
         className={`fixed inset-0 bg-scrim/60 z-scrim transition-opacity duration-slow ease-out ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
+          open && isTop ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
-        style={open && drag > 0 ? { opacity: Math.max(1 - drag / 320, 0) } : undefined}
+        style={open && isTop && drag > 0 ? { opacity: Math.max(1 - drag / 320, 0) } : undefined}
       />
 
       {/* Sheet */}
@@ -101,25 +160,46 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed z-drawer backdrop-blur-2xl border-ink/10 flex flex-col ${
+        aria-hidden={isBehind}
+        className={`fixed z-drawer backdrop-blur-2xl border-ink/10 flex flex-col origin-bottom ${
           dragging.current ? "" : "transition-transform duration-slow ease-out"
-        } ${
+        } ${isBehind ? "pointer-events-none" : ""} ${
           fullScreen
             ? "inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl"
             : "bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl"
         }`}
         style={{
           backgroundColor: "rgb(var(--sheet) / 0.9)",
-          transform: open ? `translateY(${drag}px)` : "translateY(100%)",
+          // Scaled from the bottom edge, which is pinned to the viewport — a
+          // centre-origin scale would lift the sheet and show the page under it.
+          transform: open
+            ? `translateY(${drag}px)${isBehind ? " scale(0.96)" : ""}`
+            : "translateY(100%)",
         }}
       >
+        {/* The front sheet's scrim can't reach this one (both are z-drawer), so
+            a receded sheet dims itself. */}
+        <div
+          aria-hidden="true"
+          className={`absolute inset-0 rounded-t-2xl bg-scrim/30 transition-opacity duration-slow ease-out ${
+            isBehind ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ pointerEvents: "none", zIndex: 1 }}
+        />
         <div
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           onTouchCancel={() => { dragging.current = false; setDrag(0); }}
-          className="shrink-0 touch-none"
+          className={`shrink-0 touch-none transition-opacity duration-slow ease-out ${
+            isBehind ? "opacity-0" : "opacity-100"
+          }`}
         >
+          {/* A sheet behind another shows only its rounded top edge peeking out.
+              Two grabbers and two titles stacked read as two competing sheets
+              rather than one stack with a front and a back. Faded rather than
+              unmounted: the sheet is bottom-anchored, so removing its header
+              would shift the top edge and make the recede animation jump. */}
           {!fullScreen && grabber}
           {fullScreen && <div className="hidden sm:block">{grabber}</div>}
 
