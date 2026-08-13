@@ -77,6 +77,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 - For a genuinely opaque panel that needs a solid backdrop (BottomDrawer, InstallPrompt), use `style={{ backgroundColor: "rgb(var(--background) / 0.85)" }}` — not a hardcoded hex — so it flips light/dark too.
 - **Glass cards**: always use `<GlassSurface borderRadius={28} backgroundOpacity={0.07}>`, not raw divs — it already adapts its frost/border per theme via `.light` CSS overrides in `GlassSurface.css` (no drop shadow — removed intentionally).
 - **Inputs**: `bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink outline-none focus:border-ink/30` — hide number spinners with `[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`
+- **Focus is a border change, never a ring** — on a boxed field the border darkens (`focus:border-ink/40`); on the bare hero amount in AddExpenseForm the rule beneath it thickens and turns accent (`peer-focus-visible:`). A `ring` around a `bg-transparent` field draws a pill in empty space with nothing to attach to, which is what the budget and income editors shipped with. A focus mark that has to read on its own uses `bg-accent`/`text-accent`, not `-fill` — the fill green is 1.6:1 on a light card.
 
 **2. Flat chips** (desktop header pills — currency/CSV/converter/month-nav, the desktop Sections segmented nav, filter tabs, category tags) — a Wise-style flat fintech look: solid fill, no blur/translucent glass, fully theme-adaptive via three shared utility classes in `globals.css` (all driven by `--ink`, so no `.light` override needed per-component):
   - `.flat-chip` (unselected/track state), `.flat-chip-active` (selected state), `.flat-chip-dashed` (dashed empty-state border).
@@ -88,6 +89,11 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
   - **Only use these where content actually passes underneath.** `backdrop-filter` has nothing to sample over a static background, so glass on a non-scrolling surface just renders as a translucent fill. The mobile header is `sticky` for exactly this reason; the desktop header is not, and keeps `flat-chip`.
   - Everything else — filter tabs, category tags, the desktop segmented nav, the desktop header rows — stays `flat-chip`. The Wise-style flat look is still the default; glass is the exception for floating chrome.
   - Apple's real Liquid Glass is a native material (`.glassEffect()`, iOS 26+) and is unavailable to a WKWebView. This is a CSS approximation: it gets the frost and saturation, not the edge refraction or motion-tracked highlights.
+
+**Selected filter chips** — `.accent-chip-active` + `text-accent` on a `border-2` element, with `border-transparent text-ink/60` when unselected. An outline in the brand green with **no fill**, so it stays visibly below the solid `bg-accent-fill` button in the hierarchy. The alphas are derived from contrast, not picked by eye:
+- The border is the entire state signal, so it runs at full strength and 2px: `--accent / 0.9` in dark (10.72:1), `--accent-text` at full alpha in light (4.56:1). UI boundaries need 3:1.
+- Removing the tint put accent text directly on the page background. That is the worst case for `text-accent` — 4.15:1 at the old `--accent-text` — so the light token moved from `63 122 31` to `59 115 29` (4.56:1 on the page, 5.24:1 on a glass card). Don't lighten it back without re-measuring against `--background`, not against a card.
+- Unselected chips are `text-ink/60`; `/50` measured 3.42:1 in light mode and failed AA.
 
 **Accent & danger — fill vs bare text, in both surface types:**
 - **Fill** (buttons, badges, progress bars, active-pill highlights — dark text sits on top, or it's just a colored bar): `bg-accent-fill`, `border-accent-fill`, `ring-accent-fill` (and `-fill` for danger) — same bright green/red in both themes. Text on an accent fill: `text-accent-on`.
@@ -106,9 +112,22 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 - **Sizing**: `h-control`/`w-control` (52px) is the standard input and button height; `w-reveal` (60px) is the hover-reveal action strip.
 - One-off layout measurements (a `min-w` that only stops a single label from jittering) stay as bracket values — they are local constraints, not system tokens.
 
+**Motion** — same rule as color and layout: name it in the config, don't inline a magic curve or duration in a component.
+- **Easing**: `ease-out` (`cubic-bezier(0.32, 0.72, 0, 1)` — the iOS sheet curve, the default for anything entering or moving), `ease-spring` (overshoots; for gestures that snap back, like the swipe row), `ease-in-out`.
+- **Duration**: `duration-fast` (150ms — press feedback, hovers), `duration-base` (220ms — row enter/exit), `duration-slow` (320ms — sheets, view changes, collapses), `duration-slower` (500ms — meters filling). The CSS variables (`--ease-*`, `--dur-*`) live in `globals.css` so JS-driven motion reads the same values.
+- **Animate `transform` and `opacity` only.** The app already runs a WebGL shader loop plus stacked `backdrop-filter: blur(28-32px)` surfaces; animating `width`/`height`/`max-height` on top of that drops frames in WKWebView. For collapses use `grid-template-rows: 0fr → 1fr` (`components/ui/Collapse.tsx`), never `max-height` with a magic cap.
+- **Shared primitives** — reach for these before hand-rolling:
+  - `ui/SegmentedControl` — any tab bar. One measured pill slides between segments; used by the bottom nav, desktop sections nav, filter tabs and the analytics tabs.
+  - `ui/ViewTransition` — keyed directional enter. Caller supplies `direction` (1 forward / -1 back) so content travels the way the nav did.
+  - `ui/Collapse` — enter/exit for forms and inline editors. Unmounts when closed, so a closed child earns no flex gap.
+  - `ui/Meter` — progress bars. Mounts at zero so the fill animates on first paint.
+  - `ui/AnimatedNumber` — amounts. Tweens between values and owns the privacy blur.
+- **Press feedback**: every tappable control gets `active:scale-90` (icon buttons) / `active:scale-95` (chips) / `active:scale-[0.98]` (full-width rows and buttons). Pair it with a transition list that **includes `transform`** — `transition-colors active:scale-95` silently does nothing, which is what the header shipped with for months.
+- **Reduced motion** is handled globally in `globals.css` (duration, delay and iteration count are all neutralised; spinners are exempt). JS-driven motion must check `usePrefersReducedMotion()` itself — no media query reaches it.
+
 **Other rules:**
 - **Pill buttons** (active state, on a content surface): `bg-ink/10 backdrop-blur-md text-ink font-semibold border border-ink/15`
-- **Rounded**: use `rounded-full` for filter tabs and toggle pills, `rounded-lg` for inputs, `borderRadius={28}` for GlassSurface cards
+- **Rounded**: **every button is `rounded-full`** — pills for anything with a label, circles for icon-only actions (save/cancel, swipe actions, hover-reveal icons, the converter swap). No `rounded-lg`/`rounded-xl` buttons; they read as a different control language next to the pills. `rounded-lg` is for inputs, `borderRadius={28}` for GlassSurface cards. The exceptions are things that are not buttons in the visual sense: full-bleed drawer menu rows and picker rows (a divided list, no radius or `rounded-xl`), and bare text/icon buttons with no fill or border, where the radius never paints.
 - **Font**: Manrope for everything. `font-mono` class still uses Manrope (overridden in tailwind.config.ts)
 - **No comments** unless the WHY is non-obvious. No docstrings.
 

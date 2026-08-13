@@ -5,6 +5,7 @@ import { ArrowsLeftRight } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { CURRENCIES, formatAmount } from "@/lib/currencies";
 import { convertAmount, getCachedRateAge } from "@/lib/exchangeRates";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 
 interface Props {
   defaultFrom: string;
@@ -26,6 +27,7 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rateAge, setRateAge] = useState<number | null>(null);
+  const [swapTurns, setSwapTurns] = useState(0);
   const amountId = useId();
   const fromId = useId();
   const toId = useId();
@@ -67,7 +69,10 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
     setAmount(raw);
   }
 
+  // Accumulates rather than toggling, so every press turns the icon another
+  // half-turn in the same direction instead of rocking back and forth.
   function swap() {
+    setSwapTurns((t) => t + 1);
     setFrom(to);
     setTo(from);
   }
@@ -106,9 +111,13 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         <button
           onClick={swap}
           aria-label="Swap currencies"
-          className="h-control w-control shrink-0 flex items-center justify-center rounded-xl border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors"
+          className="h-control w-control shrink-0 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/60 hover:text-ink hover:border-ink/30 transition-[color,border-color,transform] duration-fast active:scale-90"
         >
-          <ArrowsLeftRight size={18} />
+          <ArrowsLeftRight
+            size={18}
+            className="transition-transform duration-slow ease-out"
+            style={{ transform: `rotate(${swapTurns * 180}deg)` }}
+          />
         </button>
 
         <div className="flex-1">
@@ -136,7 +145,8 @@ export default function CurrencyConverter({ defaultFrom }: Props) {
         ) : result !== null ? (
           <>
             <p className="font-mono text-3xl font-bold text-ink leading-tight">
-              {formatAmount(result, to)} <span className="text-lg text-ink/50">{to}</span>
+              <AnimatedNumber value={result} format={(v) => formatAmount(v, to)} />{" "}
+              <span className="text-lg text-ink/50">{to}</span>
             </p>
             {rateAge !== null && (
               <p className="text-xs text-ink/30 mt-2">Rates updated {timeAgo(rateAge)}</p>

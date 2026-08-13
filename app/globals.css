@@ -11,6 +11,19 @@ html.light {
   color-scheme: light;
 }
 
+/* Motion scale. Same rule as color and layout: name it here, don't inline a
+   magic curve in a component. --ease-out is the iOS sheet curve (fast start,
+   long settle); --ease-spring overshoots and is for gestures that snap back. */
+:root {
+  --ease-out:    cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:   150ms;
+  --dur-base:   220ms;
+  --dur-slow:   320ms;
+  --dur-slower: 500ms;
+}
+
 :root,
 .dark {
   --background:  10  15  8;
@@ -33,7 +46,11 @@ html.light {
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
-  --accent-text: 63  122 31;
+  /* Nudged down from 63 122 31. The selected filter chip lost its tint, so
+     accent text now sits directly on the page rather than on a light-green
+     wash: 63 122 31 measured 4.15:1 there and failed AA. This reads 4.56:1 on
+     the page and 5.24:1 on a glass card. */
+  --accent-text: 59  115 29;
   --accent-on:   22  51  0;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
@@ -89,6 +106,19 @@ html.light {
 
   .flat-chip-dashed {
     border-color: rgb(var(--ink) / 0.2);
+  }
+
+  /* Selected filter chip: an outline in the brand green, no fill, so it stays
+     visibly below the solid bg-accent-fill button in the hierarchy.
+     With the tint gone the border is the entire state signal, so it runs at
+     full strength and 2px — alphas set by contrast, not taste. */
+  .accent-chip-active {
+    background-color: transparent;
+    border-color: rgb(var(--accent) / 0.9);        /* boundary 10.72:1 */
+  }
+  .light .accent-chip-active {
+    background-color: transparent;
+    border-color: rgb(var(--accent-text));         /* boundary 4.56:1 */
   }
 
   /* Floating chrome (bottom nav, mobile header controls). The material mostly
@@ -159,8 +189,16 @@ html.light {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* Staggered list entries carry a delay. Zeroing only the duration would
+       still hold each row invisible (animation-fill-mode: both) for its delay. */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 
   /* Activity indicators are exempt. Reduce Motion targets decorative movement,
@@ -173,4 +211,26 @@ html.light {
 @media (max-width: 640px) {
   ::-webkit-scrollbar { display: none; }
   * { scrollbar-width: none; }
+}
+
+/* Theme toggle: the incoming theme wipes in as a circle from the button that
+   was pressed. Both snapshots are painted at once, so the outgoing one must
+   not fade or the old colors show through the growing circle. Browsers without
+   View Transitions fall back to the instant class swap. */
+::view-transition-old(root) {
+  animation: none;
+  z-index: 0;
+}
+::view-transition-new(root) {
+  animation: themeReveal 420ms var(--ease-out);
+  z-index: 1;
+}
+
+@keyframes themeReveal {
+  from {
+    clip-path: circle(0% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%));
+  }
 }

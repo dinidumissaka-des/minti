@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, memo } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import Meter from "@/components/ui/Meter";
 import { usePrivacy } from "@/components/PrivacyContext";
 
 interface Props {
@@ -44,7 +46,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     return (
       <button
         onClick={openEdit}
-        className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-[28px]"
+        className="w-full text-left px-4 py-4 text-sm text-muted hover:text-ink transition-colors border border-dashed flat-chip-dashed rounded-full"
       >
         + Set a monthly budget
       </button>
@@ -64,12 +66,12 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
           onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
           placeholder="0.00"
           aria-label="Monthly budget amount"
-          className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="flex-1 h-11 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
+        <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
           <Check size={13} />
         </button>
-        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-lg border border-ink/10 text-muted hover:text-ink flex-shrink-0">
+        <button onClick={cancel} aria-label="Cancel" className="w-11 h-11 flex items-center justify-center rounded-full border border-ink/10 text-muted hover:text-ink flex-shrink-0">
           <X size={13} />
         </button>
       </div>
@@ -91,22 +93,23 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
         </button>
       </div>
 
-      <div className="h-1.5 w-full bg-ink/8 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${over ? "bg-danger-fill" : "bg-accent-fill"}`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <Meter
+        value={percentage}
+        className="h-1.5 w-full bg-ink/8"
+        barClassName={over ? "bg-danger-fill" : "bg-accent-fill"}
+      />
 
       <div className="flex items-center justify-between">
         <span className={`font-mono text-sm font-semibold ${over ? "text-danger" : "text-ink"}`}>
-          {mask(formatAmount(spent, currency))}
+          <AnimatedNumber value={spent} format={(v) => formatAmount(v, currency)} />
           <span className="text-muted font-normal"> / {mask(formatAmount(budget!, currency))}</span>
         </span>
         <span className={`font-mono text-xs ${over ? "text-danger" : "text-muted"}`}>
-          {over
-            ? `${mask(formatAmount(spent - budget!, currency))} over`
-            : `${mask(formatAmount(remaining, currency))} left`}
+          {over ? (
+            <AnimatedNumber value={spent - budget!} format={(v) => formatAmount(v, currency)} suffix=" over" />
+          ) : (
+            <AnimatedNumber value={remaining} format={(v) => formatAmount(v, currency)} suffix=" left" />
+          )}
         </span>
       </div>
     </div>

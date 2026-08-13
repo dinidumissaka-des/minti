@@ -77,6 +77,20 @@ const config: Config = {
         control: "52px",
         reveal:  "60px",
       },
+      // Motion scale — the CSS variables live in globals.css so JS-driven
+      // animations can read the same curves. Durations are named, not numeric:
+      // a component asking for `duration-slow` stays correct if the scale moves.
+      transitionTimingFunction: {
+        out:      "var(--ease-out)",
+        spring:   "var(--ease-spring)",
+        "in-out": "var(--ease-in-out)",
+      },
+      transitionDuration: {
+        fast:   "var(--dur-fast)",
+        base:   "var(--dur-base)",
+        slow:   "var(--dur-slow)",
+        slower: "var(--dur-slower)",
+      },
       keyframes: {
         fadeSlideIn: {
           "0%":   { opacity: "0", transform: "translateY(8px)" },
@@ -86,23 +100,33 @@ const config: Config = {
           "0%":   { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
-        fluidBg: {
-          "0%":   { backgroundPosition: "0% 50%" },
-          "50%":  { backgroundPosition: "100% 50%" },
-          "100%": { backgroundPosition: "0% 50%" },
+        // Directional view changes. Content enters from the side it came from,
+        // so the tab bar and the month arrows both read as movement along a line.
+        viewInFwd: {
+          "0%":   { opacity: "0", transform: "translate3d(16px, 0, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
         },
-        glassSheen: {
-          "0%":   { transform: "translateX(-100%) skewX(-15deg)", opacity: "0" },
-          "30%":  { opacity: "1" },
-          "70%":  { opacity: "1" },
-          "100%": { transform: "translateX(300%) skewX(-15deg)", opacity: "0" },
+        viewInBack: {
+          "0%":   { opacity: "0", transform: "translate3d(-16px, 0, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
+        },
+        rowIn: {
+          "0%":   { opacity: "0", transform: "translate3d(0, 10px, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
+        },
+        popIn: {
+          "0%":   { opacity: "0", transform: "scale(0.8)" },
+          "60%":  { opacity: "1", transform: "scale(1.04)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
       },
       animation: {
-        "fade-slide-in": "fadeSlideIn 220ms ease-out",
+        "fade-slide-in": "fadeSlideIn var(--dur-base) var(--ease-out)",
         spin: "spin 3s linear infinite",
-        "fluid-bg": "fluidBg 4s ease infinite",
-        "glass-sheen": "glassSheen 3.5s ease-in-out infinite",
+        "view-in-fwd":  "viewInFwd var(--dur-slow) var(--ease-out) both",
+        "view-in-back": "viewInBack var(--dur-slow) var(--ease-out) both",
+        "row-in":       "rowIn var(--dur-base) var(--ease-out) both",
+        "pop-in":       "popIn var(--dur-slow) var(--ease-spring) both",
       },
     },
   },
