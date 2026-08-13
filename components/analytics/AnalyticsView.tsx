@@ -442,7 +442,7 @@ export default function AnalyticsView({
         ariaLabel="Insight views"
         className="flex gap-2"
         itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
-        pillClassName="flat-chip-active border rounded-full"
+        pillClassName="flat-chip-active border-2 rounded-full"
         activeClassName="text-accent border-transparent"
         inactiveClassName="flat-chip text-ink/60 hover:text-ink"
       />
