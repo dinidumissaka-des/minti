@@ -4,7 +4,7 @@ import { memo } from "react";
 import type { Expense } from "@/types";
 import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
-import { usePrivacy } from "@/components/PrivacyContext";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 
 interface Props {
   expenses: Expense[];
@@ -23,7 +23,6 @@ function daysElapsedInMonth(year: number, month: number, isCurrentMonth: boolean
 }
 
 const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, subscriptionsTotal = 0 }: Props) {
-  const { mask } = usePrivacy();
   const today = todayISO();
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -45,9 +44,11 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
         <span className="font-sans text-xs text-muted font-semibold leading-none">
           {isCurrentMonth ? "This Month" : "Month Total"}
         </span>
-        <span className="font-mono text-5xl font-bold text-ink leading-tight">
-          {mask(formatAmount(monthTotal, currency))}
-        </span>
+        <AnimatedNumber
+          value={monthTotal}
+          format={(v) => formatAmount(v, currency)}
+          className="font-mono text-5xl font-bold text-ink leading-tight"
+        />
       </div>
 
       {/* Today + Avg/Day — one container */}
@@ -57,17 +58,21 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
             <span className="font-sans text-xs text-muted font-semibold leading-none">
               Today
             </span>
-            <span className="font-mono text-2xl font-bold text-ink leading-tight">
-              {mask(formatAmount(todayTotal, currency))}
-            </span>
+            <AnimatedNumber
+              value={todayTotal}
+              format={(v) => formatAmount(v, currency)}
+              className="font-mono text-2xl font-bold text-ink leading-tight"
+            />
           </div>
           <div className="px-5 py-4 flex flex-col gap-1">
             <span className="font-sans text-xs text-muted font-semibold leading-none">
               Avg/Day
             </span>
-            <span className="font-mono text-2xl font-bold text-ink leading-tight">
-              {mask(formatAmount(avgPerDay, currency))}
-            </span>
+            <AnimatedNumber
+              value={avgPerDay}
+              format={(v) => formatAmount(v, currency)}
+              className="font-mono text-2xl font-bold text-ink leading-tight"
+            />
           </div>
         </div>
       </GlassSurface>

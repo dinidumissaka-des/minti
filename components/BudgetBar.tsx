@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, memo } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import Meter from "@/components/ui/Meter";
 import { usePrivacy } from "@/components/PrivacyContext";
 
 interface Props {
@@ -91,22 +93,23 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
         </button>
       </div>
 
-      <div className="h-1.5 w-full bg-ink/8 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${over ? "bg-danger-fill" : "bg-accent-fill"}`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <Meter
+        value={percentage}
+        className="h-1.5 w-full bg-ink/8"
+        barClassName={over ? "bg-danger-fill" : "bg-accent-fill"}
+      />
 
       <div className="flex items-center justify-between">
         <span className={`font-mono text-sm font-semibold ${over ? "text-danger" : "text-ink"}`}>
-          {mask(formatAmount(spent, currency))}
+          <AnimatedNumber value={spent} format={(v) => formatAmount(v, currency)} />
           <span className="text-muted font-normal"> / {mask(formatAmount(budget!, currency))}</span>
         </span>
         <span className={`font-mono text-xs ${over ? "text-danger" : "text-muted"}`}>
-          {over
-            ? `${mask(formatAmount(spent - budget!, currency))} over`
-            : `${mask(formatAmount(remaining, currency))} left`}
+          {over ? (
+            <AnimatedNumber value={spent - budget!} format={(v) => formatAmount(v, currency)} suffix=" over" />
+          ) : (
+            <AnimatedNumber value={remaining} format={(v) => formatAmount(v, currency)} suffix=" left" />
+          )}
         </span>
       </div>
     </div>

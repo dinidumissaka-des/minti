@@ -9,10 +9,14 @@ import { CATEGORY_COLORS } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
+import Collapse from "@/components/ui/Collapse";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { CategoryList } from "@/components/ui/DrawerPickers";
 import type { Subscription, NewSubscription } from "@/types";
 
 const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
+// Matches the row collapse transition below; keep the two in step.
+const ROW_EXIT_MS = 200;
 
 interface Props {
   subscriptions: Subscription[];
@@ -43,6 +47,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -98,15 +103,20 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
     }
   }
 
+  // Collapse the row before the request, so the list closes the gap smoothly
+  // instead of snapping once the delete resolves.
   async function handleDelete(id: string) {
     hapticBump();
     setSwipedId(null);
     setDeletingId(id);
+    setRemovingId(id);
+    await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
     try {
       await deleteSubscription(id);
       onChanged();
     } finally {
       setDeletingId(null);
+      setRemovingId(null);
     }
   }
 
@@ -116,13 +126,17 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
         <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
           <div className="px-5 py-4 flex items-center justify-between w-full">
             <span className="font-sans text-xs text-muted font-semibold">Monthly Recurring</span>
-            <span className="font-mono text-lg font-bold text-ink">{mask(formatAmount(monthlyTotal, currency))}</span>
+            <AnimatedNumber
+              value={monthlyTotal}
+              format={(v) => formatAmount(v, currency)}
+              className="font-mono text-lg font-bold text-ink"
+            />
           </div>
           <div className="w-full divide-y divide-ink/10 border-t border-ink/10">
-            {subscriptions.map((sub) => {
+            {subscriptions.map((sub, i) => {
               if (editingId === sub.id && editState) {
                 return (
-                  <div key={sub.id} className="px-4 py-3 flex flex-col gap-3">
+                  <div key={sub.id} className="px-4 py-3 flex flex-col gap-3 animate-row-in">
                     <div className="flex gap-2">
                       <input
                         className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
@@ -168,7 +182,14 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
               return (
                 <div
                   key={sub.id}
-                  className="relative overflow-hidden group"
+                  className={`grid transition-[grid-template-rows,opacity] duration-base ease-out ${
+                    removingId === sub.id ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+                  }`}
+                >
+                <div className="min-h-0 overflow-hidden">
+                <div
+                  className="relative overflow-hidden group animate-row-in"
+                  style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
                   onTouchStart={handleTouchStart}
                   onTouchEnd={(e) => handleTouchEnd(e, sub.id)}
                   onClick={(e) => e.stopPropagation()}
@@ -219,13 +240,15 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                     </div>
                   </div>
                 </div>
+                </div>
+                </div>
               );
             })}
           </div>
         </GlassSurface>
       )}
 
-      {showAdd && (
+      <Collapse open={showAdd}>
         <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
           <div className="p-4 flex flex-col gap-3 w-full">
             <input
@@ -270,20 +293,20 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
             </div>
           </div>
         </GlassSurface>
-      )}
+      </Collapse>
 
-      {!showAdd && (
+      <Collapse open={!showAdd}>
         <button
           onClick={() => setShowAdd(true)}
-          className="w-full h-11 flex items-center justify-center gap-2 rounded-full border border-dashed flat-chip-dashed text-muted text-sm hover:text-ink transition-colors"
+          className="w-full h-11 flex items-center justify-center gap-2 rounded-full border border-dashed flat-chip-dashed text-muted text-sm hover:text-ink transition-[color,transform] duration-fast active:scale-[0.98]"
         >
           <Plus size={14} />
           Add Subscription
         </button>
-      )}
+      </Collapse>
 
       {subscriptions.length === 0 && !showAdd && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-slide-in">
           <span className="text-4xl mb-3" aria-hidden="true">🔄</span>
           <p className="font-sans font-semibold text-lg text-muted">No subscriptions yet</p>
           <p className="font-sans text-sm text-muted mt-1">Add rent, Netflix, gym — anything recurring.</p>

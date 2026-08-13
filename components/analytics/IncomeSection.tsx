@@ -10,6 +10,9 @@ import { formatAmount } from "@/lib/currencies";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
+import Collapse from "@/components/ui/Collapse";
+import Meter from "@/components/ui/Meter";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { CalendarPicker, SourceList } from "@/components/ui/DrawerPickers";
 
 function todayISO() {
@@ -17,6 +20,8 @@ function todayISO() {
 }
 
 const INCOME_SOURCES = ["Salary", "Freelance", "Business", "Investment", "Rental", "Gift", "Other"];
+// Matches the row collapse transition below; keep the two in step.
+const ROW_EXIT_MS = 200;
 
 interface Props {
   user: User;
@@ -53,6 +58,7 @@ const IncomeSection = memo(function IncomeSection({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [swipedIncomeId, setSwipedIncomeId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const baselineRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const incomeTouchStartX = useRef(0);
@@ -134,11 +140,14 @@ const IncomeSection = memo(function IncomeSection({
 
   async function handleDeleteEntry(id: string) {
     setDeletingId(id);
+    setRemovingId(id);
+    await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
     try {
       await deleteIncome(id);
       fetchEntries();
     } catch { /* ignore */ } finally {
       setDeletingId(null);
+      setRemovingId(null);
     }
   }
 
@@ -182,7 +191,11 @@ const IncomeSection = memo(function IncomeSection({
             </div>
             <div className="flex items-end justify-between">
               <span className={`font-mono text-2xl font-bold ${saved >= 0 ? "text-ink" : "text-danger"}`}>
-                {saved >= 0 ? "" : "-"}{mask(formatAmount(Math.abs(saved), currency))}
+                <AnimatedNumber
+                  value={Math.abs(saved)}
+                  format={(v) => formatAmount(v, currency)}
+                  prefix={saved >= 0 ? "" : "-"}
+                />
                 <span className="font-mono text-xs text-muted ml-1">{currency}</span>
               </span>
               <span className="font-mono text-xs text-muted">
@@ -190,12 +203,11 @@ const IncomeSection = memo(function IncomeSection({
               </span>
             </div>
             {savingsRate !== null && (
-              <div className="h-1.5 w-full bg-ink/8 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${saved >= 0 ? "bg-accent-fill" : "bg-danger-fill"}`}
-                  style={{ width: `${Math.min(Math.abs(savingsRate), 100)}%` }}
-                />
-              </div>
+              <Meter
+                value={Math.min(Math.abs(savingsRate), 100)}
+                className="h-1.5 w-full bg-ink/8"
+                barClassName={saved >= 0 ? "bg-accent-fill" : "bg-danger-fill"}
+              />
             )}
           </div>
         </GlassSurface>
@@ -274,13 +286,15 @@ const IncomeSection = memo(function IncomeSection({
               onClick={() => setShowAddForm((v) => !v)}
               aria-label="Add income entry"
               aria-expanded={showAddForm}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-accent-fill text-accent-on"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-accent-fill text-accent-on transition-transform duration-slow ease-out active:scale-90"
             >
-              <Plus size={12} />
+              {/* The same glyph rotated into a close affordance, rather than
+                  swapping icons — the control stays one object. */}
+              <Plus size={12} className={`transition-transform duration-slow ease-out ${showAddForm ? "rotate-[135deg]" : ""}`} />
             </button>
           </div>
 
-          {showAddForm && (
+          <Collapse open={showAddForm}>
             <div className="px-4 py-3 flex flex-col gap-2 border-b border-ink/7 bg-ink/3">
               <div className="flex gap-2">
                 <button
@@ -329,7 +343,7 @@ const IncomeSection = memo(function IncomeSection({
                 <p className="font-mono text-xs text-danger">{saveError}</p>
               )}
             </div>
-          )}
+          </Collapse>
 
           {loadingEntries ? (
             <div className="px-4 py-4 text-center">
@@ -341,12 +355,19 @@ const IncomeSection = memo(function IncomeSection({
             </div>
           ) : (
             <div className="divide-y divide-ink/7">
-              {incomeEntries.map((entry) => {
+              {incomeEntries.map((entry, i) => {
                 const isSwiped = swipedIncomeId === entry.id;
                 return (
                   <div
                     key={entry.id}
-                    className="relative overflow-hidden group"
+                    className={`grid transition-[grid-template-rows,opacity] duration-base ease-out ${
+                      removingId === entry.id ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+                    }`}
+                  >
+                  <div className="min-h-0 overflow-hidden">
+                  <div
+                    className="relative overflow-hidden group animate-row-in"
+                    style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
                     onTouchStart={handleIncomeTouchStart}
                     onTouchEnd={(e) => handleIncomeTouchEnd(e, entry.id)}
                     onClick={() => { if (isSwiped) setSwipedIncomeId(null); }}
@@ -381,6 +402,8 @@ const IncomeSection = memo(function IncomeSection({
                         <Trash2 size={12} />
                       </button>
                     </div>
+                  </div>
+                  </div>
                   </div>
                 );
               })}

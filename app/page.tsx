@@ -11,6 +11,10 @@ import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Ripple } from "@/components/ui/ripple";
+import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
+import ViewTransition from "@/components/ui/ViewTransition";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import Collapse from "@/components/ui/Collapse";
 import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
 import GlassSurface from "@/components/GlassSurface";
@@ -34,6 +38,28 @@ import { hapticTap } from "@/lib/haptics";
 
 type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
+
+// Nav order, so a view change knows which way the content should travel.
+const VIEW_ORDER: View[] = ["expenses", "subscriptions", "income", "insights"];
+
+const NAV_ITEMS: Segment<View>[] = [
+  { key: "expenses",      label: (a) => <><CreditCard size={22} weight={a ? "fill" : "regular"} /><span>Expenses</span></> },
+  { key: "subscriptions", label: (a) => <><ArrowsClockwise size={22} weight={a ? "fill" : "regular"} /><span>Bills</span></> },
+  { key: "income",        label: (a) => <><Wallet size={22} weight={a ? "fill" : "regular"} /><span>Income</span></> },
+  { key: "insights",      label: (a) => <><Lightbulb size={22} weight={a ? "fill" : "regular"} /><span>Insights</span></> },
+];
+
+const SECTION_ITEMS: Segment<View>[] = [
+  { key: "expenses",      label: "Expenses" },
+  { key: "subscriptions", label: "Subscriptions" },
+  { key: "income",        label: "Income" },
+];
+
+const FILTER_ITEMS: Segment<Filter>[] = [
+  { key: "all",   label: "All" },
+  { key: "today", label: "Today" },
+  { key: "week",  label: "This Week" },
+];
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -70,6 +96,8 @@ export default function Home() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<View>("expenses");
+  const [viewDir, setViewDir] = useState(1);
+  const [monthDir, setMonthDir] = useState(1);
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
   const [budget, setBudget] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
@@ -86,7 +114,7 @@ export default function Home() {
   const [billingReminders, setBillingReminders] = useState(false);
   const currencyRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { privacyMode, togglePrivacy, mask } = usePrivacy();
+  const { privacyMode, togglePrivacy } = usePrivacy();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -213,6 +241,7 @@ export default function Home() {
   }, [user, fetchSubscriptions]);
 
   function prevMonth() {
+    setMonthDir(-1);
     setSelectedMonth(({ year, month }) => {
       if (month === 1) return { year: year - 1, month: 12 };
       return { year, month: month - 1 };
@@ -220,11 +249,33 @@ export default function Home() {
   }
 
   function nextMonth() {
+    setMonthDir(1);
     setSelectedMonth(({ year, month }) => {
       if (month === 12) return { year: year + 1, month: 1 };
       return { year, month: month + 1 };
     });
   }
+
+  // Content travels the same way the nav does, so switching sections reads as
+  // moving along a row rather than as a replacement.
+  const changeView = useCallback(
+    (next: View) => {
+      if (next === view) return;
+      setViewDir(VIEW_ORDER.indexOf(next) >= VIEW_ORDER.indexOf(view) ? 1 : -1);
+      hapticTap();
+      setView(next);
+    },
+    [view],
+  );
+
+  const selectMonth = useCallback(
+    (year: number, month: number) => {
+      const curr = selectedMonth.year * 12 + selectedMonth.month;
+      setMonthDir(year * 12 + month >= curr ? 1 : -1);
+      setSelectedMonth({ year, month });
+    },
+    [selectedMonth],
+  );
 
   useEffect(() => {
     if (!isNative()) return;
@@ -290,12 +341,6 @@ export default function Home() {
     if (filter === "week") return expenses.filter((e) => e.date >= startOfWeekISO());
     return expenses;
   }, [expenses, filter]);
-
-  const filters: { key: Filter; label: string }[] = [
-    { key: "all",   label: "All"       },
-    { key: "today", label: "Today"     },
-    { key: "week",  label: "This Week" },
-  ];
 
   if (user === undefined) {
     return (
@@ -381,7 +426,7 @@ export default function Home() {
             <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "month" ? "rotate-180" : ""}`} />
           </div>
         </button>
-        <div className={`overflow-hidden transition-all duration-300 ease-out ${expandedSection === "month" ? "max-h-64" : "max-h-0"}`}>
+        <Collapse open={expandedSection === "month"}>
           <div className="px-4 pt-3 pb-4">
             <div className="flex items-center justify-between mb-3">
               <button
@@ -401,8 +446,8 @@ export default function Home() {
                 return (
                   <button
                     key={month}
-                    onClick={() => { setSelectedMonth({ year: pickerYear, month }); setExpandedSection(null); setShowMoreDrawer(false); }}
-                    className={`h-10 rounded-full text-sm font-mono transition-colors ${
+                    onClick={() => { selectMonth(pickerYear, month); setExpandedSection(null); setShowMoreDrawer(false); }}
+                    className={`h-10 rounded-full text-sm font-mono transition-[color,background-color,transform] duration-fast active:scale-95 ${
                       isSelected
                         ? "bg-accent-fill/15 text-accent border border-accent-fill/30 font-semibold"
                         : "text-ink/40 hover:text-ink/80"
@@ -412,7 +457,7 @@ export default function Home() {
               })}
             </div>
           </div>
-        </div>
+        </Collapse>
 
         {/* Currency row + inline list */}
         <button
@@ -426,13 +471,13 @@ export default function Home() {
             <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "currency" ? "rotate-180" : ""}`} />
           </div>
         </button>
-        <div className={`overflow-hidden transition-all duration-300 ease-out ${expandedSection === "currency" ? "max-h-64" : "max-h-0"}`}>
+        <Collapse open={expandedSection === "currency"}>
           <div className="overflow-y-auto max-h-64">
             {CURRENCIES.map((c) => (
               <button
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] ${
                   currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/7"
                 }`}
               >
@@ -441,11 +486,11 @@ export default function Home() {
               </button>
             ))}
           </div>
-        </div>
+        </Collapse>
 
         {/* Insights */}
         <button
-          onClick={() => { setShowMoreDrawer(false); setView("insights"); }}
+          onClick={() => { setShowMoreDrawer(false); changeView("insights"); }}
           className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
         >
           <span className="text-ink/60">Insights</span>
@@ -512,21 +557,27 @@ export default function Home() {
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
           Accent fill rather than glass: Apple asks to limit Liquid Glass to
           navigation chrome so the primary action stays the thing that pops. */}
-      {view === "expenses" && (
-        <div
-          className="sm:hidden fixed right-4 z-nav"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.25rem)" }}
+      {/* Kept mounted and scaled out rather than unmounted, so leaving the
+          expenses view doesn't blink it out of existence. */}
+      <div
+        className={`sm:hidden fixed right-4 z-nav transition-[transform,opacity] duration-slow ease-spring ${
+          view === "expenses"
+            ? "scale-100 opacity-100"
+            : "scale-75 opacity-0 pointer-events-none"
+        }`}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.25rem)" }}
+        aria-hidden={view !== "expenses"}
+      >
+        <button
+          onClick={() => { hapticTap(); setShowAddSheet(true); }}
+          aria-label="Add expense"
+          tabIndex={view === "expenses" ? 0 : -1}
+          className="h-12 pl-4 pr-5 flex items-center gap-1.5 rounded-full bg-accent-fill text-accent-on font-semibold text-sm shadow-lg shadow-black/20 active:scale-95 transition-transform duration-fast"
         >
-          <button
-            onClick={() => { hapticTap(); setShowAddSheet(true); }}
-            aria-label="Add expense"
-            className="h-12 pl-4 pr-5 flex items-center gap-1.5 rounded-full bg-accent-fill text-accent-on font-semibold text-sm shadow-lg shadow-black/20 active:scale-95 transition-transform"
-          >
-            <Plus size={18} strokeWidth={2.5} />
-            Add
-          </button>
-        </div>
-      )}
+          <Plus size={18} strokeWidth={2.5} />
+          Add
+        </button>
+      </div>
 
       {/* Add-expense sheet — the mobile counterpart of the desktop inline form */}
       <BottomDrawer open={showAddSheet} onClose={() => setShowAddSheet(false)} title="Add Expense">
@@ -542,40 +593,18 @@ export default function Home() {
 
       {/* Bottom nav — mobile only */}
       <nav aria-label="Primary" className="sm:hidden fixed bottom-0 left-0 right-0 z-nav px-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}>
-        <div className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip">
-          {([
-            { key: "expenses", label: "Expenses", Icon: CreditCard },
-            { key: "subscriptions", label: "Bills", Icon: ArrowsClockwise },
-            { key: "income", label: "Income", Icon: Wallet },
-          ] as { key: View; label: string; Icon: React.ElementType }[]).map(({ key, label, Icon }) => {
-            const active = view === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setView(key)}
-                className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
-                  active
-                    ? "glass-chip-active text-ink border"
-                    : "text-ink/55 hover:text-ink/80"
-                }`}
-              >
-                <Icon size={22} weight={active ? "fill" : "regular"} />
-                <span>{label}</span>
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setView("insights")}
-            className={`flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono transition-all ${
-              view === "insights"
-                ? "glass-chip-active text-ink border"
-                : "text-ink/55 hover:text-ink/80"
-            }`}
-          >
-            <Lightbulb size={22} weight={view === "insights" ? "fill" : "regular"} />
-            <span>Insights</span>
-          </button>
-        </div>
+        <SegmentedControl<View>
+          items={NAV_ITEMS}
+          value={view}
+          onChange={changeView}
+          role={null}
+          itemRole={null}
+          className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip"
+          itemClassName="flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono"
+          pillClassName="glass-chip-active border rounded-full"
+          activeClassName="text-ink"
+          inactiveClassName="text-ink/55 hover:text-ink/80"
+        />
       </nav>
 
       <div className="max-w-2xl mx-auto px-4 pb-36 sm:pb-24 flex flex-col gap-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
@@ -598,7 +627,7 @@ export default function Home() {
               <button
                 onClick={togglePrivacy}
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
-                className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors active:scale-90 ${
+                className={`w-11 h-11 flex items-center justify-center rounded-full transition-[color,background-color,border-color,transform] duration-fast active:scale-90 ${
                   privacyMode
                     ? "bg-accent-fill/15 text-accent"
                     : "text-ink/55 hover:text-ink/90"
@@ -607,23 +636,26 @@ export default function Home() {
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
               </button>
               <button
-                onClick={toggleTheme}
+                onClick={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  toggleTheme({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                }}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
+                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
               <button
                 onClick={() => setShowMoreDrawer(true)}
                 aria-label="Menu"
-                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
+                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 <MoreHorizontal size={16} />
               </button>
               <button
                 onClick={() => signOut()}
                 aria-label="Sign out"
-                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-colors active:scale-90"
+                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 <LogOut size={16} />
               </button>
@@ -636,7 +668,7 @@ export default function Home() {
             <div ref={currencyRef} className="relative">
               <button
                 onClick={() => setShowCurrencyPicker((v) => !v)}
-                className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-95 text-xs font-mono"
+                className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-95 text-xs font-mono"
               >
                 {currency}
                 <ChevronDown size={11} />
@@ -648,7 +680,7 @@ export default function Home() {
               <button
                 onClick={exportCSV}
                 aria-label="Export CSV"
-                className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-95 text-xs font-mono"
+                className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-95 text-xs font-mono"
               >
                 <Download size={12} />
                 CSV
@@ -656,158 +688,184 @@ export default function Home() {
               <button
                 onClick={() => setShowConverterDrawer(true)}
                 aria-label="Convert currency"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 <ArrowsLeftRight size={14} />
               </button>
               <button
                 onClick={prevMonth}
                 aria-label="Previous month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 ‹
               </button>
-              <span className="font-sans text-body text-ink font-medium min-w-[72px] text-center">
-                {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
+              <span className="font-sans text-body text-ink font-medium min-w-[72px] text-center overflow-hidden">
+                <ViewTransition
+                  trigger={`${selectedMonth.year}-${selectedMonth.month}`}
+                  direction={monthDir}
+                  className="block"
+                >
+                  {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
+                </ViewTransition>
               </span>
               <button
                 onClick={nextMonth}
                 aria-label="Next month"
-                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors active:scale-90"
+                className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
                 ›
               </button>
             </div>
           </div>
           {/* Row 3: View toggle (full width) — desktop only */}
-          <nav aria-label="Sections" className="hidden sm:flex items-center h-10 p-0.5 rounded-full border flat-chip w-full">
-            {(["expenses", "subscriptions", "income"] as View[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`flex-1 h-9 rounded-full text-sm font-mono transition-colors ${
-                  view === v
-                    ? "flat-chip-active text-ink border"
-                    : "text-ink/40 hover:text-ink/80"
-                }`}
-              >
-                {v === "expenses" ? "Expenses" : v === "subscriptions" ? "Subscriptions" : "Income"}
-              </button>
-            ))}
-          </nav>
+          <SegmentedControl<View>
+            items={SECTION_ITEMS}
+            value={view}
+            onChange={changeView}
+            ariaLabel="Sections"
+            className="hidden sm:flex items-center h-10 p-0.5 rounded-full border flat-chip w-full"
+            itemClassName="flex-1 h-9 rounded-full text-sm font-mono"
+            pillClassName="flat-chip-active border rounded-full"
+            activeClassName="text-ink"
+            inactiveClassName="text-ink/40 hover:text-ink/80"
+          />
         </header>
 
-        {/* Stats */}
-        {view === "expenses" && (
-          <StatsBar expenses={expenses} selectedMonth={selectedMonth} currency={currency} subscriptionsTotal={subscriptionsTotal} />
-        )}
-        {view === "subscriptions" && (
-          <div className="flex flex-col gap-2">
-            <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-              <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Bills</span>
-              <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal, currency))}</span>
-            </div>
-            <GlassSurface borderRadius={28}>
-              <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
-                <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
-                  <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
-                </div>
-                <div className="px-5 py-4 flex flex-col gap-1">
-                  <span className="font-sans text-xs text-muted font-semibold leading-none">Per Year</span>
-                  <span className="font-mono text-2xl font-bold text-ink leading-tight">{mask(formatAmount(subscriptionsTotal * 12, currency))}</span>
-                </div>
-              </div>
-            </GlassSurface>
-          </div>
-        )}
-        {view === "income" && (
-          <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-            <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Income</span>
-            <span className="font-mono text-5xl font-bold text-ink leading-tight">{mask(formatAmount(incomeTotalHero, currency))}</span>
-          </div>
-        )}
-
-        {view === "expenses" ? (
-          <>
-            {/* Add form — desktop only. Mobile uses the floating "+ Add"
-                button above the bottom nav, which opens the same form in a sheet. */}
-            {!isMobile && (
-              <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
-            )}
-
-            {/* Budget */}
-            <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
-
-            {/* Filter tabs */}
-            <div className="flex gap-2">
-              {filters.map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setFilter(key)}
-                  className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors border ${
-                    filter === key
-                      ? "accent-chip-active text-accent"
-                      : "border-transparent text-ink/60 hover:text-ink"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Expense list / loading / error */}
-            <div key={filter} className="animate-fade-slide-in">
-              {fetchError ? (
-                <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
-                  <p className="text-danger font-mono text-sm">{fetchError}</p>
-                  <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
-                    Retry
-                  </button>
-                </div>
-              ) : loading ? (
-                <LoadingSkeleton />
-              ) : (
-                <ExpenseList
-                  expenses={filteredExpenses}
-                  onDeleted={fetchExpenses}
-                  onUpdated={fetchExpenses}
-                  currency={currency}
+        {/* Hero + section content move together, so a section change reads as
+            one thing sliding rather than four independent swaps. Only the
+            section keys this — the month is handled further in, so the hero
+            totals can count to their new value instead of remounting. */}
+        <ViewTransition trigger={view} direction={viewDir} className="flex flex-col gap-4">
+          {/* Stats */}
+          {view === "expenses" && (
+            <StatsBar expenses={expenses} selectedMonth={selectedMonth} currency={currency} subscriptionsTotal={subscriptionsTotal} />
+          )}
+          {view === "subscriptions" && (
+            <div className="flex flex-col gap-2">
+              <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
+                <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Bills</span>
+                <AnimatedNumber
+                  value={subscriptionsTotal}
+                  format={(v) => formatAmount(v, currency)}
+                  className="font-mono text-5xl font-bold text-ink leading-tight"
                 />
-              )}
+              </div>
+              <GlassSurface borderRadius={28}>
+                <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
+                  <div className="px-5 py-4 flex flex-col gap-1">
+                    <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
+                    <span className="font-mono text-2xl font-bold text-ink leading-tight">{privacyMode ? "•" : subscriptions.length}</span>
+                  </div>
+                  <div className="px-5 py-4 flex flex-col gap-1">
+                    <span className="font-sans text-xs text-muted font-semibold leading-none">Per Year</span>
+                    <AnimatedNumber
+                      value={subscriptionsTotal * 12}
+                      format={(v) => formatAmount(v, currency)}
+                      className="font-mono text-2xl font-bold text-ink leading-tight"
+                    />
+                  </div>
+                </div>
+              </GlassSurface>
             </div>
+          )}
+          {view === "income" && (
+            <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
+              <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Income</span>
+              <AnimatedNumber
+                value={incomeTotalHero}
+                format={(v) => formatAmount(v, currency)}
+                className="font-mono text-5xl font-bold text-ink leading-tight"
+              />
+            </div>
+          )}
 
-          </>
-        ) : view === "subscriptions" ? (
-          <>
-            <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
-            <SubscriptionList
-              subscriptions={subscriptions}
-              userId={user.id}
+          {view === "expenses" ? (
+            <>
+              {/* Add form — desktop only. Mobile uses the floating "+ Add"
+                  button above the bottom nav, which opens the same form in a sheet.
+                  Deliberately outside the month transition below: changing month
+                  should not wipe a half-typed expense. */}
+              {!isMobile && (
+                <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+              )}
+
+              {/* Budget */}
+              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
+
+              {/* Filter tabs */}
+              <SegmentedControl<Filter>
+                items={FILTER_ITEMS}
+                value={filter}
+                onChange={setFilter}
+                ariaLabel="Filter expenses"
+                className="flex gap-2"
+                itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border"
+                pillClassName="accent-chip-active border rounded-full"
+                activeClassName="text-accent border-transparent"
+                inactiveClassName="border-transparent text-ink/60 hover:text-ink"
+              />
+
+              {/* Expense list / loading / error. Keyed on filter and month so
+                  both replay the enter animation; the month supplies direction. */}
+              <ViewTransition
+                trigger={`${filter}|${selectedMonth.year}-${selectedMonth.month}`}
+                direction={monthDir}
+              >
+                {fetchError ? (
+                  <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
+                    <p className="text-danger font-mono text-sm">{fetchError}</p>
+                    <button onClick={fetchExpenses} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
+                      Retry
+                    </button>
+                  </div>
+                ) : loading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  // Keyed so the real list fades in over the skeleton instead
+                  // of replacing it between two frames.
+                  <div key="list" className="animate-fade-slide-in">
+                    <ExpenseList
+                      expenses={filteredExpenses}
+                      onDeleted={fetchExpenses}
+                      onUpdated={fetchExpenses}
+                      currency={currency}
+                    />
+                  </div>
+                )}
+              </ViewTransition>
+
+            </>
+          ) : view === "subscriptions" ? (
+            <>
+              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
+              <SubscriptionList
+                subscriptions={subscriptions}
+                userId={user.id}
+                currency={currency}
+                onChanged={fetchSubscriptions}
+              />
+            </>
+          ) : view === "income" ? (
+            <IncomeSection
+              user={user}
+              selectedMonth={selectedMonth}
               currency={currency}
-              onChanged={fetchSubscriptions}
+              monthlyIncome={monthlyIncome}
+              onMonthlyIncomeChange={saveMonthlyIncome}
+              expenses={expenses}
+              subscriptions={subscriptions}
+              onTotalChange={setIncomeTotalHero}
             />
-          </>
-        ) : view === "income" ? (
-          <IncomeSection
-            user={user}
-            selectedMonth={selectedMonth}
-            currency={currency}
-            monthlyIncome={monthlyIncome}
-            onMonthlyIncomeChange={saveMonthlyIncome}
-            expenses={expenses}
-            subscriptions={subscriptions}
-            onTotalChange={setIncomeTotalHero}
-          />
-        ) : (
-          <AnalyticsView
-            expenses={expenses}
-            subscriptions={subscriptions}
-            selectedMonth={selectedMonth}
-            currency={currency}
-            monthlyIncome={monthlyIncome}
-          />
-        )}
+          ) : (
+            <AnalyticsView
+              expenses={expenses}
+              subscriptions={subscriptions}
+              selectedMonth={selectedMonth}
+              currency={currency}
+              monthlyIncome={monthlyIncome}
+            />
+          )}
+        </ViewTransition>
       </div>
     </main>
   );

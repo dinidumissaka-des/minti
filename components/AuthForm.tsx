@@ -6,6 +6,7 @@ import { isNative } from "@/lib/platform";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Collapse from "@/components/ui/Collapse";
 import Logo from "@/components/Logo";
 
 export default function AuthForm() {
@@ -50,7 +51,7 @@ export default function AuthForm() {
 
   if (signUpDone) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-ink/7 sm:rounded-2xl sm:border sm:border-ink/10 sm:p-8">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 gap-3 text-center sm:min-h-0 sm:bg-ink/7 sm:rounded-2xl sm:border sm:border-ink/10 sm:p-8 animate-fade-slide-in">
         <p className="font-sans font-semibold text-xl text-ink">Check your email</p>
         <p className="font-sans text-base text-muted">
           We sent a confirmation link to <span className="text-ink font-medium">{email}</span>.
@@ -74,7 +75,7 @@ export default function AuthForm() {
       <div className="flex items-center gap-3">
         <Logo className="h-5 w-auto flex-shrink-0" />
         <span className="text-ink/20">•</span>
-        <h1 className="font-sans font-semibold text-xl text-ink">
+        <h1 key={mode} className="font-sans font-semibold text-xl text-ink animate-fade-slide-in">
           {mode === "signin" ? "Sign in" : "Sign up"}
         </h1>
       </div>
@@ -105,7 +106,9 @@ export default function AuthForm() {
           />
         </div>
 
-        {error && <p className="text-danger text-sm font-mono">{error}</p>}
+        <Collapse open={!!error}>
+          <p className="text-danger text-sm font-mono">{error}</p>
+        </Collapse>
       </div>
 
       {/* CTA — pinned to bottom on mobile, normal flow on desktop */}
