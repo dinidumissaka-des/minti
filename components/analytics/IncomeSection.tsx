@@ -226,7 +226,7 @@ const IncomeSection = memo(function IncomeSection({
                 onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
                 placeholder="Monthly income"
                 aria-label="Monthly income"
-                className="flex-1 bg-transparent text-ink text-base outline-none focus-visible:ring-2 focus-visible:ring-accent-fill/50 rounded-lg placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="flex-1 h-10 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-fill text-accent-on flex-shrink-0">
                 <Check size={13} />
