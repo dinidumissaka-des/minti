@@ -10,6 +10,7 @@ import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import Logo from "@/components/Logo";
 import { Ripple } from "@/components/ui/ripple";
+import ViewTransition from "@/components/ui/ViewTransition";
 import GradualBlur from "@/components/GradualBlur";
 
 const MONTH_NAMES = [
@@ -29,6 +30,7 @@ export default function InsightsPage() {
     year: now.getFullYear(),
     month: now.getMonth() + 1,
   });
+  const [monthDir, setMonthDir] = useState(1);
 
   useEffect(() => {
     const c = localStorage.getItem("minti_currency");
@@ -64,12 +66,14 @@ export default function InsightsPage() {
   }, [user, selectedMonth]);
 
   function prevMonth() {
+    setMonthDir(-1);
     setSelectedMonth(({ year, month }) =>
       month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 },
     );
   }
 
   function nextMonth() {
+    setMonthDir(1);
     setSelectedMonth(({ year, month }) =>
       month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 },
     );
@@ -100,7 +104,7 @@ export default function InsightsPage() {
           <button
             onClick={() => router.back()}
             aria-label="Back"
-            className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/50 hover:text-ink transition-colors text-xs font-mono"
+            className="flex items-center gap-1.5 h-10 px-3 rounded-full border flat-chip text-ink/50 hover:text-ink transition-[color,border-color,transform] duration-fast active:scale-95 text-xs font-mono"
           >
             <ArrowLeft size={13} />
             Back
@@ -110,17 +114,23 @@ export default function InsightsPage() {
             <button
               onClick={prevMonth}
               aria-label="Previous month"
-              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,border-color,transform] duration-fast active:scale-90"
             >
               <ChevronLeft size={13} />
             </button>
-            <span className="font-mono text-xs text-ink/70 min-w-[52px] text-center">
-              {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
+            <span className="font-mono text-xs text-ink/70 min-w-[52px] text-center overflow-hidden">
+              <ViewTransition
+                trigger={`${selectedMonth.year}-${selectedMonth.month}`}
+                direction={monthDir}
+                className="block"
+              >
+                {MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}
+              </ViewTransition>
             </span>
             <button
               onClick={nextMonth}
               aria-label="Next month"
-              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,border-color,transform] duration-fast active:scale-90"
             >
               <ChevronRight size={13} />
             </button>
@@ -128,13 +138,18 @@ export default function InsightsPage() {
         </div>
 
 
-        <AnalyticsView
-          expenses={expenses}
-          subscriptions={subscriptions}
-          selectedMonth={selectedMonth}
-          currency={currency}
-          monthlyIncome={monthlyIncome}
-        />
+        <ViewTransition
+          trigger={`${selectedMonth.year}-${selectedMonth.month}`}
+          direction={monthDir}
+        >
+          <AnalyticsView
+            expenses={expenses}
+            subscriptions={subscriptions}
+            selectedMonth={selectedMonth}
+            currency={currency}
+            monthlyIncome={monthlyIncome}
+          />
+        </ViewTransition>
       </div>
     </main>
   );

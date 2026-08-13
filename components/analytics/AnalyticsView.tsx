@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { TrendingUp, TrendingDown, Minus, PieChart, Calendar, RefreshCw } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
 import { getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
+import Meter from "@/components/ui/Meter";
+import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
+import ViewTransition from "@/components/ui/ViewTransition";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { useTheme } from "@/components/ThemeContext";
 
@@ -95,8 +98,12 @@ const CategoryChart = memo(function CategoryChart({
           Spending by Category
         </span>
         <div className="flex flex-col gap-4">
-          {stats.map(({ category, amount, pct, color }) => (
-            <div key={category} className="flex flex-col gap-2">
+          {stats.map(({ category, amount, pct, color }, i) => (
+            <div
+              key={category}
+              className="flex flex-col gap-2 animate-row-in"
+              style={{ animationDelay: `${Math.min(i * 40, 240)}ms` }}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
@@ -110,12 +117,7 @@ const CategoryChart = memo(function CategoryChart({
                   <span className="font-mono text-body text-ink font-medium">{mask(formatAmount(amount, currency))}</span>
                 </div>
               </div>
-              <div className="h-2 w-full bg-ink/6 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${pct}%`, backgroundColor: color }}
-                />
-              </div>
+              <Meter value={pct} className="h-2 w-full bg-ink/6" barStyle={{ backgroundColor: color }} />
             </div>
           ))}
         </div>
@@ -265,18 +267,20 @@ const InsightCards = memo(function InsightCards({
 
   return (
     <div className="flex flex-col gap-3">
-      {insights.map((insight) => (
+      {insights.map((insight, i) => (
         <GlassSurface
           key={insight.id}
           borderRadius={24}
           backgroundOpacity={0.07}
-          style={
-            insight.type === "positive"
+          className="animate-row-in"
+          style={{
+            animationDelay: `${Math.min(i * 60, 300)}ms`,
+            ...(insight.type === "positive"
               ? { borderColor: "rgb(var(--accent) / 0.2)" }
               : insight.type === "warning"
               ? { borderColor: "rgb(var(--danger) / 0.2)" }
-              : {}
-          }
+              : {}),
+          }}
         >
           <div className="px-5 py-5 flex items-start gap-4 w-full">
             {insight.icon && (
@@ -356,11 +360,15 @@ const MomComparison = memo(function MomComparison({
           <span className="font-mono text-sm text-muted">{prevLabel}</span>
         </div>
         <div className="flex flex-col gap-3">
-          {categories.map(({ cat, curr, prev, color }) => {
+          {categories.map(({ cat, curr, prev, color }, i) => {
             const pctChange = prev > 0 ? ((curr - prev) / prev) * 100 : null;
             const isUp = curr > prev;
             return (
-              <div key={cat} className="flex items-center gap-3">
+              <div
+                key={cat}
+                className="flex items-center gap-3 animate-row-in"
+                style={{ animationDelay: `${Math.min(i * 40, 240)}ms` }}
+              >
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                 <span className="font-sans text-body text-ink/80 flex-1 truncate">{cat}</span>
                 <span className="font-mono text-body text-ink flex-shrink-0">{mask(formatAmount(curr, currency))}</span>
@@ -384,11 +392,13 @@ const MomComparison = memo(function MomComparison({
 
 type Tab = "insights" | "spending" | "vs-last";
 
-const TABS: { key: Tab; label: string }[] = [
+const TABS: Segment<Tab>[] = [
   { key: "insights",  label: "Insights" },
   { key: "spending",  label: "By Category" },
   { key: "vs-last",   label: "vs Last Month" },
 ];
+
+const TAB_ORDER: Tab[] = TABS.map((t) => t.key);
 
 export default function AnalyticsView({
   expenses,
@@ -397,10 +407,18 @@ export default function AnalyticsView({
   currency,
   monthlyIncome,
 }: Props) {
-  const { mask } = usePrivacy();
   const [prevExpenses, setPrevExpenses] = useState<Expense[]>([]);
   const [budget, setBudget] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("insights");
+  const [tabDir, setTabDir] = useState(1);
+
+  const changeTab = useCallback(
+    (next: Tab) => {
+      setTabDir(TAB_ORDER.indexOf(next) >= TAB_ORDER.indexOf(tab) ? 1 : -1);
+      setTab(next);
+    },
+    [tab],
+  );
 
   useEffect(() => {
     const { year, month } = prevMonthOf(selectedMonth.year, selectedMonth.month);
@@ -417,47 +435,45 @@ export default function AnalyticsView({
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
-      <div className="flex gap-2">
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`flex-1 h-10 rounded-full text-sm font-semibold transition-colors ${
-              tab === key
-                ? "flat-chip-active text-ink border"
-                : "text-ink/50 hover:text-ink"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl<Tab>
+        items={TABS}
+        value={tab}
+        onChange={changeTab}
+        ariaLabel="Insight views"
+        className="flex gap-2"
+        itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border border-transparent"
+        pillClassName="flat-chip-active border rounded-full"
+        activeClassName="text-ink"
+        inactiveClassName="text-ink/50 hover:text-ink"
+      />
 
-      {tab === "insights" && (
-        <InsightCards
-          expenses={expenses}
-          subscriptions={subscriptions}
-          prevExpenses={prevExpenses}
-          selectedMonth={selectedMonth}
-          currency={currency}
-          monthlyIncome={monthlyIncome}
-          budget={budget}
-        />
-      )}
+      <ViewTransition trigger={tab} direction={tabDir}>
+        {tab === "insights" && (
+          <InsightCards
+            expenses={expenses}
+            subscriptions={subscriptions}
+            prevExpenses={prevExpenses}
+            selectedMonth={selectedMonth}
+            currency={currency}
+            monthlyIncome={monthlyIncome}
+            budget={budget}
+          />
+        )}
 
-      {tab === "spending" && (
-        <CategoryChart expenses={expenses} subscriptions={subscriptions} currency={currency} />
-      )}
+        {tab === "spending" && (
+          <CategoryChart expenses={expenses} subscriptions={subscriptions} currency={currency} />
+        )}
 
-      {tab === "vs-last" && (
-        <MomComparison
-          expenses={expenses}
-          prevExpenses={prevExpenses}
-          subscriptions={subscriptions}
-          currency={currency}
-          selectedMonth={selectedMonth}
-        />
-      )}
+        {tab === "vs-last" && (
+          <MomComparison
+            expenses={expenses}
+            prevExpenses={prevExpenses}
+            subscriptions={subscriptions}
+            currency={currency}
+            selectedMonth={selectedMonth}
+          />
+        )}
+      </ViewTransition>
     </div>
   );
 }

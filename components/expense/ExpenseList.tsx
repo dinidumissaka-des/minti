@@ -38,6 +38,8 @@ interface EditState {
 }
 
 const SWIPE_THRESHOLD = 60;
+// Matches the collapse transition below; keep the two in step.
+const ROW_EXIT_MS = 200;
 
 export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }: Props) {
   const { mask } = usePrivacy();
@@ -48,6 +50,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
   const [saving, setSaving] = useState(false);
   const [showCatDrawer, setShowCatDrawer] = useState(false);
   const [showDateDrawer, setShowDateDrawer] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const touchStartX = useRef(0);
@@ -91,9 +94,13 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
     }
   }
 
+  // The row collapses first, then the request goes out. Deleting used to leave
+  // a gap mid-request and then snap everything below upward.
   async function handleDelete(id: string) {
     hapticBump();
     setDeletingId(id);
+    setRemovingId(id);
+    await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
     try {
       await deleteExpense(id);
       onDeleted();
@@ -101,6 +108,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
       // parent will re-fetch
     } finally {
       setDeletingId(null);
+      setRemovingId(null);
     }
   }
 
@@ -162,7 +170,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
 
   if (expenses.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-slide-in">
         <span className="text-4xl mb-3" aria-hidden="true">🪙</span>
         <p className="font-sans font-semibold text-lg text-muted">No expenses yet</p>
         <p className="font-sans text-sm text-muted mt-1">Add one above to get started.</p>
@@ -176,6 +184,10 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
   }, {});
 
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+  // Stagger runs across the whole list, not per group, so the cascade reads as
+  // one sweep down the page rather than restarting at each date header.
+  let rowIndex = -1;
 
   return (
     <div className="flex flex-col gap-6">
@@ -200,10 +212,12 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
               {dayExpenses.map((expense) => {
                 const isEditing = editingId === expense.id;
                 const isSwiped = swipedId === expense.id;
+                rowIndex += 1;
+                const enterStyle = { animationDelay: `${Math.min(rowIndex * 35, 280)}ms` };
 
                 if (isEditing && editState) {
                   return (
-                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-ink/3">
+                    <div key={expense.id} className="px-4 py-3 flex flex-col gap-3 bg-ink/3 animate-row-in">
                       <div className="flex gap-2">
                         <input
                           className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
@@ -262,7 +276,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                 return (
                   <div
                     key={expense.id}
-                    className="relative overflow-hidden group"
+                    className={`grid transition-[grid-template-rows,opacity] duration-base ease-out ${
+                      removingId === expense.id ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+                    }`}
+                  >
+                  <div className="min-h-0 overflow-hidden">
+                  <div
+                    className="relative overflow-hidden group animate-row-in"
+                    style={enterStyle}
                     onClick={() => { if (isSwiped) snapBack(expense.id); }}
                   >
                     {/* Swipe action buttons — hidden until swiped */}
@@ -329,6 +350,8 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         </button>
                       </div>
                     </div>
+                  </div>
+                  </div>
                   </div>
                 );
               })}

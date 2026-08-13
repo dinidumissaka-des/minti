@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef, FormEvent } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Check } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
 import { hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import GlassSurface from "@/components/GlassSurface";
 import BottomDrawer from "@/components/BottomDrawer";
+import Collapse from "@/components/ui/Collapse";
 import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
 import { CATEGORY_COLORS } from "@/lib/categories";
 
@@ -155,12 +156,26 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
             />
           )}
 
-          {error && <p className="text-danger text-sm">{error}</p>}
-          {success && <p className="text-accent text-sm">Expense added!</p>}
+          <Collapse open={!!error}>
+            <p className="text-danger text-sm">{error}</p>
+          </Collapse>
 
-          <Button onClick={handleSubmit} disabled={submitting} className="w-full flex items-center justify-center gap-2">
-            {submitting ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} strokeWidth={2.5} />}
-            <span>{submitting ? "Adding…" : "Add Expense"}</span>
+          {/* Confirmation happens inside the button rather than as a line of
+              text above it — no layout shift, and the control you pressed is
+              the thing that answers. */}
+          <Button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className={`w-full flex items-center justify-center gap-2 ${success ? "pointer-events-none" : ""}`}
+          >
+            {submitting ? (
+              <Loader2 size={17} className="animate-spin" />
+            ) : success ? (
+              <Check size={17} strokeWidth={2.5} className="animate-pop-in" />
+            ) : (
+              <Plus size={17} strokeWidth={2.5} />
+            )}
+            <span>{submitting ? "Adding…" : success ? "Added" : "Add Expense"}</span>
           </Button>
     </div>
   );
