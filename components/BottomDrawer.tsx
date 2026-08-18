@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore }
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { hapticTap } from "@/lib/haptics";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 // Which drawers are open, oldest first. Drawers portal to <body>, so a nested
 // one (the date picker inside the mobile Add Expense sheet) is a DOM sibling of
@@ -88,8 +89,24 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
   const startY = useRef(0);
   const startTime = useRef(0);
 
+  const lift = useKeyboardInset(open);
+  const atRest = drag === 0 && !isBehind && (lift === 0 || fullScreen);
+
   useEffect(() => {
     if (!open) setDrag(0);
+  }, [open]);
+
+  // The page scrolls the document, so iOS answers a focused field inside a
+  // fixed sheet by scrolling the page underneath it. Freezing the document
+  // while a sheet is open leaves nothing for it to scroll; the sheet lifts
+  // itself off the keyboard instead.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
   }, [open]);
 
   // The grabber has always looked draggable. Only the header area starts a
@@ -170,10 +187,18 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         }`}
         style={{
           backgroundColor: "rgb(var(--sheet) / 0.9)",
+          // A full-screen sheet has no room to travel, so it gives the keyboard
+          // its bottom edge; a bottom sheet rides up on the transform it is
+          // already animating.
+          ...(fullScreen ? { bottom: lift } : null),
           // Scaled from the bottom edge, which is pinned to the viewport — a
           // centre-origin scale would lift the sheet and show the page under it.
+          // At rest the transform is dropped entirely: WKWebView paints the
+          // caret of a focused field in a transformed layer at the wrong place.
           transform: open
-            ? `translateY(${drag}px)${isBehind ? " scale(0.96)" : ""}`
+            ? atRest
+              ? "none"
+              : `translateY(${fullScreen ? drag : drag - lift}px)${isBehind ? " scale(0.96)" : ""}`
             : "translateY(100%)",
         }}
       >
@@ -222,7 +247,13 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
 
         <div
           className={`overflow-y-auto p-2 ${fullScreen ? "flex-1 sm:flex-none sm:max-h-[60vh]" : "max-h-[60vh]"} ${contentClassName ?? ""}`}
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+          style={{
+            // Lifting alone would push a tall sheet's header off the top of the
+            // screen, so the body gives up whatever the keyboard took. 7rem is
+            // the grabber and title above it.
+            ...(lift > 0 && !fullScreen ? { maxHeight: `calc(100vh - ${lift}px - 7rem)` } : null),
+            paddingBottom: lift > 0 ? '1rem' : 'calc(env(safe-area-inset-bottom) + 1rem)',
+          }}
         >
           {children}
         </div>

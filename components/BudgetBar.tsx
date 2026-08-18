@@ -66,7 +66,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
           onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
           placeholder="0.00"
           aria-label="Monthly budget amount"
-          className="flex-1 h-11 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="flex-1 min-w-0 h-11 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <button onClick={save} aria-label="Save budget" className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
           <Check size={13} />
