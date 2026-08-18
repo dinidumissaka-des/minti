@@ -139,7 +139,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                   <div key={sub.id} className="px-4 py-3 flex flex-col gap-3 animate-row-in">
                     <div className="flex gap-2">
                       <input
-                        className="flex-1 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
+                        className="flex-1 min-w-0 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
                         value={editState.name}
                         onChange={(e) => setEditState({ ...editState, name: e.target.value })}
                         placeholder="Name"
