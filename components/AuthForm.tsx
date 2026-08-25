@@ -88,11 +88,13 @@ export default function AuthForm() {
   return (
     <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 sm:bg-sheet/85 sm:rounded-3xl sm:border sm:border-ink/10">
       <div className="flex flex-col items-center text-center gap-3">
-        <h1 className="font-fraunces text-[2rem] leading-[1.15] text-ink">Know where it goes.</h1>
-        <p key={mode} className="text-body text-muted animate-fade-slide-in">
+        <h1 key={mode} className="font-fraunces text-[2rem] leading-[1.15] text-ink animate-fade-slide-in">
+          {mode === "signin" ? "Welcome back" : "Create your account"}
+        </h1>
+        <p key={`sub-${mode}`} className="text-body text-muted animate-fade-slide-in">
           {mode === "signin"
             ? "Sign in to pick up where you left off."
-            : "Create an account to start tracking."}
+            : "Set up takes about a minute."}
         </p>
       </div>
 
