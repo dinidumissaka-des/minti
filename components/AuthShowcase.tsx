@@ -26,7 +26,7 @@ export default function AuthShowcase({ className }: { className?: string }) {
           <span className="text-muted">Tracking</span>
           <SplitFlapText value={TRACKS[track]} minLength={BOARD_WIDTH} className="text-accent" />
         </div>
-        <h2 className="font-fraunces text-[clamp(2.75rem,4.8vw,4.5rem)] leading-[1.02] text-ink text-balance">
+        <h2 className="font-fraunces text-[clamp(2.75rem,4.8vw,4rem)] leading-[1.02] text-ink text-balance">
           A whole month, on one screen.
         </h2>
       </div>
