@@ -12,6 +12,7 @@ const config: Config = {
         background: "rgb(var(--background) / <alpha-value>)",
         ink:        "rgb(var(--ink)        / <alpha-value>)",
         scrim:      "rgb(var(--scrim)      / <alpha-value>)",
+        sheet:      "rgb(var(--sheet)      / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",
         "accent-fill":"rgb(var(--accent)      / <alpha-value>)",
