@@ -64,7 +64,7 @@ export default function AuthForm() {
 
   if (signUpDone) {
     return (
-      <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 items-center text-center gap-4 sm:flex sm:flex-col sm:bg-ink/7 sm:rounded-3xl sm:border sm:border-ink/10 animate-fade-slide-in">
+      <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 items-center text-center gap-4 sm:flex sm:flex-col sm:bg-sheet/85 sm:rounded-3xl sm:border sm:border-ink/10 animate-fade-slide-in">
         <LogoMark className="w-12 h-12" />
         <h1 className="font-fraunces text-3xl text-ink leading-tight">Check your inbox</h1>
         <p className="text-body text-muted max-w-[34ch]">
@@ -87,7 +87,7 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 sm:bg-ink/7 sm:rounded-3xl sm:border sm:border-ink/10">
+    <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 sm:bg-sheet/85 sm:rounded-3xl sm:border sm:border-ink/10">
       <div className="flex flex-col items-center text-center gap-3">
         <Logo className="h-6 w-auto" />
         <h1 className="font-fraunces text-[2rem] leading-[1.15] text-ink">Know where it goes.</h1>
