@@ -381,6 +381,9 @@ export default function Home() {
   if (user === null) {
     return (
       <main className="relative z-content text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4 lg:px-8" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {/* Absolute, not fixed: the mobile form scrolls when the keyboard is
+            up and a pinned logo would ride over it. */}
+        <Logo className="absolute left-6 sm:left-8 top-[calc(env(safe-area-inset-top)+1.5rem)] sm:top-[calc(env(safe-area-inset-top)+2rem)] h-6 w-auto" />
         <div className="w-full sm:max-w-sm lg:max-w-5xl xl:max-w-6xl lg:grid lg:grid-cols-[24rem_minmax(0,1fr)] lg:gap-16 lg:items-center">
           <AuthForm />
           <AuthShowcase className="hidden lg:flex" />

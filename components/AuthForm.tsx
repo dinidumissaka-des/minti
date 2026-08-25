@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Collapse from "@/components/ui/Collapse";
-import Logo from "@/components/Logo";
 import LogoMark from "@/components/LogoMark";
 
 const MIN_PASSWORD = 6;
@@ -89,7 +88,6 @@ export default function AuthForm() {
   return (
     <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 sm:bg-sheet/85 sm:rounded-3xl sm:border sm:border-ink/10">
       <div className="flex flex-col items-center text-center gap-3">
-        <Logo className="h-6 w-auto" />
         <h1 className="font-fraunces text-[2rem] leading-[1.15] text-ink">Know where it goes.</h1>
         <p key={mode} className="text-body text-muted animate-fade-slide-in">
           {mode === "signin"
