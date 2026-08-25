@@ -7,7 +7,6 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import NativeAuthListener from "@/components/NativeAuthListener";
 import AppLock from "@/components/AppLock";
 import ClientProviders from "@/components/ClientProviders";
-import AppBackground from "@/components/background/AppBackground";
 import { BRAND } from "@/lib/brand";
 
 const THEME_INIT_SCRIPT = `
@@ -71,7 +70,6 @@ export default function RootLayout({
           Skip to main content
         </a>
         <ClientProviders>
-          <AppBackground />
           {children}
           <InstallPrompt />
           <ServiceWorkerRegistration />
