@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-function Ripple({ className, ...props }: React.ComponentProps<"svg">) {
+function Ripple({ className, strokeWidth = 2, ...props }: React.ComponentProps<"svg">) {
   return (
     <svg
       viewBox="0 0 44 44"
@@ -11,7 +11,7 @@ function Ripple({ className, ...props }: React.ComponentProps<"svg">) {
       {...props}
     >
       <title>Loading...</title>
-      <g fill="none" fillRule="evenodd" strokeWidth="2">
+      <g fill="none" fillRule="evenodd" strokeWidth={strokeWidth}>
         <circle cx="22" cy="22" r="1">
           <animate
             attributeName="r"

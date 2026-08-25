@@ -19,6 +19,7 @@ import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
 import GlassSurface from "@/components/GlassSurface";
 import Logo from "@/components/Logo";
+import LogoMark from "@/components/LogoMark";
 import AuthForm from "@/components/AuthForm";
 import StatsBar from "@/components/StatsBar";
 import BudgetBar from "@/components/BudgetBar";
@@ -345,7 +346,10 @@ export default function Home() {
   if (user === undefined) {
     return (
       <main className="relative z-content min-h-screen flex items-center justify-center">
-        <Ripple className="w-11 h-11 text-accent" />
+        <div className="relative flex items-center justify-center">
+          <Ripple className="absolute w-32 h-32 text-accent" strokeWidth={0.8} />
+          <LogoMark className="relative w-14 h-14" />
+        </div>
       </main>
     );
   }
