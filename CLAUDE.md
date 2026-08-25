@@ -7,20 +7,19 @@ A mobile-first personal expense tracker PWA. Users log daily expenses and recurr
 - **Framework**: Next.js 14 App Router, TypeScript, `"use client"` components throughout
 - **Database + Auth**: Supabase (email/password auth, RLS on all tables)
 - **Styling**: Tailwind CSS v3 — glass morphism design system with light/dark theme support (see Design system rules)
-- **Background**: OGL/WebGL for LightRays animation
 - **Icons**: lucide-react
 - **PWA**: Custom service worker (`public/sw.js`), manifest (`app/manifest.ts`), install prompt
 
 ## Project structure
 ```
 app/
-  layout.tsx        Root layout — mounts AppBackground (LightRays), InstallPrompt, ServiceWorkerRegistration, theme-init script
+  layout.tsx        Root layout — mounts InstallPrompt, ServiceWorkerRegistration, theme-init script
   page.tsx          Main app — all top-level state (user, expenses, subscriptions, view, filter, currency)
   globals.css       Theme CSS variables (`:root`/`.dark`/`.light`) + Tailwind base
   manifest.ts       PWA manifest
 
 components/
-  background/       LightRays.tsx (WebGL rays), AppBackground.tsx (theme-aware wrapper), GrainOverlay.tsx (defined but not currently mounted) — purely visual, no business logic
+  background/       GrainOverlay.tsx (defined but not currently mounted) — purely visual, no business logic
   expense/          AddExpenseForm, ExpenseList (pickers live in ui/DrawerPickers.tsx)
   subscription/     SubscriptionList — list + inline add/edit/delete
   ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
@@ -115,7 +114,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 **Motion** — same rule as color and layout: name it in the config, don't inline a magic curve or duration in a component.
 - **Easing**: `ease-out` (`cubic-bezier(0.32, 0.72, 0, 1)` — the iOS sheet curve, the default for anything entering or moving), `ease-spring` (overshoots; for gestures that snap back, like the swipe row), `ease-in-out`.
 - **Duration**: `duration-fast` (150ms — press feedback, hovers), `duration-base` (220ms — row enter/exit), `duration-slow` (320ms — sheets, view changes, collapses), `duration-slower` (500ms — meters filling). The CSS variables (`--ease-*`, `--dur-*`) live in `globals.css` so JS-driven motion reads the same values.
-- **Animate `transform` and `opacity` only.** The app already runs a WebGL shader loop plus stacked `backdrop-filter: blur(28-32px)` surfaces; animating `width`/`height`/`max-height` on top of that drops frames in WKWebView. For collapses use `grid-template-rows: 0fr → 1fr` (`components/ui/Collapse.tsx`), never `max-height` with a magic cap.
+- **Animate `transform` and `opacity` only.** The app already stacks `backdrop-filter: blur(28-32px)` surfaces; animating `width`/`height`/`max-height` on top of that drops frames in WKWebView. For collapses use `grid-template-rows: 0fr → 1fr` (`components/ui/Collapse.tsx`), never `max-height` with a magic cap.
 - **Shared primitives** — reach for these before hand-rolling:
   - `ui/SegmentedControl` — any tab bar. One measured pill slides between segments; used by the bottom nav, desktop sections nav, filter tabs and the analytics tabs.
   - `ui/ViewTransition` — keyed directional enter. Caller supplies `direction` (1 forward / -1 back) so content travels the way the nav did.
