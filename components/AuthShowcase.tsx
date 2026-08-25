@@ -1,8 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Zap, Repeat, Gauge, Globe } from "lucide-react";
 import SpotlightCard from "@/components/ui/SpotlightCard";
+import SplitFlapText from "@/components/ui/SplitFlapText";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
+
+const TRACKS = ["Coffee", "Rent", "Spotify", "Flights", "Groceries"];
+const BOARD_WIDTH = Math.max(...TRACKS.map((w) => w.length));
+const FLIP_MS = 2600;
 
 const FEATURES = [
   {
@@ -28,12 +35,26 @@ const FEATURES = [
 ];
 
 export default function AuthShowcase({ className }: { className?: string }) {
+  const reduced = usePrefersReducedMotion();
+  const [track, setTrack] = useState(0);
+
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => setTrack((i) => (i + 1) % TRACKS.length), FLIP_MS);
+    return () => clearInterval(id);
+  }, [reduced]);
+
   return (
     <section className={cn("flex-col gap-8", className)} aria-label="What Minti does">
       <div className="flex flex-col gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
-          What Minti is
-        </span>
+        <div className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.16em]">
+          <span className="text-muted">Tracking</span>
+          <SplitFlapText
+            value={TRACKS[track]}
+            minLength={BOARD_WIDTH}
+            className="text-accent"
+          />
+        </div>
         <h2 className="font-fraunces text-[2.25rem] leading-[1.1] text-ink text-balance">
           A whole month, on one screen.
         </h2>

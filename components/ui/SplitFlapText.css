@@ -1,0 +1,48 @@
+.split-flap__row {
+  display: inline-flex;
+  gap: 2px;
+  letter-spacing: normal;
+}
+
+.split-flap__cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.95em;
+  padding: 0.22em 0;
+  border-radius: 3px;
+  background-color: rgb(var(--ink) / 0.07);
+  border: 1px solid rgb(var(--ink) / 0.1);
+  overflow: hidden;
+  perspective: 60px;
+}
+
+/* The hinge line every real flap has. Tinted with --scrim, the one token that
+   is dark in both themes — --background is the page, so in light mode a seam
+   drawn from it disappears into the cell. */
+.split-flap__cell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: rgb(var(--scrim) / 0.45);
+}
+
+.light .split-flap__cell::after {
+  background-color: rgb(var(--scrim) / 0.18);
+}
+
+.split-flap__char {
+  display: block;
+  transform-origin: center top;
+  backface-visibility: hidden;
+  animation: splitFlap var(--dur-fast) var(--ease-out);
+}
+
+@keyframes splitFlap {
+  0%   { transform: rotateX(-88deg); opacity: 0.35; }
+  100% { transform: rotateX(0deg);   opacity: 1; }
+}
