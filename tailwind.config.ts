@@ -62,6 +62,7 @@ const config: Config = {
       zIndex: {
         background: "0",
         content:    "10",
+        "nav-scrim": "45",
         nav:        "50",
         prompt:     "55",
         scrim:      "60",

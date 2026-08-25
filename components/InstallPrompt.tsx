@@ -85,6 +85,7 @@ export default function InstallPrompt() {
         {/* Dismiss */}
         <button
           onClick={dismiss}
+          aria-label="Dismiss install prompt"
           className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-full bg-ink/7 border border-ink/8 text-ink/30 hover:text-ink/70 transition-colors"
         >
           <X size={12} />

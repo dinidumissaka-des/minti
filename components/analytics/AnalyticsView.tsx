@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
-import { TrendingUp, TrendingDown, Minus, PieChart, Calendar, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, PieChart, Calendar, RefreshCw } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";

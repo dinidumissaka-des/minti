@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
@@ -85,7 +84,6 @@ function todayISO() {
 
 export default function Home() {
   const now = new Date();
-  const router = useRouter();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [selectedMonth, setSelectedMonth] = useState({
     year: now.getFullYear(),
@@ -373,11 +371,10 @@ export default function Home() {
           ask for it, otherwise the logo sits on raw scrolling text. */}
       <GradualBlur target="page" position="top" height="7.5rem" strength={1.2} divCount={4} curve="bezier" zIndex={SCROLL_EDGE_Z} className="sm:hidden" />
       <div
-        className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none"
+        className="sm:hidden fixed bottom-0 left-0 right-0 pointer-events-none z-nav-scrim"
         style={{
           height: 'calc(env(safe-area-inset-bottom) + 6rem)',
           background: 'linear-gradient(to bottom, transparent, rgb(var(--background)) 70%)',
-          zIndex: 45,
         }}
       />
       {/* Currency converter drawer */}

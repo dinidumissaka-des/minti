@@ -5,14 +5,12 @@ import { Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
 import { hapticTap, hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
-import { CATEGORY_COLORS } from "@/lib/categories";
 import GlassSurface from "@/components/GlassSurface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
 import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
 import type { Expense } from "@/types";
 
-const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
 function formatDateLabel(dateStr: string) {
   const today = new Date().toISOString().split("T")[0];

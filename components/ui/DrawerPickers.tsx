@@ -45,7 +45,7 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
   return (
     <div className="px-3 pb-2">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
+        <button onClick={prevMonth} aria-label="Previous month" className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
           <ChevronLeft size={16} />
         </button>
         <span className="font-sans font-semibold text-ink text-base overflow-hidden">
@@ -53,7 +53,7 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
             {MONTH_NAMES[viewMonth]} {viewYear}
           </ViewTransition>
         </span>
-        <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
+        <button onClick={nextMonth} aria-label="Next month" className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
           <ChevronRight size={16} />
         </button>
       </div>
