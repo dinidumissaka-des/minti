@@ -8,6 +8,7 @@ import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUs
 import type { Expense, Subscription } from "@/types";
 import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
+import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Ripple } from "@/components/ui/ripple";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
@@ -124,31 +125,36 @@ export default function Home() {
     if (expandedSection === "month") setPickerYear(selectedMonth.year);
   }, [expandedSection]);
 
-  // Fast init from localStorage (avoids flash on load)
+  // Fast init from localStorage (avoids flash on load). Budget and income are
+  // account data, so they are read back only for the account that cached them.
   useEffect(() => {
+    purgeLegacyCache();
     const c = localStorage.getItem("minti_currency");
     if (c) setCurrency(c);
-    const b = localStorage.getItem("minti_budget");
+    const uid = lastUserId();
+    if (!uid) return;
+    const b = localStorage.getItem(budgetKey(uid));
     if (b) setBudget(parseFloat(b));
-    const mi = localStorage.getItem("minti_monthly_income");
+    const mi = localStorage.getItem(monthlyIncomeKey(uid));
     if (mi) setMonthlyIncome(parseFloat(mi));
   }, []);
 
   // Sync settings from DB once user is known, migrate localStorage if first time
   useEffect(() => {
     if (!user) return;
+    rememberUser(user.id);
     getUserSettings().then((settings) => {
       if (settings) {
         setCurrency(settings.currency);
         localStorage.setItem("minti_currency", settings.currency);
         setBudget(settings.budget ?? null);
-        if (settings.budget != null) localStorage.setItem("minti_budget", String(settings.budget));
+        if (settings.budget != null) localStorage.setItem(budgetKey(user.id), String(settings.budget));
         setMonthlyIncome(settings.monthly_income ?? null);
-        if (settings.monthly_income != null) localStorage.setItem("minti_monthly_income", String(settings.monthly_income));
+        if (settings.monthly_income != null) localStorage.setItem(monthlyIncomeKey(user.id), String(settings.monthly_income));
       } else {
         const c = localStorage.getItem("minti_currency");
-        const b = localStorage.getItem("minti_budget");
-        const mi = localStorage.getItem("minti_monthly_income");
+        const b = localStorage.getItem(budgetKey(user.id));
+        const mi = localStorage.getItem(monthlyIncomeKey(user.id));
         const toSave: { currency?: string; budget?: number; monthly_income?: number } = {};
         if (c) toSave.currency = c;
         if (b) toSave.budget = parseFloat(b);
@@ -157,6 +163,22 @@ export default function Home() {
       }
     }).catch(() => {});
   }, [user]);
+
+  // Sign-out has to wipe the cached rows too, or the next person to open this
+  // browser can read them straight out of localStorage.
+  const handleSignOut = useCallback(async () => {
+    try {
+      await signOut();
+    } catch {
+      // Network failure still means this device should forget the data.
+    } finally {
+      clearUserData();
+      setExpenses([]);
+      setSubscriptions([]);
+      setBudget(null);
+      setMonthlyIncome(null);
+    }
+  }, []);
 
   const selectCurrency = useCallback((code: string) => {
     setCurrency(code);
@@ -167,18 +189,19 @@ export default function Home() {
 
   const saveBudget = useCallback((value: number) => {
     setBudget(value);
-    localStorage.setItem("minti_budget", String(value));
+    if (user) localStorage.setItem(budgetKey(user.id), String(value));
     upsertUserSettings({ budget: value }).catch(() => {});
-  }, []);
+  }, [user]);
 
   const saveMonthlyIncome = useCallback((value: number | null) => {
     setMonthlyIncome(value);
+    if (!user) return;
     if (value != null) {
-      localStorage.setItem("minti_monthly_income", String(value));
+      localStorage.setItem(monthlyIncomeKey(user.id), String(value));
     } else {
-      localStorage.removeItem("minti_monthly_income");
+      localStorage.removeItem(monthlyIncomeKey(user.id));
     }
-  }, []);
+  }, [user]);
 
   // Close picker on outside click
   useEffect(() => {
@@ -197,7 +220,8 @@ export default function Home() {
   }, []);
 
   const fetchExpenses = useCallback(async () => {
-    const cacheKey = `minti_expenses_${selectedMonth.year}_${selectedMonth.month}`;
+    if (!user) return;
+    const cacheKey = expensesKey(user.id, selectedMonth.year, selectedMonth.month);
     setLoading(true);
     setFetchError(null);
     try {
@@ -214,10 +238,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth]);
+  }, [selectedMonth, user]);
 
   const fetchSubscriptions = useCallback(async () => {
-    const cacheKey = "minti_subscriptions";
+    if (!user) return;
+    const cacheKey = subscriptionsKey(user.id);
     try {
       const data = await getSubscriptions();
       setSubscriptions(data);
@@ -228,7 +253,7 @@ export default function Home() {
         try { setSubscriptions(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
       }
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -547,7 +572,7 @@ export default function Home() {
         )}
         {/* Sign out */}
         <button
-          onClick={() => { signOut(); setShowMoreDrawer(false); }}
+          onClick={() => { handleSignOut(); setShowMoreDrawer(false); }}
           className="w-full flex items-center justify-between px-4 py-4 text-body text-danger hover:bg-ink/7 transition-colors"
         >
           <span>Sign out</span>
@@ -654,7 +679,7 @@ export default function Home() {
                 <MoreHorizontal size={16} />
               </button>
               <button
-                onClick={() => signOut()}
+                onClick={() => handleSignOut()}
                 aria-label="Sign out"
                 className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >

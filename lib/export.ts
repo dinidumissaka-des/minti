@@ -24,9 +24,18 @@ async function downloadCSV(content: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+// A cell a spreadsheet would evaluate rather than display. Descriptions and
+// category names are free text, and these files get shared, so a leading
+// =/+/-/@ (or a control character Excel skips past to find one) is neutralised
+// with a single quote before the value is quoted for CSV.
+const FORMULA_START = /^[=+\-@\t\r]/;
+
 function escapeCell(value: string | number): string {
-  const str = String(value);
-  return str.includes(",") || str.includes('"') || str.includes("\n")
+  let str = String(value);
+  // Numbers are never formulas, and quoting one would turn a negative amount
+  // into text a spreadsheet will not sum.
+  if (typeof value !== "number" && FORMULA_START.test(str)) str = `'${str}`;
+  return str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")
     ? `"${str.replace(/"/g, '""')}"`
     : str;
 }
