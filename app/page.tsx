@@ -21,6 +21,7 @@ import GlassSurface from "@/components/GlassSurface";
 import Logo from "@/components/Logo";
 import LogoMark from "@/components/LogoMark";
 import AuthForm from "@/components/AuthForm";
+import AuthShowcase from "@/components/AuthShowcase";
 import StatsBar from "@/components/StatsBar";
 import BudgetBar from "@/components/BudgetBar";
 import ExpenseList from "@/components/expense/ExpenseList";
@@ -379,9 +380,10 @@ export default function Home() {
 
   if (user === null) {
     return (
-      <main className="relative z-content text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="w-full sm:max-w-sm">
+      <main className="relative z-content text-ink/90 sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:px-4 lg:px-8" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="w-full sm:max-w-sm lg:max-w-5xl lg:grid lg:grid-cols-[24rem_minmax(0,1fr)] lg:gap-14 lg:items-center">
           <AuthForm />
+          <AuthShowcase className="hidden lg:flex" />
         </div>
       </main>
     );
