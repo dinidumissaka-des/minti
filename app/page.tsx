@@ -10,7 +10,6 @@ import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
 import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { Ripple } from "@/components/ui/ripple";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
 import ViewTransition from "@/components/ui/ViewTransition";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
@@ -19,7 +18,6 @@ import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
 import GlassSurface from "@/components/GlassSurface";
 import Logo from "@/components/Logo";
-import LogoMark from "@/components/LogoMark";
 import AuthForm from "@/components/AuthForm";
 import AuthShowcase from "@/components/AuthShowcase";
 import StatsBar from "@/components/StatsBar";
@@ -370,10 +368,8 @@ export default function Home() {
   if (user === undefined) {
     return (
       <main className="relative z-content min-h-screen flex items-center justify-center">
-        <div className="relative flex items-center justify-center">
-          <Ripple className="absolute w-32 h-32 text-accent" strokeWidth={0.8} />
-          <LogoMark className="relative w-14 h-14" />
-        </div>
+        <img src="/icon-192.png" alt="" aria-hidden width={96} height={96} className="w-24 h-24" />
+        <span className="sr-only">Loading</span>
       </main>
     );
   }

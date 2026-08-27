@@ -9,7 +9,6 @@ import { getExpensesByMonth, getSubscriptions, getUserSettings, onAuthStateChang
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import Logo from "@/components/Logo";
-import { Ripple } from "@/components/ui/ripple";
 import ViewTransition from "@/components/ui/ViewTransition";
 import GradualBlur from "@/components/GradualBlur";
 
@@ -82,7 +81,8 @@ export default function InsightsPage() {
   if (user === undefined) {
     return (
       <main className="relative z-content min-h-screen flex items-center justify-center">
-        <Ripple className="w-11 h-11 text-accent" />
+        <img src="/icon-192.png" alt="" aria-hidden width={96} height={96} className="w-24 h-24" />
+        <span className="sr-only">Loading</span>
       </main>
     );
   }
