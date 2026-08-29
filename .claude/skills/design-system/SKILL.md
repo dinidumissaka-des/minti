@@ -41,8 +41,8 @@ If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS
 `.glass-chip` / `.glass-chip-active` (backdrop-blur + inset specular highlight). Only valid where content scrolls beneath — the mobile header is `sticky` so it has something to blur. Desktop header and all other chips stay `flat-chip`.
 
 ## Accent & danger — fill vs bare text (applies on both surface types)
-- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
-- **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#9FE870` for this.
+- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#FF6200`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
+- **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#FF6200` for this.
 
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
 
@@ -113,7 +113,7 @@ style={{ backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)" }}
 - Inner card padding: `px-5 py-4` (summary rows), `px-4 py-3.5` (list rows)
 
 ## Hero stat card (StatsBar)
-The "This Month" stat is always full-width with green glow border (accent fill — same in both themes):
+The "This Month" stat is always full-width with an accent glow border (accent fill — same in both themes):
 ```tsx
 style={{ boxShadow: "0 0 12px rgba(159,232,112,0.07)", borderColor: "rgba(159,232,112,0.3)" }}
 ```

@@ -6,5 +6,5 @@
 export const BRAND = {
   backgroundDark: "#0a0f08",
   backgroundLight: "#f7faf3",
-  accent: "#9fe870",
+  accent: "#ff6200",
 } as const;

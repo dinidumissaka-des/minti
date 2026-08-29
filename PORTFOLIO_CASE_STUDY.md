@@ -89,7 +89,7 @@ The entire UI is built around a dark glass-morphism system — no off-the-shelf 
 
 **Key rules:**
 - No opaque surface colors. Every background is `bg-white/[0.07]` (or similar opacity) so the WebGL background bleeds through
-- Accent color: `#9FE870` (lime green). Text on accent: `#163300`
+- Accent color: `#FF6200` (orange). Text on accent: `#FFFFFF`
 - Danger: `rgb(224 92 92)` — used for delete states
 - All typography: Manrope (including `font-mono` override)
 - Cards: `GlassSurface` with `borderRadius={28}` — never raw divs

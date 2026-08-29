@@ -29,11 +29,11 @@ html.light {
   --background:  10  15  8;
   --sheet:       28  34  25;
   --ink:         255 255 255;
-  --accent:      159 232 112;
-  --accent-hi:   200 247 160;
-  --accent-lo:   120 217  85;
-  --accent-text: 159 232 112;
-  --accent-on:   22  51  0;
+  --accent:      255  98   0;
+  --accent-hi:   255 138  61;
+  --accent-lo:   209  79   0;
+  --accent-text: 255  98   0;
+  --accent-on:   255 255 255;
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -43,15 +43,15 @@ html.light {
   --background:  227 230 224;
   --sheet:       255 255 255;
   --ink:         15  23  11;
-  --accent:      159 232 112;
-  --accent-hi:   200 247 160;
-  --accent-lo:   120 217  85;
-  /* Nudged down from 63 122 31. The selected filter chip lost its tint, so
-     accent text now sits directly on the page rather than on a light-green
-     wash: 63 122 31 measured 4.15:1 there and failed AA. This reads 4.56:1 on
-     the page and 5.24:1 on a glass card. */
-  --accent-text: 59  115 29;
-  --accent-on:   22  51  0;
+  --accent:      255  98   0;
+  --accent-hi:   255 138  61;
+  --accent-lo:   209  79   0;
+  /* The brand orange is far darker than the green it replaced (luminance .30
+     vs .66), so it only reads at 2.38:1 on the light page and cannot be used
+     bare here. Darkened along the same hue (23deg) until it clears AA: this is
+     4.62:1 on the page and 5.35:1 on a glass card. */
+  --accent-text: 173  68   0;
+  --accent-on:   255 255 255;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       15  23  11;
@@ -77,12 +77,12 @@ html.light {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Flat chips (header buttons, nav pills, filter tabs, tags): a light brand-green
+  /* Flat chips (header buttons, nav pills, filter tabs, tags): a light brand-orange
      wash in both themes. Dark mode tints with --accent — already high-contrast
      against the near-black background even at low alpha. Light mode tints with
-     --accent-text (the darker green also used for bare accent text there) since
-     the pale --accent barely registers against the light gray background at the
-     same alpha. Active state doubles the wash so selection still pops. */
+     --accent-text, the deeper orange that bare accent text uses there, so a chip's
+     fill and its label resolve to the same hue. Active state doubles the wash so
+     selection still pops. */
   .flat-chip {
     background-color: rgb(var(--accent) / 0.06);
     border-color: rgb(var(--accent) / 0.14);
