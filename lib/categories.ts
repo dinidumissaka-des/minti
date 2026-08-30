@@ -32,5 +32,5 @@ export function getCategoryColor(category: string, theme: "light" | "dark"): str
 
 export const OTHER_CATEGORY_COLOR: Record<"light" | "dark", string> = {
   dark:  "#ffffff33",
-  light: "#0f170b33",
+  light: "#1a0e0f33",
 };
