@@ -50,11 +50,12 @@ html.light {
   /* Not ramp steps, deliberately. The ramp runs at ~90% saturation because a
      brand palette should; a ground should not. White at 7% barely desaturates
      a saturated hue, so pointing --background at oxblood-950 made every glass
-     card inherit the red (#311314 at ink/7). These are the same hue at 40%,
-     near the restraint of the green-black they replaced, which was only 30%
-     saturated. Cards land on #291C1C — warm charcoal, not red. */
-  --background:  25  11  11;
-  --sheet:       52  24  25;
+     card inherit the red. These are near-black with the hue at 30% — the same
+     restraint the green-black had — so the theme reads as dark first. --sheet
+     is the bottom drawer and every raised panel; it stays near-black too and
+     earns its separation from lightness, not saturation. */
+  --background:  12  6   6;
+  --sheet:       28  16  16;
   --ink:         255 255 255;
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
