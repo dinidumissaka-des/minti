@@ -20,7 +20,11 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CODE_REVIEWER }}
-          track_progress: true
+          # No track_progress here. It forces tag mode, whose toolset has no
+          # inline-comment tool — and the prompt below asks for inline
+          # comments. That mismatch failed the run on #35 with three
+          # permission denials. A pull_request event auto-detects review mode,
+          # which grants them.
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
