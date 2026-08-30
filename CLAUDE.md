@@ -19,7 +19,6 @@ app/
   manifest.ts       PWA manifest
 
 components/
-  background/       GrainOverlay.tsx (defined but not currently mounted) — purely visual, no business logic
   expense/          AddExpenseForm, ExpenseList (pickers live in ui/DrawerPickers.tsx)
   subscription/     SubscriptionList — list + inline add/edit/delete
   ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
