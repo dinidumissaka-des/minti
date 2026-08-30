@@ -79,5 +79,9 @@ jobs:
             and the fix. Do not pad the review with praise or restate the
             diff. If the PR is clean, say so briefly and stop.
 
+          # --allowedTools REPLACES the default allowlist, it does not extend
+          # it. Listing only the comment tools left the run with no Read,
+          # Grep or Glob, so it could not open CLAUDE.md and died in one turn
+          # at $0. Everything the review needs has to be named here.
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "Read,Grep,Glob,LS,mcp__github_inline_comment__create_inline_comment,mcp__github_comment__update_claude_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
