@@ -24,37 +24,57 @@ html.light {
   --dur-slower: 500ms;
 }
 
+/* Raw oxblood ramp. This is the palette layer: it holds no meaning on its own
+   and never gets used directly in a component — the semantic tokens below
+   point at it. 900 is the brand color the logo and app icon are built from;
+   the page sits on 950 because 900 is too light to be a ground (white ink
+   still clears AAA on it, but red danger text does not clear AA). */
+:root {
+  --oxblood-50:  253 236 236;
+  --oxblood-100: 252 217 218;
+  --oxblood-200: 248 181 182;
+  --oxblood-300: 239 128 130;
+  --oxblood-400: 225 71  73;
+  --oxblood-500: 201 29  32;
+  --oxblood-600: 165 18  21;
+  --oxblood-700: 132 11  13;
+  --oxblood-800: 101 6   8;
+  --oxblood-900: 75  4   5;
+  --oxblood-950: 44  2   3;
+}
+
 :root,
 .dark {
-  --background:  10  15  8;
-  --sheet:       28  34  25;
+  --background:  var(--oxblood-950);
+  --sheet:       var(--oxblood-900);
   --ink:         255 255 255;
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
   --accent-text: 159 232 112;
-  --accent-on:   75   4   5;
+  --accent-on:   var(--oxblood-900);
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
 }
 
 .light {
-  --background:  227 230 224;
+  --background:  231 226 226;
   --sheet:       255 255 255;
-  --ink:         15  23  11;
+  --ink:         26  14  15;
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
-  /* Nudged down from 63 122 31. The selected filter chip lost its tint, so
-     accent text now sits directly on the page rather than on a light-green
-     wash: 63 122 31 measured 4.15:1 there and failed AA. This reads 4.56:1 on
-     the page and 5.24:1 on a glass card. */
-  --accent-text: 59  115 29;
-  --accent-on:   75   4   5;
+  /* Nudged down twice. First from 63 122 31, when the selected filter chip
+     lost its tint and accent text landed directly on the page (4.15:1, failed
+     AA). Then from 59 115 29, when --background moved off the green-grey to
+     the oxblood-tinted 231 226 226 and took it to 4.48:1. This reads 4.67:1 on
+     the page and 5.99:1 on a glass card. */
+  --accent-text: 57  112 28;
+  --accent-on:   var(--oxblood-900);
   --danger:      224 92  92;
   --danger-text: 176 44  44;
-  --scrim:       15  23  11;
+  --scrim:       26  14  15;
 }
 
 @layer base {

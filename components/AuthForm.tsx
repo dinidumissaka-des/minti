@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Collapse from "@/components/ui/Collapse";
-import LogoMark from "@/components/LogoMark";
 
 const MIN_PASSWORD = 6;
 
@@ -64,7 +63,6 @@ export default function AuthForm() {
   if (signUpDone) {
     return (
       <div className="min-h-[calc(100dvh-env(safe-area-inset-top))] flex flex-col justify-center px-6 py-12 pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:min-h-0 sm:block sm:p-10 sm:pb-10 items-center text-center gap-4 sm:flex sm:flex-col sm:bg-sheet/85 sm:rounded-3xl sm:border sm:border-ink/10 animate-fade-slide-in">
-        <LogoMark className="w-12 h-12" />
         <h1 className="font-fraunces text-3xl text-ink leading-tight">Check your inbox</h1>
         <p className="text-body text-muted max-w-[34ch]">
           We sent a confirmation link to{" "}
