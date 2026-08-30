@@ -33,7 +33,7 @@ html.light {
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
   --accent-text: 159 232 112;
-  --accent-on:   22  51  0;
+  --accent-on:   75   4   5;
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -51,7 +51,7 @@ html.light {
      wash: 63 122 31 measured 4.15:1 there and failed AA. This reads 4.56:1 on
      the page and 5.24:1 on a glass card. */
   --accent-text: 59  115 29;
-  --accent-on:   22  51  0;
+  --accent-on:   75   4   5;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       15  23  11;
