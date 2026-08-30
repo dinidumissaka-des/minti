@@ -4,6 +4,6 @@
  * `--background` and `--accent` in app/globals.css; change both together.
  */
 export const BRAND = {
-  backgroundDark: "#2c0203",
+  backgroundDark: "#220102",
   accent: "#9fe870",
 } as const;

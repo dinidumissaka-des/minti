@@ -28,7 +28,9 @@ html.light {
    and never gets used directly in a component — the semantic tokens below
    point at it. 900 is the brand color the logo and app icon are built from;
    the page sits on 950 because 900 is too light to be a ground (white ink
-   still clears AAA on it, but red danger text does not clear AA). */
+   still clears AAA on it, but red danger text does not clear AA). 950 is
+   pitched to match the depth of the green-black it replaced — slightly under
+   it — so the page reads as dark rather than as a dark red wash. */
 :root {
   --oxblood-50:  253 236 236;
   --oxblood-100: 252 217 218;
@@ -40,7 +42,7 @@ html.light {
   --oxblood-700: 132 11  13;
   --oxblood-800: 101 6   8;
   --oxblood-900: 75  4   5;
-  --oxblood-950: 44  2   3;
+  --oxblood-950: 34  1   2;
 }
 
 :root,
