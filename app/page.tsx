@@ -626,9 +626,9 @@ export default function Home() {
           onChange={changeView}
           role={null}
           itemRole={null}
-          className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip"
+          className="flex items-center h-16 p-1.5 rounded-3xl glass-chip"
           itemClassName="flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono"
-          pillClassName="glass-chip-active border rounded-full"
+          pillClassName="glass-chip-active rounded-full"
           activeClassName="text-ink"
           inactiveClassName="text-ink/55 hover:text-ink/80"
         />
