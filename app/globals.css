@@ -52,8 +52,11 @@ html.light {
      a saturated hue, so pointing --background at oxblood-950 made every glass
      card inherit the red (#311314 at ink/7). These are the same hue at 40%,
      near the restraint of the green-black they replaced, which was only 30%
-     saturated. Cards land on #291C1C — warm charcoal, not red. */
-  --background:  25  11  11;
+     saturated. The ground then dropped to a near-black — the darkest step the
+     hue can hold before it is literally #000 — so the glass stack reads as
+     light lifted off black rather than a charcoal page. Cards land on #1D1414
+     at ink/7, still ~17 levels above the ground, so surfaces stay separable. */
+  --background:  12  5   5;
   --sheet:       52  24  25;
   --ink:         255 255 255;
   --accent:      159 232 112;
