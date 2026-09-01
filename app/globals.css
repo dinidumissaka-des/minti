@@ -57,7 +57,16 @@ html.light {
      light lifted off black rather than a charcoal page. Cards land on #1D1414
      at ink/7, still ~17 levels above the ground, so surfaces stay separable. */
   --background:  12  5   5;
-  --sheet:       52  24  25;
+  /* A lift of the ground, not a ramp step, so it has to move when the ground
+     does. It didn't: 52 24 25 was picked against the old 25 11 11 page and
+     stayed put when that dropped to near-black, leaving every drawer painting
+     a maroon panel four times the page's luminance. Re-derived off 12 5 5 —
+     through the sheet's own 0.9 alpha this lands at #231818, one step above a
+     glass card (#1D1717) so a sheet still reads as raised. Saturation drops as
+     it lifts (29% against the ground's 58%) for the same reason the ramp is
+     not used directly: ink at 5-7% barely desaturates a red, so the inputs and
+     chips inside a sheet inherit whatever cast it has. */
+  --sheet:       38  27  27;
   --ink:         255 255 255;
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
@@ -71,7 +80,9 @@ html.light {
 
 .light {
   --background:  231 226 226;
-  --sheet:       255 255 255;
+  /* Off-white, not pure: the light ground is oxblood-tinted too, and a neutral
+     sheet on top of it reads cool. */
+  --sheet:       255 252 252;
   --ink:         26  14  15;
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
