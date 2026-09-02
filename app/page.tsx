@@ -743,6 +743,7 @@ export default function Home() {
               selectedMonth={selectedMonth}
               currency={currency}
               monthlyIncome={monthlyIncome}
+              budget={budget}
             />
           )}
         </ViewTransition>

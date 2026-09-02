@@ -25,6 +25,7 @@ export default function InsightsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
+  const [budget, setBudget] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState({
     year: now.getFullYear(),
     month: now.getMonth() + 1,
@@ -51,6 +52,7 @@ export default function InsightsPage() {
     getUserSettings().then((s) => {
       if (s) {
         setCurrency(s.currency);
+        setBudget(s.budget ?? null);
         setMonthlyIncome(s.monthly_income ?? null);
       }
     }).catch(() => {});
@@ -154,6 +156,7 @@ export default function InsightsPage() {
             selectedMonth={selectedMonth}
             currency={currency}
             monthlyIncome={monthlyIncome}
+            budget={budget}
           />
         </ViewTransition>
       </div>

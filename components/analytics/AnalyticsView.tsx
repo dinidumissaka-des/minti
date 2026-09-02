@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
-import { TrendingUp, TrendingDown, PieChart, Calendar, RefreshCw } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
@@ -19,6 +18,7 @@ interface Props {
   selectedMonth: { year: number; month: number };
   currency: string;
   monthlyIncome: number | null;
+  budget: number | null;
 }
 
 function daysInMonth(year: number, month: number) {
@@ -128,118 +128,30 @@ const CategoryChart = memo(function CategoryChart({
 
 // ─── Insight Cards ────────────────────────────────────────────────────────────
 
-interface Insight {
-  id: string;
-  text: string;
-  sub?: string;
-  type: "neutral" | "positive" | "warning";
-  icon?: React.ReactNode;
+// ─── Overview ─────────────────────────────────────────────────────────────────
+//
+// This was five identical cards — icon, sentence, sentence — which is a list of
+// prose where every figure is a number the reader has to picture for themselves.
+// Each one is now shown as the shape of its own question: a pace against a
+// limit, two headline figures, a part-to-whole, and a before/after.
+
+function StatTile({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "positive" | "warning" }) {
+  return (
+    <div className="px-5 py-4 flex flex-col gap-1 min-w-0">
+      <span className="font-sans text-xs text-muted font-semibold leading-none">{label}</span>
+      <span
+        className={`font-mono text-2xl font-bold leading-tight truncate ${
+          tone === "warning" ? "text-danger" : "text-ink"
+        }`}
+      >
+        {value}
+      </span>
+      <span className="font-mono text-xs text-muted truncate">{sub}</span>
+    </div>
+  );
 }
 
-function buildInsights(
-  expenses: Expense[],
-  subscriptions: Subscription[],
-  prevExpenses: Expense[],
-  selectedMonth: { year: number; month: number },
-  currency: string,
-  monthlyIncome: number | null,
-  budget: number | null,
-  mask: (v: string) => string,
-): Insight[] {
-  const insights: Insight[] = [];
-  const now = new Date();
-  const isCurrentMonth =
-    now.getFullYear() === selectedMonth.year && now.getMonth() + 1 === selectedMonth.month;
-
-  const stats = buildCategoryStats(expenses, subscriptions);
-  const expTotal = expenses.reduce((s, e) => s + Number(e.amount), 0);
-  const subTotal = subscriptions.reduce((s, s2) => s + Number(s2.amount), 0);
-  const total = expTotal + subTotal;
-
-  if (stats.length > 0) {
-    const top = stats[0];
-    insights.push({
-      id: "top-cat",
-      text: `${top.category} is your biggest spend`,
-      sub: `${top.pct.toFixed(0)}% of total — ${mask(formatAmount(top.amount, currency))} ${currency}`,
-      type: "neutral",
-      icon: <PieChart size={26} className="text-ink/40" />,
-    });
-  }
-
-  if (isCurrentMonth && expenses.length > 0) {
-    const elapsed = daysElapsed(selectedMonth.year, selectedMonth.month);
-    const totalDays = daysInMonth(selectedMonth.year, selectedMonth.month);
-    const avgDay = expTotal / elapsed;
-    const projected = avgDay * totalDays + subTotal;
-    insights.push({
-      id: "projection",
-      text: `On track to spend ${mask(formatAmount(projected, currency))} ${currency} this month`,
-      sub: `Avg ${mask(formatAmount(avgDay, currency))} ${currency}/day over ${elapsed} days`,
-      type: projected > (budget ?? Infinity) ? "warning" : "neutral",
-      icon: projected > (budget ?? Infinity)
-        ? <TrendingUp size={26} className="text-danger" />
-        : <Calendar size={26} className="text-ink/40" />,
-    });
-  }
-
-  if (monthlyIncome && monthlyIncome > 0) {
-    const saved = monthlyIncome - total;
-    const rate = (saved / monthlyIncome) * 100;
-    if (saved >= 0) {
-      insights.push({
-        id: "savings",
-        text: `You've saved ${mask(formatAmount(saved, currency))} ${currency} this month`,
-        sub: `${rate.toFixed(0)}% savings rate`,
-        type: "positive",
-        icon: <TrendingUp size={26} className="text-accent" />,
-      });
-    } else {
-      insights.push({
-        id: "overspend-income",
-        text: `You're ${mask(formatAmount(Math.abs(saved), currency))} ${currency} over your income`,
-        sub: `Spending exceeds income by ${Math.abs(rate).toFixed(0)}%`,
-        type: "warning",
-        icon: <TrendingDown size={26} className="text-danger" />,
-      });
-    }
-  }
-
-  if (prevExpenses.length > 0 && stats.length > 0) {
-    const prevMap: Record<string, number> = {};
-    for (const e of prevExpenses) prevMap[e.category] = (prevMap[e.category] ?? 0) + Number(e.amount);
-    const topCat = stats[0].category;
-    const prev = prevMap[topCat] ?? 0;
-    const curr = stats[0].amount;
-    if (prev > 0) {
-      const pctChange = ((curr - prev) / prev) * 100;
-      const dir = pctChange > 0 ? "up" : "down";
-      insights.push({
-        id: "mom",
-        text: `${topCat} is ${dir} ${Math.abs(pctChange).toFixed(0)}% from last month`,
-        sub: `${mask(formatAmount(prev, currency))} → ${mask(formatAmount(curr, currency))} ${currency}`,
-        type: pctChange > 15 ? "warning" : pctChange < -10 ? "positive" : "neutral",
-        icon: pctChange > 0
-          ? <TrendingUp size={26} className="text-danger" />
-          : <TrendingDown size={26} className="text-accent" />,
-      });
-    }
-  }
-
-  if (subscriptions.length > 0) {
-    insights.push({
-      id: "subs",
-      text: `${subscriptions.length} active subscription${subscriptions.length > 1 ? "s" : ""}`,
-      sub: `${mask(formatAmount(subTotal, currency))} ${currency}/month fixed cost`,
-      type: "neutral",
-      icon: <RefreshCw size={26} className="text-muted" />,
-    });
-  }
-
-  return insights;
-}
-
-const InsightCards = memo(function InsightCards({
+const Overview = memo(function Overview({
   expenses,
   subscriptions,
   prevExpenses,
@@ -257,43 +169,216 @@ const InsightCards = memo(function InsightCards({
   budget: number | null;
 }) {
   const { mask } = usePrivacy();
-  const insights = useMemo(
-    () => buildInsights(expenses, subscriptions, prevExpenses, selectedMonth, currency, monthlyIncome, budget, mask),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [expenses, subscriptions, prevExpenses, selectedMonth, currency, monthlyIncome, budget, mask],
+  const { theme } = useTheme();
+
+  const stats = useMemo(
+    () => buildCategoryStats(expenses, subscriptions, theme),
+    [expenses, subscriptions, theme],
   );
 
-  if (insights.length === 0) return null;
+  const money = (v: number) => `${mask(formatAmount(v, currency))} ${currency}`;
+
+  const now = new Date();
+  const isCurrentMonth =
+    now.getFullYear() === selectedMonth.year && now.getMonth() + 1 === selectedMonth.month;
+  const elapsed = daysElapsed(selectedMonth.year, selectedMonth.month);
+  const totalDays = daysInMonth(selectedMonth.year, selectedMonth.month);
+
+  const expTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const subTotal = subscriptions.reduce((sum, s) => sum + Number(s.amount), 0);
+  const total = expTotal + subTotal;
+  const avgDay = expTotal / Math.max(elapsed, 1);
+  const projected = isCurrentMonth ? avgDay * totalDays + subTotal : total;
+
+  // Budget is the limit the bar is drawn against; income stands in when there
+  // is no budget, because a bar needs something to be a fraction of.
+  const limit = budget ?? monthlyIncome ?? null;
+  const spentPct = limit ? Math.min((total / limit) * 100, 100) : 0;
+  const projectedPct = limit ? Math.min((projected / limit) * 100, 100) : 0;
+  const over = limit != null && projected > limit;
+
+  const prevTop = useMemo(() => {
+    if (stats.length === 0 || prevExpenses.length === 0) return null;
+    const top = stats[0];
+    const prev = prevExpenses
+      .filter((e) => e.category === top.category)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    if (prev <= 0) return null;
+    return { ...top, prev };
+  }, [stats, prevExpenses]);
+
+  const prevLabel = useMemo(() => {
+    const { year, month } = prevMonthOf(selectedMonth.year, selectedMonth.month);
+    return new Date(year, month - 1, 1).toLocaleDateString("en", { month: "short" });
+  }, [selectedMonth]);
+
+  const shares = useMemo(() => {
+    const head = stats.slice(0, 4);
+    const restPct = stats.slice(4).reduce((sum, s) => sum + s.pct, 0);
+    const restAmount = stats.slice(4).reduce((sum, s) => sum + s.amount, 0);
+    return restPct > 0
+      ? [...head, { category: "Other", amount: restAmount, pct: restPct, color: OTHER_CATEGORY_COLOR[theme] }]
+      : head;
+  }, [stats, theme]);
+
+  if (total === 0) return null;
 
   return (
     <div className="flex flex-col gap-3">
-      {insights.map((insight, i) => (
-        <Surface
-          key={insight.id}
-          borderRadius={24}
-          className="animate-row-in"
-          style={{
-            animationDelay: `${Math.min(i * 60, 300)}ms`,
-            ...(insight.type === "positive"
-              ? { borderColor: "rgb(var(--accent-text) / 0.2)" }
-              : insight.type === "warning"
-              ? { borderColor: "rgb(var(--danger) / 0.2)" }
-              : {}),
-          }}
-        >
-          <div className="px-5 py-5 flex items-start gap-4 w-full">
-            {insight.icon && (
-              <span className="flex-shrink-0">{insight.icon}</span>
-            )}
-            <div className="flex flex-col gap-1 min-w-0">
-              <p className="font-sans text-sm font-semibold text-ink leading-snug">{insight.text}</p>
-              {insight.sub && (
-                <p className="font-mono text-sm text-muted leading-relaxed">{insight.sub}</p>
+      {/* Pace: what is spent, where it is heading, against what it is allowed */}
+      <Surface borderRadius={28} className="animate-row-in">
+        <div className="px-5 py-5 flex flex-col gap-3 w-full">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="font-sans text-xs text-muted font-semibold">
+              {isCurrentMonth ? "On track for" : "Spent"}
+            </span>
+            <span className="font-mono text-xs text-muted">
+              {isCurrentMonth ? `day ${elapsed} of ${totalDays}` : `${totalDays} days`}
+            </span>
+          </div>
+          <span className={`font-mono text-4xl font-bold leading-none ${over ? "text-danger" : "text-ink"}`}>
+            {money(projected)}
+          </span>
+
+          {limit != null && (
+            <div className="relative pt-1">
+              <Meter
+                value={spentPct}
+                className="h-2 bg-ink/10"
+                barClassName={over ? "bg-danger-fill" : "bg-accent-fill"}
+              />
+              {/* Where the month lands if the rest of it looks like the part
+                  already spent. Nothing to mark once the month is over. */}
+              {isCurrentMonth && projectedPct > spentPct && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1 h-2 w-0.5 rounded-full bg-ink/60"
+                  style={{ left: `${projectedPct}%` }}
+                />
               )}
+            </div>
+          )}
+
+          <p className="font-mono text-xs text-muted">
+            {limit != null
+              ? `${money(total)} of ${money(limit)}${budget == null ? " income" : " budget"}`
+              : `${money(avgDay)}/day over ${elapsed} day${elapsed === 1 ? "" : "s"}`}
+          </p>
+        </div>
+      </Surface>
+
+      {(monthlyIncome != null || subscriptions.length > 0) && (
+        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "60ms" }}>
+          <div
+            className={`w-full grid divide-x divide-ink/7 ${
+              monthlyIncome != null && subscriptions.length > 0 ? "grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            {monthlyIncome != null && monthlyIncome > 0 && (
+              <StatTile
+                label={total > monthlyIncome ? "Over income" : "Saved"}
+                value={mask(formatAmount(Math.abs(monthlyIncome - total), currency))}
+                sub={`${Math.abs(((monthlyIncome - total) / monthlyIncome) * 100).toFixed(0)}% of income`}
+                tone={total > monthlyIncome ? "warning" : undefined}
+              />
+            )}
+            {subscriptions.length > 0 && (
+              <StatTile
+                label={`Bill${subscriptions.length === 1 ? "" : "s"}`}
+                value={String(subscriptions.length)}
+                sub={`${mask(formatAmount(subTotal, currency))} fixed`}
+              />
+            )}
+          </div>
+        </Surface>
+      )}
+
+      {/* Part-to-whole. The segments are direct-labelled below rather than left
+          to colour alone: the category hues sit inside the CVD floor band. */}
+      {shares.length > 0 && (
+        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "120ms" }}>
+          <div className="px-5 py-5 flex flex-col gap-4 w-full">
+            <span className="font-sans text-xs text-muted font-semibold">Where it went</span>
+            <div className="flex gap-0.5 h-2.5 w-full">
+              {shares.map((s) => (
+                <span
+                  key={s.category}
+                  className="h-full rounded-full"
+                  style={{ width: `${s.pct}%`, backgroundColor: s.color }}
+                />
+              ))}
+            </div>
+            <div className="flex flex-col gap-2.5">
+              {shares.map((s) => (
+                <div key={s.category} className="flex items-center gap-3">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  <span className="font-sans text-body text-ink/80 flex-1 truncate">{s.category}</span>
+                  <span className="font-mono text-sm text-muted w-10 text-right">{s.pct.toFixed(0)}%</span>
+                  <span className="font-mono text-sm text-ink w-24 text-right truncate">
+                    {mask(formatAmount(s.amount, currency))}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </Surface>
-      ))}
+      )}
+
+      {/* Before and after on one scale, so the size of the move is the picture */}
+      {prevTop && (
+        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "180ms" }}>
+          <div className="px-5 py-5 flex flex-col gap-4 w-full">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-sans text-xs text-muted font-semibold">
+                {prevTop.category} vs {prevLabel}
+              </span>
+              <span
+                className={`font-mono text-xs font-semibold ${
+                  prevTop.amount > prevTop.prev ? "text-danger" : "text-accent"
+                }`}
+              >
+                {prevTop.amount > prevTop.prev ? "↑" : "↓"}{" "}
+                {Math.abs(((prevTop.amount - prevTop.prev) / prevTop.prev) * 100).toFixed(0)}%
+              </span>
+            </div>
+            {(() => {
+              const scale = Math.max(prevTop.amount, prevTop.prev);
+              const at = (v: number) => `${(v / scale) * 100}%`;
+              const lo = Math.min(prevTop.amount, prevTop.prev);
+              const hi = Math.max(prevTop.amount, prevTop.prev);
+              return (
+                <div className="relative h-3 mx-1.5">
+                  <span
+                    className="absolute top-1/2 -translate-y-1/2 h-0.5 rounded-full bg-ink/15"
+                    style={{ left: at(lo), width: `calc(${at(hi)} - ${at(lo)})` }}
+                  />
+                  <span
+                    className="absolute top-1/2 w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/30"
+                    style={{ left: at(prevTop.prev) }}
+                  />
+                  <span
+                    className="absolute top-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{ left: at(prevTop.amount), backgroundColor: prevTop.color }}
+                  />
+                </div>
+              );
+            })()}
+            {/* Tied to the dots by swatch and month, not by position: the two
+                values sit at the edges while their dots sit wherever the scale
+                puts them. */}
+            <div className="flex items-baseline justify-between font-mono text-sm gap-3">
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-ink/30 flex-shrink-0" />
+                <span className="text-muted truncate">{prevLabel} {mask(formatAmount(prevTop.prev, currency))}</span>
+              </span>
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: prevTop.color }} />
+                <span className="text-ink font-semibold truncate">{mask(formatAmount(prevTop.amount, currency))}</span>
+              </span>
+            </div>
+          </div>
+        </Surface>
+      )}
     </div>
   );
 });
@@ -405,9 +490,9 @@ export default function AnalyticsView({
   selectedMonth,
   currency,
   monthlyIncome,
+  budget,
 }: Props) {
   const [prevExpenses, setPrevExpenses] = useState<Expense[]>([]);
-  const [budget, setBudget] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("insights");
   const [tabDir, setTabDir] = useState(1);
 
@@ -426,11 +511,6 @@ export default function AnalyticsView({
       .catch(() => {});
   }, [selectedMonth]);
 
-  useEffect(() => {
-    const b = localStorage.getItem("minti_budget");
-    if (b) setBudget(parseFloat(b));
-  }, []);
-
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
@@ -448,7 +528,7 @@ export default function AnalyticsView({
 
       <ViewTransition trigger={tab} direction={tabDir}>
         {tab === "insights" && (
-          <InsightCards
+          <Overview
             expenses={expenses}
             subscriptions={subscriptions}
             prevExpenses={prevExpenses}
