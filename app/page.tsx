@@ -397,19 +397,27 @@ export default function Home() {
       </BottomDrawer>
 
       {/* Currency picker — the one place currency is chosen, opened from the
-          hero amount, the desktop chip and Settings alike. The converter rides
-          along at the bottom: it is a currency subtask, not a peer of Sign out,
-          which is where the overflow menu had it. */}
+          hero amount, the desktop chip and the account page alike. The
+          converter sits above the list, not under it: it is a currency subtask
+          rather than a peer of Sign out, but nineteen currencies deep it was
+          below the fold and might as well not have existed. */}
       <BottomDrawer
         open={showCurrencyPicker}
         onClose={() => setShowCurrencyPicker(false)}
         title="Currency"
       >
+        <button
+          onClick={() => { setShowCurrencyPicker(false); setShowConverterDrawer(true); }}
+          className="w-full flex items-center justify-between gap-3 px-4 py-4 mb-1 text-body text-ink rounded-xl bg-ink/7 hover:bg-ink/10 transition-[background-color,transform] duration-fast active:scale-[0.98]"
+        >
+          <span className="font-semibold">Convert currency</span>
+          <ArrowsLeftRight size={18} className="text-ink/40" />
+        </button>
         {CURRENCIES.map((c) => (
           <button
             key={c.code}
             onClick={() => selectCurrency(c.code)}
-            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] border-b border-ink/10 ${
+            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] border-t border-ink/10 ${
               currency === c.code
                 ? "text-accent bg-accent/10"
                 : "text-ink hover:bg-ink/7"
@@ -419,13 +427,6 @@ export default function Home() {
             <span className="text-sm text-ink/50">{c.name}</span>
           </button>
         ))}
-        <button
-          onClick={() => { setShowCurrencyPicker(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink rounded-xl hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
-        >
-          <span>Convert currency</span>
-          <ArrowsLeftRight size={16} className="text-ink/40" />
-        </button>
       </BottomDrawer>
 
       {/* Month picker — opened by the month chip on each hero */}
