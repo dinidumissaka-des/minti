@@ -25,6 +25,7 @@ import HeroAmount from "@/components/HeroAmount";
 import MonthChip from "@/components/MonthChip";
 import AccountPage from "@/components/AccountPage";
 import CurrencyPage from "@/components/CurrencyPage";
+import PushPage from "@/components/ui/PushPage";
 import Avatar from "@/components/Avatar";
 import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
@@ -386,16 +387,6 @@ export default function Home() {
           background: 'linear-gradient(to bottom, transparent, rgb(var(--background)) 70%)',
         }}
       />
-      {/* Currency converter drawer */}
-      <BottomDrawer
-        open={showConverterDrawer}
-        onClose={() => setShowConverterDrawer(false)}
-        title="Convert Currency"
-        fullScreen
-      >
-        <CurrencyConverter defaultFrom={currency} />
-      </BottomDrawer>
-
       {/* Month picker — opened by the month chip on each hero */}
       <BottomDrawer
         open={showMonthPicker}
@@ -439,6 +430,19 @@ export default function Home() {
         onSelect={selectCurrency}
         onOpenConverter={() => setShowConverterDrawer(true)}
       />
+
+      {/* Opened from the currency page, so it is declared after it — see the
+          ordering note above. */}
+      <PushPage
+        open={showConverterDrawer}
+        onClose={() => setShowConverterDrawer(false)}
+        title="Convert currency"
+        ariaLabel="Convert currency"
+      >
+        <div className="pt-6">
+          <CurrencyConverter defaultFrom={currency} />
+        </div>
+      </PushPage>
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
           Accent fill rather than glass: Apple asks to limit Liquid Glass to

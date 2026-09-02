@@ -44,7 +44,7 @@ function installPopHandler() {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Rendered beside the back button. Omit for a page that titles itself. */
+  /** Rendered under the back button. Omit for a page that titles itself. */
   title?: string;
   ariaLabel: string;
   children: React.ReactNode;
@@ -131,10 +131,7 @@ export default function PushPage({ open, onClose, title, ariaLabel, children }: 
         className="max-w-2xl mx-auto px-2"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 3rem)" }}
       >
-        <div
-          className="px-4 flex items-center gap-3"
-          style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
-        >
+        <div className="px-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}>
           <button
             onClick={onClose}
             aria-label="Back"
@@ -142,7 +139,10 @@ export default function PushPage({ open, onClose, title, ariaLabel, children }: 
           >
             <ArrowLeft size={18} />
           </button>
-          {title && <h1 className="font-sans text-xl font-bold text-ink truncate">{title}</h1>}
+          {/* Under the arrow rather than beside it: on its own line the title
+              has the width to be a heading instead of a label squeezed next to
+              a control. */}
+          {title && <h1 className="mt-4 font-sans text-3xl font-bold text-ink">{title}</h1>}
         </div>
         {children}
       </div>
