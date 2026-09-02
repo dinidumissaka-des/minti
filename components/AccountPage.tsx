@@ -210,7 +210,6 @@ export default function AccountPage({
           <h1 className="font-sans text-2xl font-bold text-ink text-center leading-tight">
             {displayName(user)}
           </h1>
-          <p className="font-sans text-sm font-semibold text-brand">Personal account</p>
           <span className="max-w-full truncate rounded-full border flat-chip px-3 h-8 flex items-center font-mono text-xs text-ink/60">
             {user?.email}
           </span>
