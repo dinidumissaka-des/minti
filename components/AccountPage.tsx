@@ -7,6 +7,7 @@ import Avatar, { displayName } from "@/components/Avatar";
 import Collapse from "@/components/ui/Collapse";
 import PushPage from "@/components/ui/PushPage";
 import { ListRow, ListSection, RowToggle, RowValue } from "@/components/ui/ListRow";
+import Switch from "@/components/ui/Switch";
 
 interface Props {
   open: boolean;
@@ -79,16 +80,23 @@ export default function AccountPage({
         <ListRow
           icon={<Coins size={18} />}
           label="Currency"
-          description="The code every figure is counted in"
+          description="Used for every figure"
           trailing={<RowValue>{currency}</RowValue>}
           onClick={onCurrencyClick}
         />
         <ListRow
           icon={theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
           label="Appearance"
-          description="Follows your device by default"
-          trailing={<span className="font-mono text-sm text-ink/50">{theme === "dark" ? "Dark" : "Light"}</span>}
+          description="Follows your device"
+          trailing={
+            <span className="flex items-center gap-2.5">
+              <Switch on={theme === "dark"} />
+              <span className="font-mono text-sm text-ink/50">{theme === "dark" ? "Dark" : "Light"}</span>
+            </span>
+          }
           onClick={onToggleTheme}
+          role="switch"
+          aria-checked={theme === "dark"}
         />
         {native && biometryAvailable && (
           <ListRow
