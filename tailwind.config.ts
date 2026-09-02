@@ -83,6 +83,9 @@ const config: Config = {
         "nav-scrim": "45",
         nav:        "50",
         prompt:     "55",
+        // A pushed full-screen page: above the nav and the install prompt it
+        // covers, below the drawer scrim so a sheet opened from it dims it.
+        page:       "58",
         scrim:      "60",
         drawer:     "70",
         skip:       "200",

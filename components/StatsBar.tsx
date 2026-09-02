@@ -5,12 +5,16 @@ import type { Expense } from "@/types";
 import { formatAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import HeroAmount from "@/components/HeroAmount";
 
 interface Props {
   expenses: Expense[];
   selectedMonth: { year: number; month: number };
   currency: string;
   subscriptionsTotal?: number;
+  onMonthClick: () => void;
+  onMonthStep: (dir: 1 | -1) => void;
+  onCurrencyClick: () => void;
 }
 
 function todayISO() {
@@ -22,7 +26,15 @@ function daysElapsedInMonth(year: number, month: number, isCurrentMonth: boolean
   return new Date(year, month, 0).getDate();
 }
 
-const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, subscriptionsTotal = 0 }: Props) {
+const StatsBar = memo(function StatsBar({
+  expenses,
+  selectedMonth,
+  currency,
+  subscriptionsTotal = 0,
+  onMonthClick,
+  onMonthStep,
+  onCurrencyClick,
+}: Props) {
   const today = todayISO();
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -40,16 +52,15 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
   return (
     <div className="flex flex-col gap-2">
       {/* Hero — no container */}
-      <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-        <span className="font-sans text-xs text-muted font-semibold leading-none">
-          {isCurrentMonth ? "This Month" : "Month Total"}
-        </span>
-        <AnimatedNumber
-          value={monthTotal}
-          format={(v) => formatAmount(v, currency)}
-          className="font-mono text-5xl font-bold text-ink leading-tight"
-        />
-      </div>
+      <HeroAmount
+        label={isCurrentMonth ? "This Month" : "Month Total"}
+        value={monthTotal}
+        currency={currency}
+        onCurrencyClick={onCurrencyClick}
+        month={selectedMonth}
+        onMonthClick={onMonthClick}
+        onMonthStep={onMonthStep}
+      />
 
       {/* Today + Avg/Day — one container */}
       <Surface borderRadius={28}>

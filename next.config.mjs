@@ -21,7 +21,10 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  // Google is the one provider that hands back a profile photo, and
+  // user_metadata is user-writable — the narrow allowlist is what stops an
+  // avatar_url pointing anywhere else from ever being fetched.
+  `img-src 'self' data: blob: https://lh3.googleusercontent.com ${supabaseOrigin}`.trim(),
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseOrigin.replace("https://", "wss://")} https://open.er-api.com`.trim(),
   "frame-ancestors 'none'",

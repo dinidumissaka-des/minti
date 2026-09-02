@@ -4,8 +4,8 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { CATEGORY_COLORS } from "@/lib/categories";
 import ViewTransition from "@/components/ui/ViewTransition";
+import { MONTH_NAMES_LONG as MONTH_NAMES, MONTH_NAMES_SHORT } from "@/lib/months";
 
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAY_LABELS = ["Mo","Tu","We","Th","Fr","Sa","Su"];
 
 // ─── Calendar Picker ──────────────────────────────────────────────────────────
@@ -87,6 +87,55 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
           );
         })}
       </ViewTransition>
+    </div>
+  );
+}
+
+// ─── Month Picker ─────────────────────────────────────────────────────────────
+
+export function MonthPicker({
+  year,
+  month,
+  viewYear,
+  onViewYearChange,
+  onSelect,
+}: {
+  year: number;
+  month: number;
+  viewYear: number;
+  onViewYearChange: (y: number) => void;
+  onSelect: (year: number, month: number) => void;
+}) {
+  return (
+    <div className="px-3 pb-2">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => onViewYearChange(viewYear - 1)} aria-label="Previous year" className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
+          <ChevronLeft size={16} />
+        </button>
+        <span className="font-mono font-semibold text-ink text-base">{viewYear}</span>
+        <button onClick={() => onViewYearChange(viewYear + 1)} aria-label="Next year" className="w-10 h-10 flex items-center justify-center rounded-full bg-ink/7 text-ink/60 hover:text-ink transition-[color,transform] duration-fast active:scale-90">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {MONTH_NAMES_SHORT.map((name, i) => {
+          const isSelected = viewYear === year && i + 1 === month;
+          return (
+            <button
+              key={name}
+              onClick={() => onSelect(viewYear, i + 1)}
+              className={`h-12 rounded-full text-body font-mono transition-[color,background-color,transform] duration-fast active:scale-95 ${
+                isSelected
+                  ? "bg-accent-fill text-accent-on font-bold"
+                  : "text-ink/80 hover:bg-ink/10"
+              }`}
+            >
+              {name}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
