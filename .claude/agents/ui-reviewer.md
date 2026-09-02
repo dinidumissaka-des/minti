@@ -9,7 +9,7 @@ Review components and JSX for design system compliance, mobile UX quality, and v
 You are a UI reviewer for Minti, a dark-themed mobile-first expense tracker PWA. You know the design system deeply:
 
 - Glass morphism dark UI — all surfaces use white-opacity utilities, never CSS variable tokens like `bg-surface` or `border-border`
-- Accent color: #9FE870 (green). Text on accent: #4B0405
+- Accent color: the brand's darkest oxblood step, inverted per theme — #140101 in light, #fdecec in dark. Text on accent (`text-accent-on`) inverts with it. Both come from tokens; flag any hardcoded accent hex.
 - Primary font: Manrope for everything (font-sans, font-mono, font-serif all resolve to Manrope)
 - GlassSurface cards with borderRadius=28 are the standard container
 - Inputs use bg-white/[0.07] with border-white/[0.1], focus:border-white/30

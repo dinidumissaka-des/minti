@@ -43,6 +43,10 @@ html.light {
   --oxblood-800: 101 6   8;
   --oxblood-900: 75  4   5;
   --oxblood-950: 34  1   2;
+  /* Added when the accent moved off green and onto the brand's own darkest
+     step. Below 950 and above the page (12 5 5), so a near-black button still
+     separates from a near-black ground if the two ever meet. */
+  --oxblood-1000: 20 1   1;
 }
 
 :root,
@@ -68,11 +72,21 @@ html.light {
      chips inside a sheet inherit whatever cast it has. */
   --sheet:       38  27  27;
   --ink:         255 255 255;
-  --accent:      159 232 112;
-  --accent-hi:   200 247 160;
-  --accent-lo:   120 217  85;
-  --accent-text: 159 232 112;
-  --accent-on:   var(--oxblood-900);
+  /* The accent is the brand's darkest step, not a second hue. A near-black
+     fill needs a ground to sit on, and this one is already near-black, so dark
+     mode runs the pair inverted: the ramp's lightest step is the fill here and
+     oxblood-1000 is what sits on it. Same relationship as light mode, read
+     from the other end of the ramp — 17.69:1 on the page, 15.60:1 on a glass
+     card, 17.77:1 for the text on the fill.
+     The fill/text split (--accent vs --accent-text) is inherited from the
+     green, which had to darken to stay legible as bare text; a neutral this
+     far up the ramp doesn't, so both tokens point at the same step. Keep them
+     separate anyway — every component already picks one or the other. */
+  --accent:      var(--oxblood-50);
+  --accent-hi:   255 250 250;
+  --accent-lo:   245 219 220;
+  --accent-text: var(--oxblood-50);
+  --accent-on:   var(--oxblood-1000);
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -84,16 +98,20 @@ html.light {
      sheet on top of it reads cool. */
   --sheet:       255 252 252;
   --ink:         26  14  15;
-  --accent:      159 232 112;
-  --accent-hi:   200 247 160;
-  --accent-lo:   120 217  85;
-  /* Nudged down twice. First from 63 122 31, when the selected filter chip
-     lost its tint and accent text landed directly on the page (4.15:1, failed
-     AA). Then from 59 115 29, when --background moved off the green-grey to
-     the oxblood-tinted 231 226 226 and took it to 4.48:1. This reads 4.67:1 on
-     the page and 5.99:1 on a glass card. */
-  --accent-text: 57  112 28;
-  --accent-on:   var(--oxblood-900);
+  /* Light mode reads the pair the way round the ramp is written: oxblood-1000
+     fills, oxblood-50 sits on it. 15.83:1 on the page, 13.73:1 on a glass
+     card, 17.77:1 for the text on the fill.
+     The green this replaced spent two revisions being nudged darker to clear
+     AA as bare text (63 122 31 -> 59 115 29 -> 57 112 28). At the bottom of
+     the ramp there is no such headroom problem, but there is the opposite one:
+     accent text now lands within a point of --ink (26 14 15), so accent is no
+     longer what marks a highlight in light mode. Weight, fill and border carry
+     that — don't reach for --accent-text to make something stand out. */
+  --accent:      var(--oxblood-1000);
+  --accent-hi:   34  1   2;
+  --accent-lo:   12  1   1;
+  --accent-text: var(--oxblood-1000);
+  --accent-on:   var(--oxblood-50);
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       26  14  15;
@@ -119,12 +137,13 @@ html.light {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Flat chips (header buttons, nav pills, filter tabs, tags): a light brand-green
-     wash in both themes. Dark mode tints with --accent — already high-contrast
-     against the near-black background even at low alpha. Light mode tints with
-     --accent-text (the darker green also used for bare accent text there) since
-     the pale --accent barely registers against the light gray background at the
-     same alpha. Active state doubles the wash so selection still pops. */
+  /* Flat chips (header buttons, nav pills, filter tabs, tags): a low-alpha
+     accent wash in both themes. Each side tints with whichever of the two
+     accent tokens contrasts against its own ground — --accent in dark (the
+     ramp's lightest step, over a near-black page), --accent-text in light (the
+     darkest step, over a light page). Since the accent went neutral these read
+     as a grey wash rather than a green one, so the active state's doubled
+     alpha is now the whole selection signal at chip level. */
   .flat-chip {
     background-color: rgb(var(--accent) / 0.06);
     border-color: rgb(var(--accent) / 0.14);
@@ -140,13 +159,19 @@ html.light {
     border-color: rgb(var(--accent-text) / 0.22);
   }
 
+  /* Both borders were raised when the accent went neutral. The doubled fill
+     separates the active chip from an unselected one by 1.11:1 in light and
+     1.23:1 in dark — it never carried selection on luminance, it carried it on
+     hue, and a grey wash has none to spend. The border is the whole signal
+     now, so it runs at a real alpha: 3.61:1 against the page in light, 3.39:1
+     in dark, clearing the 3:1 a UI boundary needs. */
   .flat-chip-active {
     background-color: rgb(var(--accent) / 0.14);
-    border-color: rgb(var(--accent) / 0.28);
+    border-color: rgb(var(--accent) / 0.42);
   }
   .light .flat-chip-active {
     background-color: rgb(var(--accent-text) / 0.1);
-    border-color: rgb(var(--accent-text) / 0.22);
+    border-color: rgb(var(--accent-text) / 0.5);
   }
 
   .flat-chip-dashed {
