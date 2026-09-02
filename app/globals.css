@@ -71,6 +71,22 @@ html.light {
      not used directly: ink at 5-7% barely desaturates a red, so the inputs and
      chips inside a sheet inherit whatever cast it has. */
   --sheet:       38  27  27;
+  /* What a glass card frosts toward. It was a literal white, which meant a
+     card diluted the brand instead of carrying it: at the 62% the light theme
+     frosts at, white dragged the card to 0.8% saturation on a 2.2% ground, so
+     the one surface the eye spends the most time on was the only neutral thing
+     on an oxblood-tinted page.
+     Derived, not picked: the oxblood hue at the saturation that makes a card
+     come out matching the ground it lifts off (2.29% vs 2.16%) rather than
+     under it. Not the raw oxblood-50 either — frosting with a ramp step lands
+     the card at 5.1%, over twice the ground, which is the "every card reads as
+     red" failure --background was moved off oxblood-950 to escape.
+     Deliberately NOT overridden in .light: a card lifts toward the same
+     near-white on either ground, and only the alpha differs (7% dark, 62%
+     light). At 7% the frost's own hue barely registers — the dark card is the
+     page showing through 93% of itself — so this token earns its keep in light
+     mode. */
+  --card:        255 249 249;
   --ink:         255 255 255;
   /* --accent and --accent-text are two different colours now, not one colour
      at two lightnesses. --accent is the brand green and stays put in both
@@ -204,12 +220,16 @@ html.light {
       inset 0 1px 0 rgb(255 255 255 / 0.14),
       0 8px 32px rgb(0 0 0 / 0.28);
   }
+  /* 15 23 11 was a green-black, left over from the theme before the oxblood
+     one — a green shadow under a chip on a red-tinted page. Both it and the
+     white fill now come from the tokens. The inset highlight stays literal
+     white: it is a specular reflection, not a surface. */
   .light .glass-chip {
-    background-color: rgb(255 255 255 / 0.88);
-    border-color: rgb(15 23 11 / 0.07);
+    background-color: rgb(var(--card) / 0.88);
+    border-color: rgb(var(--ink) / 0.07);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.9),
-      0 8px 28px rgb(15 23 11 / 0.10);
+      0 8px 28px rgb(var(--ink) / 0.10);
   }
 
   .glass-chip-active {
@@ -217,8 +237,8 @@ html.light {
     border-color: rgb(var(--ink) / 0.16);
   }
   .light .glass-chip-active {
-    background-color: rgb(15 23 11 / 0.06);
-    border-color: rgb(15 23 11 / 0.05);
+    background-color: rgb(var(--ink) / 0.06);
+    border-color: rgb(var(--ink) / 0.05);
   }
 
   /* Apple: "Test your interface with a variety of display and accessibility
@@ -243,7 +263,7 @@ html.light {
       background-color: rgb(var(--ink) / 0.3);
     }
     .light .glass-chip-active {
-      background-color: rgb(15 23 11 / 0.14);
+      background-color: rgb(var(--ink) / 0.14);
     }
   }
 }

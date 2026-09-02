@@ -30,20 +30,27 @@
   z-index: 1;
 }
 
+/* The frost colour is --card, not a literal white: a card is the page lifted
+   toward the brand's near-white, and lifting with pure white washes the hue
+   out. The alpha is the --glass-frost the component sets from its
+   backgroundOpacity prop. */
 .glass-surface--svg {
-  background: hsl(0 0% 100% / var(--glass-frost, 0));
+  background: rgb(var(--card) / var(--glass-frost, 0));
   backdrop-filter: var(--filter-id, url(#glass-filter)) blur(28px) saturate(var(--glass-saturation, 1.4));
 }
 
 .glass-surface--fallback {
-  background: rgba(255, 255, 255, var(--glass-frost, 0.07));
+  background: rgb(var(--card) / var(--glass-frost, 0.07));
   backdrop-filter: blur(28px) saturate(1.4);
   -webkit-backdrop-filter: blur(28px) saturate(1.4);
 }
 
+/* Light needs far more frost than dark for the same lift: --ink can only
+   darken a light page, so the card has to be built out of the frost itself
+   rather than out of the ground showing through it. */
 .light .glass-surface--svg,
 .light .glass-surface--fallback {
-  background: rgba(255, 255, 255, calc(var(--glass-frost, 0.07) + 0.55));
+  background: rgb(var(--card) / calc(var(--glass-frost, 0.07) + 0.55));
 }
 
 .glass-surface:focus-visible {
