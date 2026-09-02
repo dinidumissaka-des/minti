@@ -663,10 +663,7 @@ export default function Home() {
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
               </button>
               <button
-                onClick={(e) => {
-                  const r = e.currentTarget.getBoundingClientRect();
-                  toggleTheme({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-                }}
+                onClick={toggleTheme}
                 aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
                 className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
