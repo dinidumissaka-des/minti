@@ -21,9 +21,12 @@ app/
 components/
   expense/          AddExpenseForm, ExpenseList (pickers live in ui/DrawerPickers.tsx)
   subscription/     SubscriptionList — list + inline add/edit/delete
-  ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
+  ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/MonthPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
   Surface.tsx       The one raised surface — paints --surface opaque, owns the card radius
-  BottomDrawer.tsx  Modal sheet — currency/category/date pickers, currency converter, mobile "More" menu
+  BottomDrawer.tsx  Modal sheet — currency/month/category/date pickers, currency converter, add-expense sheet
+  SettingsSheet.tsx Account / Preferences / Data sheet behind the header avatar (replaced the "⋯" More menu)
+  HeroAmount.tsx    The big figure at the top of a view — label, month chip, tappable currency, swipe-to-change-month
+  MonthChip.tsx     Mobile month pill (`Sep 2026 ⌄`) — opens the month picker
   StatsBar.tsx      Month total (hero), Today, Avg/Day — includes subscriptionsTotal
   BudgetBar.tsx     Monthly budget progress bar
   AuthForm.tsx      Sign in / sign up
@@ -37,6 +40,7 @@ lib/
   supabase.ts       All DB + auth functions — expenses CRUD, subscriptions CRUD, auth
   categories.ts     CATEGORY_COLORS_DARK / CATEGORY_COLORS_LIGHT maps + getCategoryColor(category, theme) — keys are the valid category names
   currencies.ts     CURRENCIES list, DEFAULT_CURRENCY, formatAmount()
+  months.ts         MONTH_NAMES_SHORT / MONTH_NAMES_LONG / monthLabel()
   brand.ts          Literal brand colors for the PWA manifest / theme-color meta / Capacitor shell
   exchangeRates.ts  Live FX rates with a 6h localStorage cache
   export.ts         CSV export — blob download on web, share sheet on iOS
@@ -153,6 +157,8 @@ billing_day integer default 1, created_at timestamptz
 RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (hardcoded to 1).
 
 ## Key patterns
+- **Month and currency live on the figure, not in a menu**: every hero renders through `HeroAmount`, which carries the month chip (mobile only — desktop has the header month nav) and the tappable currency code. They qualify the number, so hiding them behind the header left the largest figure on the screen unexplained. Bills are the one hero with no month chip: subscriptions recur, so the figure isn't scoped to the selected month.
+- **Settings, not overflow**: the header avatar opens `SettingsSheet` (Account / Preferences / Data / Session). Nav destinations never appear in it — Insights is a bottom-nav tab and having it in both taught two depths for one place. Rows read label-primary, value-secondary, and sign out asks first.
 - **Category/date picker**: `CategoryList`/`CalendarPicker`/`SourceList` (`components/ui/DrawerPickers.tsx`) always render inside a `BottomDrawer` — used from AddExpenseForm, ExpenseList/SubscriptionList edit rows, IncomeSection
 - **Hover-reveal actions**: edit/delete buttons use `w-0 group-hover:w-[60px] overflow-hidden transition-all duration-200` inside a `group` parent
 - **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch

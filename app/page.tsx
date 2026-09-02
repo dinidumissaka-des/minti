@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { LogOut, ChevronDown, Download, MoreHorizontal, Sun, Moon, Plus } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
 import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
+import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
 import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
 import ViewTransition from "@/components/ui/ViewTransition";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
-import Collapse from "@/components/ui/Collapse";
 import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
 import Surface from "@/components/Surface";
@@ -21,6 +21,10 @@ import Logo from "@/components/Logo";
 import AuthForm from "@/components/AuthForm";
 import AuthShowcase from "@/components/AuthShowcase";
 import StatsBar from "@/components/StatsBar";
+import HeroAmount from "@/components/HeroAmount";
+import MonthChip from "@/components/MonthChip";
+import SettingsSheet from "@/components/SettingsSheet";
+import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
 import ExpenseList from "@/components/expense/ExpenseList";
 import SubscriptionList from "@/components/subscription/SubscriptionList";
@@ -61,11 +65,6 @@ const FILTER_ITEMS: Segment<Filter>[] = [
   { key: "week",  label: "This Week" },
 ];
 
-const MONTH_NAMES = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
 function startOfWeekISO() {
   const d = new Date();
   const day = d.getDay();
@@ -102,27 +101,22 @@ export default function Home() {
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
-  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<"month" | "currency" | null>(null);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());
   const [native, setNative] = useState(false);
   const [biometryAvailable, setBiometryAvailable] = useState(false);
   const [appLock, setAppLock] = useState(false);
   const [billingReminders, setBillingReminders] = useState(false);
-  const currencyRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { privacyMode, togglePrivacy } = usePrivacy();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    if (!showMoreDrawer) setExpandedSection(null);
-  }, [showMoreDrawer]);
-
-  useEffect(() => {
-    if (expandedSection === "month") setPickerYear(selectedMonth.year);
-  }, [expandedSection]);
+    if (showMonthPicker) setPickerYear(selectedMonth.year);
+  }, [showMonthPicker]);
 
   // Fast init from localStorage (avoids flash on load). Budget and income are
   // account data, so they are read back only for the account that cached them.
@@ -202,17 +196,6 @@ export default function Home() {
     }
   }, [user]);
 
-  // Close picker on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (currencyRef.current && !currencyRef.current.contains(e.target as Node)) {
-        setShowCurrencyPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
   useEffect(() => {
     const { data: { subscription } } = onAuthStateChange(setUser);
     return () => subscription.unsubscribe();
@@ -263,21 +246,20 @@ export default function Home() {
     if (user) fetchSubscriptions();
   }, [user, fetchSubscriptions]);
 
-  function prevMonth() {
-    setMonthDir(-1);
+  // Stable identity: StatsBar is memoised, so a fresh arrow each render would
+  // re-render the hero on every keystroke elsewhere on the page.
+  const stepMonth = useCallback((dir: 1 | -1) => {
+    setMonthDir(dir);
     setSelectedMonth(({ year, month }) => {
-      if (month === 1) return { year: year - 1, month: 12 };
-      return { year, month: month - 1 };
+      const index = year * 12 + (month - 1) + dir;
+      return { year: Math.floor(index / 12), month: (index % 12) + 1 };
     });
-  }
+  }, []);
 
-  function nextMonth() {
-    setMonthDir(1);
-    setSelectedMonth(({ year, month }) => {
-      if (month === 12) return { year: year + 1, month: 1 };
-      return { year, month: month + 1 };
-    });
-  }
+  const prevMonth = useCallback(() => stepMonth(-1), [stepMonth]);
+  const nextMonth = useCallback(() => stepMonth(1), [stepMonth]);
+  const openMonthPicker = useCallback(() => setShowMonthPicker(true), []);
+  const openCurrencyPicker = useCallback(() => setShowCurrencyPicker(true), []);
 
   // Content travels the same way the nav does, so switching sections reads as
   // moving along a row rather than as a replacement.
@@ -413,17 +395,20 @@ export default function Home() {
         <CurrencyConverter defaultFrom={currency} />
       </BottomDrawer>
 
-      {/* Currency picker drawer — desktop */}
+      {/* Currency picker — the one place currency is chosen, opened from the
+          hero amount, the desktop chip and Settings alike. The converter rides
+          along at the bottom: it is a currency subtask, not a peer of Sign out,
+          which is where the overflow menu had it. */}
       <BottomDrawer
         open={showCurrencyPicker}
         onClose={() => setShowCurrencyPicker(false)}
-        title="Select Currency"
+        title="Currency"
       >
         {CURRENCIES.map((c) => (
           <button
             key={c.code}
             onClick={() => selectCurrency(c.code)}
-            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
+            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] border-b border-ink/10 ${
               currency === c.code
                 ? "text-accent bg-accent/10"
                 : "text-ink hover:bg-ink/7"
@@ -433,153 +418,49 @@ export default function Home() {
             <span className="text-sm text-ink/50">{c.name}</span>
           </button>
         ))}
+        <button
+          onClick={() => { setShowCurrencyPicker(false); setShowConverterDrawer(true); }}
+          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink rounded-xl hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
+        >
+          <span>Convert currency</span>
+          <ArrowsLeftRight size={16} className="text-ink/40" />
+        </button>
       </BottomDrawer>
 
-      {/* Menu drawer — mobile only */}
+      {/* Month picker — opened by the month chip on each hero */}
       <BottomDrawer
-        open={showMoreDrawer}
-        onClose={() => setShowMoreDrawer(false)}
-        title="Menu"
+        open={showMonthPicker}
+        onClose={() => setShowMonthPicker(false)}
+        title="Month"
       >
-        {/* Month row + inline calendar */}
-        <button
-          onClick={() => setExpandedSection(s => s === "month" ? null : "month")}
-          aria-expanded={expandedSection === "month"}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-        >
-          <span className="text-ink/60">Month</span>
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-semibold">{MONTH_NAMES[selectedMonth.month - 1]} {selectedMonth.year}</span>
-            <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "month" ? "rotate-180" : ""}`} />
-          </div>
-        </button>
-        <Collapse open={expandedSection === "month"}>
-          <div className="px-4 pt-3 pb-4">
-            <div className="flex items-center justify-between mb-3">
-              <button
-                onClick={() => setPickerYear(y => y - 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
-              >‹</button>
-              <span className="font-mono text-sm font-semibold text-ink">{pickerYear}</span>
-              <button
-                onClick={() => setPickerYear(y => y + 1)}
-                className="w-10 h-10 flex items-center justify-center rounded-full border border-ink/10 bg-ink/7 text-ink/40 hover:text-ink/90 transition-colors"
-              >›</button>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {MONTH_NAMES.map((name, i) => {
-                const month = i + 1;
-                const isSelected = pickerYear === selectedMonth.year && month === selectedMonth.month;
-                return (
-                  <button
-                    key={month}
-                    onClick={() => { selectMonth(pickerYear, month); setExpandedSection(null); setShowMoreDrawer(false); }}
-                    className={`h-10 rounded-full text-sm font-mono transition-[color,background-color,transform] duration-fast active:scale-95 ${
-                      isSelected
-                        ? "bg-accent/15 text-accent border border-accent/50 font-semibold"
-                        : "text-ink/40 hover:text-ink/80"
-                    }`}
-                  >{name}</button>
-                );
-              })}
-            </div>
-          </div>
-        </Collapse>
-
-        {/* Currency row + inline list */}
-        <button
-          onClick={() => setExpandedSection(s => s === "currency" ? null : "currency")}
-          aria-expanded={expandedSection === "currency"}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-        >
-          <span className="text-ink/60">Currency</span>
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-semibold">{currency}</span>
-            <ChevronDown size={13} className={`text-ink/40 transition-transform duration-200 ${expandedSection === "currency" ? "rotate-180" : ""}`} />
-          </div>
-        </button>
-        <Collapse open={expandedSection === "currency"}>
-          <div className="overflow-y-auto max-h-64">
-            {CURRENCIES.map((c) => (
-              <button
-                key={c.code}
-                onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] ${
-                  currency === c.code ? "text-accent bg-accent/10" : "text-ink hover:bg-ink/7"
-                }`}
-              >
-                <span className="font-mono font-semibold text-base">{c.code}</span>
-                <span className="text-sm text-ink/50">{c.name}</span>
-              </button>
-            ))}
-          </div>
-        </Collapse>
-
-        {/* Insights */}
-        <button
-          onClick={() => { setShowMoreDrawer(false); changeView("insights"); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-        >
-          <span className="text-ink/60">Insights</span>
-          <Lightbulb size={14} className="text-ink/40" />
-        </button>
-
-        {/* Currency converter */}
-        <button
-          onClick={() => { setShowMoreDrawer(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-        >
-          <span className="text-ink/60">Convert currency</span>
-          <ArrowsLeftRight size={14} className="text-ink/40" />
-        </button>
-
-        {/* Export CSV */}
-        <button
-          onClick={() => {
-            exportCSV();
-            setShowMoreDrawer(false);
-          }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-        >
-          <span className="text-ink/60">Export CSV</span>
-          <Download size={14} className="text-ink/40" />
-        </button>
-        {/* Native-only settings */}
-        {native && biometryAvailable && (
-          <button
-            onClick={toggleAppLock}
-            role="switch"
-            aria-checked={appLock}
-            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-          >
-            <span className="text-ink/60">Require Face ID</span>
-            <span className={`font-mono text-xs font-semibold ${appLock ? "text-accent" : "text-ink/40"}`}>
-              {appLock ? "ON" : "OFF"}
-            </span>
-          </button>
-        )}
-        {native && (
-          <button
-            onClick={toggleBillingReminders}
-            role="switch"
-            aria-checked={billingReminders}
-            className="w-full flex items-center justify-between px-4 py-4 text-body text-ink hover:bg-ink/7 transition-colors"
-          >
-            <span className="text-ink/60">Billing reminders</span>
-            <span className={`font-mono text-xs font-semibold ${billingReminders ? "text-accent" : "text-ink/40"}`}>
-              {billingReminders ? "ON" : "OFF"}
-            </span>
-          </button>
-        )}
-        {/* Sign out */}
-        <button
-          onClick={() => { handleSignOut(); setShowMoreDrawer(false); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-danger hover:bg-ink/7 transition-colors"
-        >
-          <span>Sign out</span>
-          <LogOut size={14} />
-        </button>
+        <MonthPicker
+          year={selectedMonth.year}
+          month={selectedMonth.month}
+          viewYear={pickerYear}
+          onViewYearChange={setPickerYear}
+          onSelect={(year, month) => { selectMonth(year, month); setShowMonthPicker(false); }}
+        />
       </BottomDrawer>
+
+      <SettingsSheet
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        email={user.email}
+        currency={currency}
+        onCurrencyClick={() => { setShowSettings(false); setShowCurrencyPicker(true); }}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        privacyMode={privacyMode}
+        onTogglePrivacy={togglePrivacy}
+        native={native}
+        biometryAvailable={biometryAvailable}
+        appLock={appLock}
+        onToggleAppLock={toggleAppLock}
+        billingReminders={billingReminders}
+        onToggleBillingReminders={toggleBillingReminders}
+        onExportCSV={() => { exportCSV(); setShowSettings(false); }}
+        onSignOut={() => { handleSignOut(); setShowSettings(false); }}
+      />
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
           Accent fill rather than glass: Apple asks to limit Liquid Glass to
@@ -641,7 +522,7 @@ export default function Home() {
           className="flex flex-col gap-5 sticky sm:static z-content"
           style={{ top: "env(safe-area-inset-top)" }}
         >
-          {/* Row 1: Logo + Sign out */}
+          {/* Row 1: Logo + privacy + account */}
           <div className="flex items-center justify-between pt-1 pb-2">
             <Logo className="h-5 w-auto" />
             {/* One shared glass background rather than four floating ones:
@@ -662,26 +543,20 @@ export default function Home() {
               >
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
               </button>
+              {/* Theme is a set-once choice that already follows the OS, so it
+                  gave up its permanent header slot to Settings. What is left in
+                  the header is the one control that has to be instant — hiding
+                  amounts — and the way into everything else. "⋯" became an
+                  avatar: the sheet behind it is an account, not an overflow of
+                  the current view. */}
               <button
-                onClick={toggleTheme}
-                aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                onClick={() => setShowSettings(true)}
+                aria-label="Account and settings"
                 className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
-                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-              </button>
-              <button
-                onClick={() => setShowMoreDrawer(true)}
-                aria-label="Menu"
-                className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
-              >
-                <MoreHorizontal size={16} />
-              </button>
-              <button
-                onClick={() => handleSignOut()}
-                aria-label="Sign out"
-                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
-              >
-                <LogOut size={16} />
+                <span className="w-7 h-7 flex items-center justify-center rounded-full bg-ink/10 font-sans text-xs font-semibold text-ink">
+                  {(user.email?.[0] ?? "?").toUpperCase()}
+                </span>
               </button>
             </div>
           </div>
@@ -689,9 +564,9 @@ export default function Home() {
           {/* Row 2 (desktop): Currency + Export + Month nav */}
           <div className="hidden sm:flex items-center gap-2 w-full justify-between">
             {/* Currency picker */}
-            <div ref={currencyRef} className="relative">
+            <div className="relative">
               <button
-                onClick={() => setShowCurrencyPicker((v) => !v)}
+                onClick={openCurrencyPicker}
                 className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-95 text-xs font-mono"
               >
                 {currency}
@@ -762,18 +637,26 @@ export default function Home() {
         <ViewTransition trigger={view} direction={viewDir} className="flex flex-col gap-4">
           {/* Stats */}
           {view === "expenses" && (
-            <StatsBar expenses={expenses} selectedMonth={selectedMonth} currency={currency} subscriptionsTotal={subscriptionsTotal} />
+            <StatsBar
+              expenses={expenses}
+              selectedMonth={selectedMonth}
+              currency={currency}
+              subscriptionsTotal={subscriptionsTotal}
+              onMonthClick={openMonthPicker}
+              onMonthStep={stepMonth}
+              onCurrencyClick={openCurrencyPicker}
+            />
           )}
           {view === "subscriptions" && (
             <div className="flex flex-col gap-2">
-              <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-                <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Bills</span>
-                <AnimatedNumber
-                  value={subscriptionsTotal}
-                  format={(v) => formatAmount(v, currency)}
-                  className="font-mono text-5xl font-bold text-ink leading-tight"
-                />
-              </div>
+              {/* No month chip: bills recur every month, so this figure is
+                  not scoped to the selected one. */}
+              <HeroAmount
+                label="Monthly Bills"
+                value={subscriptionsTotal}
+                currency={currency}
+                onCurrencyClick={openCurrencyPicker}
+              />
               <Surface borderRadius={28}>
                 <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                   <div className="px-5 py-4 flex flex-col gap-1">
@@ -792,15 +675,22 @@ export default function Home() {
               </Surface>
             </div>
           )}
-          {view === "income" && (
-            <div className="px-1 pt-2 pb-5 flex flex-col gap-1">
-              <span className="font-sans text-xs text-muted font-semibold leading-none">Monthly Income</span>
-              <AnimatedNumber
-                value={incomeTotalHero}
-                format={(v) => formatAmount(v, currency)}
-                className="font-mono text-5xl font-bold text-ink leading-tight"
-              />
+          {view === "insights" && (
+            <div className="sm:hidden px-1 pt-2 pb-1 flex items-center justify-between gap-2">
+              <span className="font-sans text-xs text-muted font-semibold leading-none">Insights</span>
+              <MonthChip year={selectedMonth.year} month={selectedMonth.month} onClick={openMonthPicker} />
             </div>
+          )}
+          {view === "income" && (
+            <HeroAmount
+              label="Monthly Income"
+              value={incomeTotalHero}
+              currency={currency}
+              onCurrencyClick={openCurrencyPicker}
+              month={selectedMonth}
+              onMonthClick={openMonthPicker}
+              onMonthStep={stepMonth}
+            />
           )}
 
           {view === "expenses" ? (
