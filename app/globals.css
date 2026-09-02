@@ -72,21 +72,26 @@ html.light {
      chips inside a sheet inherit whatever cast it has. */
   --sheet:       38  27  27;
   --ink:         255 255 255;
-  /* The accent is the brand's darkest step, not a second hue. A near-black
-     fill needs a ground to sit on, and this one is already near-black, so dark
-     mode runs the pair inverted: the ramp's lightest step is the fill here and
-     oxblood-1000 is what sits on it. Same relationship as light mode, read
-     from the other end of the ramp — 17.69:1 on the page, 15.60:1 on a glass
-     card, 17.77:1 for the text on the fill.
-     The fill/text split (--accent vs --accent-text) is inherited from the
-     green, which had to darken to stay legible as bare text; a neutral this
-     far up the ramp doesn't, so both tokens point at the same step. Keep them
-     separate anyway — every component already picks one or the other. */
-  --accent:      var(--oxblood-50);
-  --accent-hi:   255 250 250;
-  --accent-lo:   245 219 220;
+  /* --accent and --accent-text are two different colours now, not one colour
+     at two lightnesses. --accent is the brand green and stays put in both
+     themes: it is what a solid brand surface is made of (buttons, meters, the
+     logo, the selected picker day). --accent-text is the neutral that replaced
+     it everywhere the accent was only marking state — bare text, icons, chip
+     washes, focus edges — and it inverts per theme, since a mark that has to
+     read against the ground needs the opposite end of the ramp from it.
+     Dark: oxblood-50 against a near-black page. 17.69:1 on the page, 15.60:1
+     on a glass card. */
+  --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: var(--oxblood-50);
-  --accent-on:   var(--oxblood-1000);
+  --accent-on:   var(--oxblood-900);
+  /* The green as a bare mark rather than a fill — the logo, and nothing else
+     so far. It cannot just read --accent: a fill only has to carry the label
+     printed on it, but a mark has to carry itself, and the fill green is
+     1.15:1 on the light page. Same green here (13.71:1 on the near-black
+     ground), darkened in .light. */
+  --brand:       159 232 112;
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -98,20 +103,27 @@ html.light {
      sheet on top of it reads cool. */
   --sheet:       255 252 252;
   --ink:         26  14  15;
-  /* Light mode reads the pair the way round the ramp is written: oxblood-1000
-     fills, oxblood-50 sits on it. 15.83:1 on the page, 13.73:1 on a glass
-     card, 17.77:1 for the text on the fill.
-     The green this replaced spent two revisions being nudged darker to clear
-     AA as bare text (63 122 31 -> 59 115 29 -> 57 112 28). At the bottom of
-     the ramp there is no such headroom problem, but there is the opposite one:
-     accent text now lands within a point of --ink (26 14 15), so accent is no
-     longer what marks a highlight in light mode. Weight, fill and border carry
-     that — don't reach for --accent-text to make something stand out. */
-  --accent:      var(--oxblood-1000);
-  --accent-hi:   34  1   2;
-  --accent-lo:   12  1   1;
+  /* Light mode takes the other end of the ramp for the neutral: oxblood-1000,
+     15.83:1 on the page and 13.73:1 on a glass card.
+     The green this replaced as bare text spent two revisions being nudged
+     darker to clear AA (63 122 31 -> 59 115 29 -> 57 112 28) and still only
+     reached 4.67:1. That headroom problem is gone, and the opposite one
+     arrives with it: accent text now lands within a point of --ink (26 14 15),
+     so --accent-text no longer marks a highlight here. It marks state, next to
+     an --ink/40 or --ink/60 sibling that is clearly dimmer. For emphasis on
+     its own, use the green fill. */
+  --accent:      159 232 112;
+  --accent-hi:   200 247 160;
+  --accent-lo:   120 217  85;
   --accent-text: var(--oxblood-1000);
-  --accent-on:   var(--oxblood-50);
+  --accent-on:   var(--oxblood-900);
+  /* The darkened green the logo has always been drawn in. This is where the
+     old --accent-text value went when that token was handed to the neutral;
+     it was nudged here over two revisions to clear AA (63 122 31 -> 59 115 29
+     -> 57 112 28) and reads 4.67:1 on the page, 5.99:1 on a glass card. Don't
+     lighten it back toward --accent without re-measuring against --background,
+     not against a card. */
+  --brand:       57  112 28;
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       26  14  15;
@@ -138,18 +150,17 @@ html.light {
   }
 
   /* Flat chips (header buttons, nav pills, filter tabs, tags): a low-alpha
-     accent wash in both themes. Each side tints with whichever of the two
-     accent tokens contrasts against its own ground — --accent in dark (the
-     ramp's lightest step, over a near-black page), --accent-text in light (the
-     darkest step, over a light page). Since the accent went neutral these read
-     as a grey wash rather than a green one, so the active state's doubled
-     alpha is now the whole selection signal at chip level. */
+     wash of --accent-text in both themes. Chips mark state, so they take the
+     neutral rather than the brand green, and --accent-text already inverts to
+     whichever end of the ramp contrasts against the ground it sits on. That is
+     also why the two blocks differ only in alpha now — a green tint used to
+     need a different *colour* per theme to register at all. */
   .flat-chip {
-    background-color: rgb(var(--accent) / 0.06);
-    border-color: rgb(var(--accent) / 0.14);
+    background-color: rgb(var(--accent-text) / 0.06);
+    border-color: rgb(var(--accent-text) / 0.14);
   }
   .flat-chip:hover {
-    border-color: rgb(var(--accent) / 0.24);
+    border-color: rgb(var(--accent-text) / 0.24);
   }
   .light .flat-chip {
     background-color: rgb(var(--accent-text) / 0.05);
@@ -159,15 +170,15 @@ html.light {
     border-color: rgb(var(--accent-text) / 0.22);
   }
 
-  /* Both borders were raised when the accent went neutral. The doubled fill
+  /* Both borders were raised when chips went neutral. The doubled fill
      separates the active chip from an unselected one by 1.11:1 in light and
      1.23:1 in dark — it never carried selection on luminance, it carried it on
      hue, and a grey wash has none to spend. The border is the whole signal
      now, so it runs at a real alpha: 3.61:1 against the page in light, 3.39:1
      in dark, clearing the 3:1 a UI boundary needs. */
   .flat-chip-active {
-    background-color: rgb(var(--accent) / 0.14);
-    border-color: rgb(var(--accent) / 0.42);
+    background-color: rgb(var(--accent-text) / 0.14);
+    border-color: rgb(var(--accent-text) / 0.42);
   }
   .light .flat-chip-active {
     background-color: rgb(var(--accent-text) / 0.1);

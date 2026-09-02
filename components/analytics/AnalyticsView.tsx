@@ -276,7 +276,7 @@ const InsightCards = memo(function InsightCards({
           style={{
             animationDelay: `${Math.min(i * 60, 300)}ms`,
             ...(insight.type === "positive"
-              ? { borderColor: "rgb(var(--accent) / 0.2)" }
+              ? { borderColor: "rgb(var(--accent-text) / 0.2)" }
               : insight.type === "warning"
               ? { borderColor: "rgb(var(--danger) / 0.2)" }
               : {}),

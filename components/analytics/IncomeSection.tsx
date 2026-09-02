@@ -174,7 +174,7 @@ const IncomeSection = memo(function IncomeSection({
           backgroundOpacity={0.07}
           style={
             saved >= 0
-              ? { borderColor: "rgb(var(--accent) / 0.25)", boxShadow: "0 0 10px rgb(var(--accent) / 0.05)" }
+              ? { borderColor: "rgb(var(--accent-text) / 0.25)", boxShadow: "0 0 10px rgb(var(--accent-text) / 0.05)" }
               : { borderColor: "rgb(var(--danger) / 0.25)" }
           }
         >

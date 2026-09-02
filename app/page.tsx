@@ -425,7 +425,7 @@ export default function Home() {
             onClick={() => selectCurrency(c.code)}
             className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
               currency === c.code
-                ? "text-accent bg-accent-fill/10"
+                ? "text-accent bg-accent/10"
                 : "text-ink hover:bg-ink/7"
             }`}
           >
@@ -476,7 +476,7 @@ export default function Home() {
                     onClick={() => { selectMonth(pickerYear, month); setExpandedSection(null); setShowMoreDrawer(false); }}
                     className={`h-10 rounded-full text-sm font-mono transition-[color,background-color,transform] duration-fast active:scale-95 ${
                       isSelected
-                        ? "bg-accent-fill/15 text-accent border border-accent-fill/30 font-semibold"
+                        ? "bg-accent/15 text-accent border border-accent/50 font-semibold"
                         : "text-ink/40 hover:text-ink/80"
                     }`}
                   >{name}</button>
@@ -505,7 +505,7 @@ export default function Home() {
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] ${
-                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/7"
+                  currency === c.code ? "text-accent bg-accent/10" : "text-ink hover:bg-ink/7"
                 }`}
               >
                 <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -656,7 +656,7 @@ export default function Home() {
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
                 className={`w-11 h-11 flex items-center justify-center rounded-full transition-[color,background-color,border-color,transform] duration-fast active:scale-90 ${
                   privacyMode
-                    ? "bg-accent-fill/15 text-accent"
+                    ? "bg-accent/15 text-accent"
                     : "text-ink/55 hover:text-ink/90"
                 }`}
               >

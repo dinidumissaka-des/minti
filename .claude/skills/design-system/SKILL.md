@@ -40,11 +40,14 @@ If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS
 ## 3. Glass chrome — mobile bottom nav + mobile header controls
 `.glass-chip` / `.glass-chip-active` (backdrop-blur + inset specular highlight). Only valid where content scrolls beneath — the mobile header is `sticky` so it has something to blur. Desktop header and all other chips stay `flat-chip`.
 
-## Accent & danger — fill vs bare text (applies on both surface types)
-- The accent is the brand's darkest oxblood step, not a second hue, and it **inverts per theme**: `oxblood-1000` (`#140101`) in light, `oxblood-50` (`#fdecec`) in dark. A near-black fill needs a ground, and the dark page is already near-black. Danger is the same red in both.
-- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill`. Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on` — never hardcode a light or dark value, it flips with the theme.
-- **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive. Never hardcode a hex for these.
-- Accent is no longer a highlight colour: `text-accent` sits within a point of `text-ink` in light mode. Use weight, fill or border for emphasis.
+## Brand green vs. the neutral
+`--accent` and `--accent-text` are two different colours, not one colour at two lightnesses.
+- **Solid brand surfaces are green** (`--accent`, `#9FE870`, same in both themes): primary buttons, save/confirm circles, the FAB, meters, the selected calendar day. `bg-accent-fill` / `border-accent-fill`, label always `text-accent-on`.
+- **State marks are neutral** (`--accent-text`, inverting per theme — `#140101` light, `#FDECEC` dark): bare accent text and icons, checkmarks, selected rows, active chips, toggle-on labels, focus edges. `text-accent`, `bg-accent/10`, `border-accent/50`.
+- A low-alpha wash is a tint, not a fill: use `bg-accent/15`, never `bg-accent-fill/15` (a washed-out green reads as a stain).
+- **The logo uses `text-brand`** — the green as a bare mark, darkened in light mode. `text-accent-fill` is 1.15:1 on the light page; `text-accent` is the neutral. Neither is the logo.
+- Danger does not split this way: `bg-danger-fill` for fills, `text-danger` for bare text, same red in both themes.
+- The neutral is not a highlight: `text-accent` sits within a point of `text-ink` in light mode. It reads as state only beside a dimmer `text-ink/40` sibling. Use the green fill for standalone emphasis.
 
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
 

@@ -14,6 +14,7 @@ const config: Config = {
         scrim:      "rgb(var(--scrim)      / <alpha-value>)",
         sheet:      "rgb(var(--sheet)      / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
+        brand:        "rgb(var(--brand)       / <alpha-value>)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",
         "accent-fill":"rgb(var(--accent)      / <alpha-value>)",
         "accent-on":  "rgb(var(--accent-on)   / <alpha-value>)",
@@ -32,6 +33,7 @@ const config: Config = {
           800: "rgb(var(--oxblood-800) / <alpha-value>)",
           900: "rgb(var(--oxblood-900) / <alpha-value>)",
           950: "rgb(var(--oxblood-950) / <alpha-value>)",
+          1000:"rgb(var(--oxblood-1000)/ <alpha-value>)",
         },
         // shadcn aliases
         foreground:           "rgb(var(--ink) / 0.88)",
