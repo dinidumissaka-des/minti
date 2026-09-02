@@ -7,7 +7,6 @@ import {
   Bell,
   ChevronRight,
   Coins,
-  EyeOff,
   FileText,
   LogOut,
   Moon,
@@ -27,8 +26,6 @@ interface Props {
   onCurrencyClick: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
-  privacyMode: boolean;
-  onTogglePrivacy: () => void;
   native: boolean;
   biometryAvailable: boolean;
   appLock: boolean;
@@ -105,8 +102,6 @@ export default function AccountPage({
   onCurrencyClick,
   theme,
   onToggleTheme,
-  privacyMode,
-  onTogglePrivacy,
   native,
   biometryAvailable,
   appLock,
@@ -240,15 +235,6 @@ export default function AccountPage({
             description="Follows your device by default"
             trailing={<span className="font-mono text-sm text-ink/50">{theme === "dark" ? "Dark" : "Light"}</span>}
             onClick={onToggleTheme}
-          />
-          <Row
-            icon={<EyeOff size={18} />}
-            label="Hide amounts"
-            description="Blur every figure in the app"
-            trailing={<Toggle on={privacyMode} />}
-            onClick={onTogglePrivacy}
-            role="switch"
-            aria-checked={privacyMode}
           />
           {native && biometryAvailable && (
             <Row

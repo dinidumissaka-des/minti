@@ -451,8 +451,6 @@ export default function Home() {
         onCurrencyClick={() => setShowCurrencyPicker(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
-        privacyMode={privacyMode}
-        onTogglePrivacy={togglePrivacy}
         native={native}
         biometryAvailable={biometryAvailable}
         appLock={appLock}
