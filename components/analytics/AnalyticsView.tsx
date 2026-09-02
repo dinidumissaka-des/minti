@@ -392,7 +392,7 @@ const MomComparison = memo(function MomComparison({
 type Tab = "insights" | "spending" | "vs-last";
 
 const TABS: Segment<Tab>[] = [
-  { key: "insights",  label: "Insights" },
+  { key: "insights",  label: "Overview" },
   { key: "spending",  label: "By Category" },
   { key: "vs-last",   label: "vs Last Month" },
 ];
