@@ -174,19 +174,24 @@ html.light {
     border-color: rgb(var(--accent-text) / 0.22);
   }
 
-  /* Both borders were raised when chips went neutral. The doubled fill
-     separates the active chip from an unselected one by 1.11:1 in light and
-     1.23:1 in dark — it never carried selection on luminance, it carried it on
-     hue, and a grey wash has none to spend. The border is the whole signal
-     now, so it runs at a real alpha: 3.61:1 against the page in light, 3.39:1
-     in dark, clearing the 3:1 a UI boundary needs. */
+  /* A solid fill, not a wash behind an outline. Two doubled-alpha washes
+     separated an active chip from an inactive one by 1.11:1 in light and
+     1.23:1 in dark — selection was never carried by luminance there, it was
+     carried by hue, and once chips went neutral there was none left to spend.
+     Pushing the border to a real alpha rescued it, but a heavy outline around
+     a pale fill is not what a selected segment looks like. Filled, the same
+     comparison is 14.24:1 in light and 16.03:1 in dark, and the pill clears
+     its page at 15.83:1 / 17.69:1.
+     --accent-text already inverts per theme, so one rule serves both: a
+     near-black pill on a light ground, near-white on a dark one. The label
+     therefore has to invert with it — that is `text-surface`, the opposite end
+     of the ramp, at 19.29:1 and 15.60:1. It does not compete with the primary
+     button: this pill is neutral and the button is the only green fill in the
+     app. The border-color matches the fill so the `border`/`border-2` the
+     SegmentedControl pills carry for sizing paints nothing. */
   .flat-chip-active {
-    background-color: rgb(var(--accent-text) / 0.14);
-    border-color: rgb(var(--accent-text) / 0.42);
-  }
-  .light .flat-chip-active {
-    background-color: rgb(var(--accent-text) / 0.1);
-    border-color: rgb(var(--accent-text) / 0.5);
+    background-color: rgb(var(--accent-text));
+    border-color: rgb(var(--accent-text));
   }
 
   .flat-chip-dashed {
