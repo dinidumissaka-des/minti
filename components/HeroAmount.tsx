@@ -54,29 +54,40 @@ export default function HeroAmount({
 
   return (
     <div
-      className="px-1 pt-2 pb-5 flex flex-col gap-1"
+      className="px-1 pt-2 pb-5 flex flex-col items-center gap-1 text-center"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="flex items-center justify-between gap-2 min-h-[2rem] sm:min-h-0">
-        <span className="font-sans text-xs text-muted font-semibold leading-none">{label}</span>
+      {/* The chip is the label on mobile — "Sep 2026" says everything "This
+          Month" did and more. Desktop has no chip (the header carries the month
+          nav), so it keeps the words. */}
+      <div className="flex items-center justify-center min-h-[2rem] sm:min-h-0">
         {month && onMonthClick && (
           <MonthChip year={month.year} month={month.month} onClick={onMonthClick} />
         )}
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <button
-          onClick={onCurrencyClick}
-          aria-label={`Change currency — currently ${currency}`}
-          className="font-mono text-base font-semibold text-ink/40 hover:text-ink/80 px-1.5 -ml-1.5 py-2 -my-2 rounded-full transition-[color,transform] duration-fast active:scale-95"
+        <span
+          className={`font-sans text-xs text-muted font-semibold leading-none ${
+            month && onMonthClick ? "hidden sm:inline" : ""
+          }`}
         >
-          {currency}
-        </button>
+          {label}
+        </span>
+      </div>
+      {/* Wraps rather than overflows: at hero size a six-figure amount plus a
+          currency code is wider than a phone. */}
+      <div className="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-0">
         <AnimatedNumber
           value={value}
           format={(v) => formatAmount(v, currency)}
           className="font-mono text-5xl font-bold text-ink leading-tight"
         />
+        <button
+          onClick={onCurrencyClick}
+          aria-label={`Change currency — currently ${currency}`}
+          className="font-mono text-5xl font-bold leading-tight text-ink/40 hover:text-ink/70 py-2 -my-2 rounded-full transition-[color,transform] duration-fast active:scale-95"
+        >
+          {currency}
+        </button>
       </div>
     </div>
   );
