@@ -43,6 +43,10 @@ html.light {
   --oxblood-800: 101 6   8;
   --oxblood-900: 75  4   5;
   --oxblood-950: 34  1   2;
+  /* Added when the accent moved off green and onto the brand's own darkest
+     step. Below 950 and above the page (12 5 5), so a near-black button still
+     separates from a near-black ground if the two ever meet. */
+  --oxblood-1000: 20 1   1;
 }
 
 :root,
@@ -57,22 +61,45 @@ html.light {
      light lifted off black rather than a charcoal page. Cards land on #1D1414
      at ink/7, still ~17 levels above the ground, so surfaces stay separable. */
   --background:  12  5   5;
-  /* A lift of the ground, not a ramp step, so it has to move when the ground
-     does. It didn't: 52 24 25 was picked against the old 25 11 11 page and
-     stayed put when that dropped to near-black, leaving every drawer painting
-     a maroon panel four times the page's luminance. Re-derived off 12 5 5 —
-     through the sheet's own 0.9 alpha this lands at #231818, one step above a
-     glass card (#1D1717) so a sheet still reads as raised. Saturation drops as
-     it lifts (29% against the ground's 58%) for the same reason the ramp is
-     not used directly: ink at 5-7% barely desaturates a red, so the inputs and
-     chips inside a sheet inherit whatever cast it has. */
-  --sheet:       38  27  27;
+  /* Every raised surface in the app — cards, drawers, the install prompt, the
+     desktop auth panel — is this one opaque colour. It replaced two tokens and
+     three mechanisms: a card used to frost --card over the page at 7%, a
+     drawer painted --sheet at 0.9, and the two were re-derived against each
+     other by hand every time --background moved. An opaque surface has nothing
+     to re-derive: it is a fixed step above the ground, and a drawer is told
+     apart from a card by the scrim behind it, not by being a different colour.
+     29 22 22 is exactly what a glass card already composited to, so cards do
+     not move — the dark theme keeps the surface it had and only stops
+     computing it. */
+  --surface:     29  22  22;
   --ink:         255 255 255;
+  /* --accent and --accent-text are two different colours now, not one colour
+     at two lightnesses. --accent is the brand green and stays put in both
+     themes: it is what a solid brand surface is made of (buttons, meters, the
+     logo, the selected picker day). --accent-text is the neutral that replaced
+     it everywhere the accent was only marking state — bare text, icons, chip
+     washes, focus edges — and it inverts per theme, since a mark that has to
+     read against the ground needs the opposite end of the ramp from it.
+     Dark: oxblood-50 against a near-black page. 17.69:1 on the page, 15.60:1
+     on a glass card. */
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
-  --accent-text: 159 232 112;
+  --accent-text: var(--oxblood-50);
   --accent-on:   var(--oxblood-900);
+  /* The green as a bare mark rather than a fill — the logo, and nothing else
+     so far. It cannot just read --accent: a fill only has to carry the label
+     printed on it, but a mark has to carry itself, and the fill green is
+     1.15:1 on the light page. Same green here (13.71:1 on the near-black
+     ground), darkened in .light. */
+  --brand:       159 232 112;
+  /* The selected segment's fill and its label. Both are ramp steps, pulled one
+     stop in from the ends: the pill is brand-coloured rather than a flat black
+     or white, and its label is too. Dark takes oxblood-100 — a soft warm white
+     rather than the near-white 50 — at 15.47:1 on the page and 14.02:1 against
+     an unselected chip, with an oxblood-900 label on it at 12.19:1. */
+  --chip:        var(--oxblood-100);
+  --chip-on:     var(--oxblood-900);
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -80,20 +107,43 @@ html.light {
 
 .light {
   --background:  231 226 226;
-  /* Off-white, not pure: the light ground is oxblood-tinted too, and a neutral
-     sheet on top of it reads cool. */
-  --sheet:       255 252 252;
+  /* Reads as white against the 231 226 226 ground, but carries the oxblood hue
+     at 2.0% saturation — the ground's own 2.2% — rather than the 0% a literal
+     white would. Cards were 246 240 240 as a frost composite; opaque they can
+     go brighter, which buys separation the translucent version could not have
+     without more frost. */
+  --surface:     253 248 248;
   --ink:         26  14  15;
+  /* Light mode takes the other end of the ramp for the neutral: oxblood-1000,
+     15.83:1 on the page and 13.73:1 on a glass card.
+     The green this replaced as bare text spent two revisions being nudged
+     darker to clear AA (63 122 31 -> 59 115 29 -> 57 112 28) and still only
+     reached 4.67:1. That headroom problem is gone, and the opposite one
+     arrives with it: accent text now lands within a point of --ink (26 14 15),
+     so --accent-text no longer marks a highlight here. It marks state, next to
+     an --ink/40 or --ink/60 sibling that is clearly dimmer. For emphasis on
+     its own, use the green fill. */
   --accent:      159 232 112;
   --accent-hi:   200 247 160;
   --accent-lo:   120 217  85;
-  /* Nudged down twice. First from 63 122 31, when the selected filter chip
-     lost its tint and accent text landed directly on the page (4.15:1, failed
-     AA). Then from 59 115 29, when --background moved off the green-grey to
-     the oxblood-tinted 231 226 226 and took it to 4.48:1. This reads 4.67:1 on
-     the page and 5.99:1 on a glass card. */
-  --accent-text: 57  112 28;
+  --accent-text: var(--oxblood-1000);
   --accent-on:   var(--oxblood-900);
+  /* The darkened green the logo has always been drawn in. This is where the
+     old --accent-text value went when that token was handed to the neutral;
+     it was nudged here over two revisions to clear AA (63 122 31 -> 59 115 29
+     -> 57 112 28) and reads 4.67:1 on the page, 5.99:1 on a glass card. Don't
+     lighten it back toward --accent without re-measuring against --background,
+     not against a card. */
+  --brand:       57  112 28;
+  /* Light reads the pair from the other end: oxblood-800, a deep brand maroon
+     rather than the near-black 1000, at 10.34:1 on the page and 9.31:1 against
+     an unselected chip, labelled oxblood-50 at 11.62:1.
+     Don't reach further up the ramp for a *pale* pill. 50 through 200 sit
+     within 1.0-1.3:1 of the light ground, so they separate on hue alone, and
+     the hue they separate on is the danger family — a selected filter would
+     read as an error. The ramp only has luminance to spend at its ends. */
+  --chip:        var(--oxblood-800);
+  --chip-on:     var(--oxblood-50);
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       26  14  15;
@@ -119,18 +169,18 @@ html.light {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Flat chips (header buttons, nav pills, filter tabs, tags): a light brand-green
-     wash in both themes. Dark mode tints with --accent — already high-contrast
-     against the near-black background even at low alpha. Light mode tints with
-     --accent-text (the darker green also used for bare accent text there) since
-     the pale --accent barely registers against the light gray background at the
-     same alpha. Active state doubles the wash so selection still pops. */
+  /* Flat chips (header buttons, nav pills, filter tabs, tags): a low-alpha
+     wash of --accent-text in both themes. Chips mark state, so they take the
+     neutral rather than the brand green, and --accent-text already inverts to
+     whichever end of the ramp contrasts against the ground it sits on. That is
+     also why the two blocks differ only in alpha now — a green tint used to
+     need a different *colour* per theme to register at all. */
   .flat-chip {
-    background-color: rgb(var(--accent) / 0.06);
-    border-color: rgb(var(--accent) / 0.14);
+    background-color: rgb(var(--accent-text) / 0.06);
+    border-color: rgb(var(--accent-text) / 0.14);
   }
   .flat-chip:hover {
-    border-color: rgb(var(--accent) / 0.24);
+    border-color: rgb(var(--accent-text) / 0.24);
   }
   .light .flat-chip {
     background-color: rgb(var(--accent-text) / 0.05);
@@ -140,13 +190,22 @@ html.light {
     border-color: rgb(var(--accent-text) / 0.22);
   }
 
+  /* A solid fill, not a wash behind an outline. Two doubled-alpha washes
+     separated an active chip from an inactive one by 1.11:1 in light and
+     1.23:1 in dark — selection was never carried by luminance there, it was
+     carried by hue, and once chips went neutral there was none left to spend.
+     Pushing the border to a real alpha rescued it, but a heavy outline around
+     a pale fill is not what a selected segment looks like. Filled, the same
+     comparison is 14.24:1 in light and 16.03:1 in dark, and the pill clears
+     its page at 15.83:1 / 17.69:1.
+     The fill is --chip and the label --chip-on, both ramp steps that invert
+     per theme, so one rule serves both. It does not compete with the primary
+     button: the pill is oxblood and the button is the only green fill in the
+     app. The border-color matches the fill so the `border`/`border-2` the
+     SegmentedControl pills carry for sizing paints nothing. */
   .flat-chip-active {
-    background-color: rgb(var(--accent) / 0.14);
-    border-color: rgb(var(--accent) / 0.28);
-  }
-  .light .flat-chip-active {
-    background-color: rgb(var(--accent-text) / 0.1);
-    border-color: rgb(var(--accent-text) / 0.22);
+    background-color: rgb(var(--chip));
+    border-color: rgb(var(--chip));
   }
 
   .flat-chip-dashed {
@@ -168,12 +227,16 @@ html.light {
       inset 0 1px 0 rgb(255 255 255 / 0.14),
       0 8px 32px rgb(0 0 0 / 0.28);
   }
+  /* 15 23 11 was a green-black, left over from the theme before the oxblood
+     one — a green shadow under a chip on a red-tinted page. Both it and the
+     white fill now come from the tokens. The inset highlight stays literal
+     white: it is a specular reflection, not a surface. */
   .light .glass-chip {
-    background-color: rgb(255 255 255 / 0.88);
-    border-color: rgb(15 23 11 / 0.07);
+    background-color: rgb(var(--surface) / 0.88);
+    border-color: rgb(var(--ink) / 0.07);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.9),
-      0 8px 28px rgb(15 23 11 / 0.10);
+      0 8px 28px rgb(var(--ink) / 0.10);
   }
 
   .glass-chip-active {
@@ -181,8 +244,8 @@ html.light {
     border-color: rgb(var(--ink) / 0.16);
   }
   .light .glass-chip-active {
-    background-color: rgb(15 23 11 / 0.06);
-    border-color: rgb(15 23 11 / 0.05);
+    background-color: rgb(var(--ink) / 0.06);
+    border-color: rgb(var(--ink) / 0.05);
   }
 
   /* Apple: "Test your interface with a variety of display and accessibility
@@ -207,7 +270,7 @@ html.light {
       background-color: rgb(var(--ink) / 0.3);
     }
     .light .glass-chip-active {
-      background-color: rgb(15 23 11 / 0.14);
+      background-color: rgb(var(--ink) / 0.14);
     }
   }
 }

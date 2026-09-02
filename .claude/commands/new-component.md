@@ -14,7 +14,7 @@ Steps:
    - `"use client";` at the top
    - Named Props interface
    - Tailwind classes only — use `bg-white/[0.07]`, `border-white/[0.1]` (never `bg-surface` or `border-border`)
-   - Wrap card content in `<GlassSurface borderRadius={28} backgroundOpacity={0.07}>`
+   - Wrap card content in `<Surface borderRadius={28}>`
    - No comments unless non-obvious
 3. Export as default function
 4. Report the file path created

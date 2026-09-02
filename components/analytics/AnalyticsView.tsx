@@ -6,7 +6,7 @@ import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
 import { getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import Meter from "@/components/ui/Meter";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
 import ViewTransition from "@/components/ui/ViewTransition";
@@ -83,16 +83,16 @@ const CategoryChart = memo(function CategoryChart({
 
   if (stats.length === 0) {
     return (
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+      <Surface borderRadius={28}>
         <div className="px-6 py-10 text-center w-full">
           <p className="text-muted text-body font-mono">No spending data yet</p>
         </div>
-      </GlassSurface>
+      </Surface>
     );
   }
 
   return (
-    <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+    <Surface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <span className="font-sans text-xs text-muted font-semibold">
           Spending by Category
@@ -122,7 +122,7 @@ const CategoryChart = memo(function CategoryChart({
           ))}
         </div>
       </div>
-    </GlassSurface>
+    </Surface>
   );
 });
 
@@ -268,15 +268,14 @@ const InsightCards = memo(function InsightCards({
   return (
     <div className="flex flex-col gap-3">
       {insights.map((insight, i) => (
-        <GlassSurface
+        <Surface
           key={insight.id}
           borderRadius={24}
-          backgroundOpacity={0.07}
           className="animate-row-in"
           style={{
             animationDelay: `${Math.min(i * 60, 300)}ms`,
             ...(insight.type === "positive"
-              ? { borderColor: "rgb(var(--accent) / 0.2)" }
+              ? { borderColor: "rgb(var(--accent-text) / 0.2)" }
               : insight.type === "warning"
               ? { borderColor: "rgb(var(--danger) / 0.2)" }
               : {}),
@@ -293,7 +292,7 @@ const InsightCards = memo(function InsightCards({
               )}
             </div>
           </div>
-        </GlassSurface>
+        </Surface>
       ))}
     </div>
   );
@@ -351,7 +350,7 @@ const MomComparison = memo(function MomComparison({
   if (categories.length === 0) return null;
 
   return (
-    <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+    <Surface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
           <span className="font-sans text-xs text-muted font-semibold">
@@ -384,7 +383,7 @@ const MomComparison = memo(function MomComparison({
           })}
         </div>
       </div>
-    </GlassSurface>
+    </Surface>
   );
 });
 
@@ -443,7 +442,7 @@ export default function AnalyticsView({
         className="flex gap-2"
         itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
         pillClassName="flat-chip-active border-2 rounded-full"
-        activeClassName="text-accent border-transparent"
+        activeClassName="text-chip-on border-transparent"
         inactiveClassName="flat-chip text-ink/60 hover:text-ink"
       />
 

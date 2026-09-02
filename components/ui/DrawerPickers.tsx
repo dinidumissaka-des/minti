@@ -78,7 +78,7 @@ export function CalendarPicker({ value, onChange, onClose }: { value: string; on
                 isSelected
                   ? "bg-accent-fill text-accent-on font-bold"
                   : isToday
-                  ? "border border-accent-fill/50 text-accent"
+                  ? "border border-accent/50 text-accent"
                   : "text-ink/80 hover:bg-ink/10"
               }`}
             >

@@ -51,8 +51,8 @@ export default function InstallPrompt() {
       style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
     >
       <div
-        className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-ink/10 backdrop-blur-2xl shadow-2xl"
-        style={{ backgroundColor: "rgb(var(--sheet) / 0.92)" }}
+        className="flex items-center gap-3 px-3 py-3 rounded-2xl border border-ink/10 shadow-2xl"
+        style={{ backgroundColor: "rgb(var(--surface))" }}
       >
         {/* App icon */}
         <div className="w-10 h-10 rounded-xl bg-accent-fill/15 border border-accent-fill/25 flex items-center justify-center flex-shrink-0">

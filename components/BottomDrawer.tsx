@@ -178,15 +178,15 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         aria-modal="true"
         aria-label={title}
         aria-hidden={isBehind}
-        className={`fixed z-drawer backdrop-blur-2xl border-ink/10 flex flex-col origin-bottom ${
+        className={`fixed z-drawer flex flex-col origin-bottom ${
           dragging.current ? "" : "transition-transform duration-slow ease-out"
         } ${isBehind ? "pointer-events-none" : ""} ${
           fullScreen
-            ? "inset-0 border-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:border-t sm:border-x sm:rounded-t-2xl"
-            : "bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-x rounded-t-2xl"
+            ? "inset-0 sm:inset-auto sm:bottom-0 sm:left-0 sm:right-0 sm:max-w-2xl sm:mx-auto sm:rounded-t-2xl"
+            : "bottom-0 left-0 right-0 max-w-2xl mx-auto rounded-t-2xl"
         }`}
         style={{
-          backgroundColor: "rgb(var(--sheet) / 0.9)",
+          backgroundColor: "rgb(var(--surface))",
           // A full-screen sheet has no room to travel, so it gives the keyboard
           // its bottom edge; a bottom sheet rides up on the transform it is
           // already animating.
@@ -230,7 +230,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
 
           {title && (
             <div
-              className={`px-4 pb-3 border-b border-ink/10 flex items-center justify-between shrink-0 ${fullScreen ? "sm:!pt-1" : ""}`}
+              className={`px-4 pb-3 flex items-center justify-between shrink-0 ${fullScreen ? "sm:!pt-1" : ""}`}
               style={fullScreen ? { paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' } : { paddingTop: '0.25rem' }}
             >
               <p className="font-sans font-semibold text-ink text-base">{title}</p>

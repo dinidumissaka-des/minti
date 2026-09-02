@@ -5,7 +5,7 @@ Loaded when working on UI, styling, or component tasks.
 The app supports light and dark themes (CSS variables flip on `.light`/`.dark` class on `<html>`, see `app/globals.css`). There are two categories of surface — check which one you're styling before picking a color:
 
 ## 1. Content surfaces — fully theme-adaptive
-GlassSurface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt. Use `ink`-opacity utilities, never literal `white`/`black`:
+Surface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt. Use `ink`-opacity utilities, never literal `white`/`black`:
 
 | Use | Class |
 |-----|-------|
@@ -40,23 +40,31 @@ If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS
 ## 3. Glass chrome — mobile bottom nav + mobile header controls
 `.glass-chip` / `.glass-chip-active` (backdrop-blur + inset specular highlight). Only valid where content scrolls beneath — the mobile header is `sticky` so it has something to blur. Desktop header and all other chips stay `flat-chip`.
 
-## Accent & danger — fill vs bare text (applies on both surface types)
-- **Fill** (buttons, badges, progress bars, active-pill highlights): `bg-accent-fill` / `border-accent-fill` / `ring-accent-fill` (`#9FE870`, same in both themes). Danger fill: `bg-danger-fill` / `border-danger-fill`. Text on an accent fill: `text-accent-on`.
-- **Bare text/icon** (reads directly against a background, not sitting on a solid fill): `text-accent` / `text-danger` — theme-adaptive, darker in light mode for contrast. Never use the raw hex `#9FE870` for this.
+## Brand green vs. the neutral
+`--accent` and `--accent-text` are two different colours, not one colour at two lightnesses.
+- **Solid brand surfaces are green** (`--accent`, `#9FE870`, same in both themes): primary buttons, save/confirm circles, the FAB, meters, the selected calendar day. `bg-accent-fill` / `border-accent-fill`, label always `text-accent-on`.
+- **State marks are neutral** (`--accent-text`, inverting per theme — `#140101` light, `#FDECEC` dark): bare accent text and icons, checkmarks, selected rows, active chips, toggle-on labels, focus edges. `text-accent`, `bg-accent/10`, `border-accent/50`.
+- A low-alpha wash is a tint, not a fill: use `bg-accent/15`, never `bg-accent-fill/15` (a washed-out green reads as a stain).
+- **The logo uses `text-brand`** — the green as a bare mark, darkened in light mode. `text-accent-fill` is 1.15:1 on the light page; `text-accent` is the neutral. Neither is the logo.
+- Danger does not split this way: `bg-danger-fill` for fills, `text-danger` for bare text, same red in both themes.
+- The neutral is not a highlight: `text-accent` sits within a point of `text-ink` in light mode. It reads as state only beside a dimmer `text-ink/40` sibling. Use the green fill for standalone emphasis.
 
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
+
+## Raised surfaces
+One mechanism: paint `--surface`, opaque. Cards, drawers, the install prompt and the desktop auth panel are all the same colour — a drawer is told apart from a card by the scrim behind it. `bg-surface` or `rgb(var(--surface))`. There is no `--card`, no `--sheet`, and no `backgroundOpacity` prop on Surface. Chips are not raised surfaces; they wash a token at low alpha to mark state.
 
 ## Component patterns
 
 ### Glass card
 ```tsx
-<GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+<Surface borderRadius={28}>
   <div className="px-5 py-4 w-full">...</div>
-</GlassSurface>
+</Surface>
 ```
-No drop shadow (removed intentionally) — definition comes from the border, which `GlassSurface.css` already bumps for light mode via `.light` overrides.
+No drop shadow and no border by default — definition comes from `--surface` being a step off the ground. `Surface.css` carries a transparent 1px border only so a caller can tint the edge with `style={{ borderColor: … }}`.
 
-### Pill toggle (active/inactive) — e.g. filter tabs inside GlassSurface
+### Pill toggle (active/inactive) — e.g. filter tabs inside Surface
 ```tsx
 className={`flex-1 py-2 text-sm font-mono rounded-full transition-colors ${
   active ? "flat-chip-active text-ink font-semibold border"
@@ -106,7 +114,7 @@ style={{ backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)" }}
 - Body: `text-sm text-ink font-sans`
 
 ## Spacing & radius
-- GlassSurface cards: `borderRadius={28}` always
+- Surface cards: `borderRadius={28}` always
 - Pill buttons: `rounded-full`
 - Inputs: `rounded-lg`
 - Gap between cards: `gap-2` in the main flex column

@@ -6,7 +6,7 @@ import { addExpense } from "@/lib/supabase";
 import { hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
 import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
@@ -18,7 +18,7 @@ interface Props {
   userId: string;
   currency: string;
   onExpenseAdded: () => void;
-  /** Drop the GlassSurface card when the form already sits on one (a sheet).
+  /** Drop the Surface card when the form already sits on one (a sheet).
       Apple warns against layering Liquid Glass elements on top of each other. */
   bare?: boolean;
 }
@@ -187,9 +187,9 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
   return (
     <>
       {bare ? body : (
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <Surface borderRadius={28}>
           {body}
-        </GlassSurface>
+        </Surface>
       )}
 
       {/* Date bottom drawer */}

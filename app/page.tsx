@@ -16,7 +16,7 @@ import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import Collapse from "@/components/ui/Collapse";
 import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import Logo from "@/components/Logo";
 import AuthForm from "@/components/AuthForm";
 import AuthShowcase from "@/components/AuthShowcase";
@@ -425,7 +425,7 @@ export default function Home() {
             onClick={() => selectCurrency(c.code)}
             className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-colors border-b border-ink/10 last:border-0 ${
               currency === c.code
-                ? "text-accent bg-accent-fill/10"
+                ? "text-accent bg-accent/10"
                 : "text-ink hover:bg-ink/7"
             }`}
           >
@@ -476,7 +476,7 @@ export default function Home() {
                     onClick={() => { selectMonth(pickerYear, month); setExpandedSection(null); setShowMoreDrawer(false); }}
                     className={`h-10 rounded-full text-sm font-mono transition-[color,background-color,transform] duration-fast active:scale-95 ${
                       isSelected
-                        ? "bg-accent-fill/15 text-accent border border-accent-fill/30 font-semibold"
+                        ? "bg-accent/15 text-accent border border-accent/50 font-semibold"
                         : "text-ink/40 hover:text-ink/80"
                     }`}
                   >{name}</button>
@@ -505,7 +505,7 @@ export default function Home() {
                 key={c.code}
                 onClick={() => { selectCurrency(c.code); setExpandedSection(null); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] ${
-                  currency === c.code ? "text-accent bg-accent-fill/10" : "text-ink hover:bg-ink/7"
+                  currency === c.code ? "text-accent bg-accent/10" : "text-ink hover:bg-ink/7"
                 }`}
               >
                 <span className="font-mono font-semibold text-base">{c.code}</span>
@@ -626,9 +626,9 @@ export default function Home() {
           onChange={changeView}
           role={null}
           itemRole={null}
-          className="flex items-center h-16 p-1.5 rounded-3xl border glass-chip"
+          className="flex items-center h-16 p-1.5 rounded-3xl glass-chip"
           itemClassName="flex-1 h-full flex flex-col items-center justify-center gap-1 rounded-full text-xs font-mono"
-          pillClassName="glass-chip-active border rounded-full"
+          pillClassName="glass-chip-active rounded-full"
           activeClassName="text-ink"
           inactiveClassName="text-ink/55 hover:text-ink/80"
         />
@@ -656,7 +656,7 @@ export default function Home() {
                 aria-label={privacyMode ? "Show amounts" : "Hide amounts"}
                 className={`w-11 h-11 flex items-center justify-center rounded-full transition-[color,background-color,border-color,transform] duration-fast active:scale-90 ${
                   privacyMode
-                    ? "bg-accent-fill/15 text-accent"
+                    ? "bg-accent/15 text-accent"
                     : "text-ink/55 hover:text-ink/90"
                 }`}
               >
@@ -753,7 +753,7 @@ export default function Home() {
             className="hidden sm:flex items-center h-10 p-0.5 rounded-full border flat-chip w-full"
             itemClassName="flex-1 h-9 rounded-full text-sm font-mono"
             pillClassName="flat-chip-active border rounded-full"
-            activeClassName="text-ink"
+            activeClassName="text-chip-on"
             inactiveClassName="text-ink/40 hover:text-ink/80"
           />
         </header>
@@ -777,7 +777,7 @@ export default function Home() {
                   className="font-mono text-5xl font-bold text-ink leading-tight"
                 />
               </div>
-              <GlassSurface borderRadius={28}>
+              <Surface borderRadius={28}>
                 <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                   <div className="px-5 py-4 flex flex-col gap-1">
                     <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
@@ -792,7 +792,7 @@ export default function Home() {
                     />
                   </div>
                 </div>
-              </GlassSurface>
+              </Surface>
             </div>
           )}
           {view === "income" && (
@@ -828,7 +828,7 @@ export default function Home() {
                 className="flex gap-2"
                 itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
                 pillClassName="flat-chip-active border-2 rounded-full"
-                activeClassName="text-accent border-transparent"
+                activeClassName="text-chip-on border-transparent"
                 inactiveClassName="flat-chip text-ink/60 hover:text-ink"
               />
 

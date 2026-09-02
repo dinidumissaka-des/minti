@@ -7,7 +7,7 @@ import type { Expense, Subscription, Income } from "@/types";
 import { getIncomeByMonth, addIncome, deleteIncome, upsertUserSettings } from "@/lib/supabase";
 import { hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
@@ -169,12 +169,11 @@ const IncomeSection = memo(function IncomeSection({
     <div className="flex flex-col gap-3">
 
       {totalIncome > 0 && (
-        <GlassSurface
+        <Surface
           borderRadius={28}
-          backgroundOpacity={0.07}
           style={
             saved >= 0
-              ? { borderColor: "rgb(var(--accent) / 0.25)", boxShadow: "0 0 10px rgb(var(--accent) / 0.05)" }
+              ? { borderColor: "rgb(var(--accent-text) / 0.25)", boxShadow: "0 0 10px rgb(var(--accent-text) / 0.05)" }
               : { borderColor: "rgb(var(--danger) / 0.25)" }
           }
         >
@@ -210,11 +209,11 @@ const IncomeSection = memo(function IncomeSection({
               />
             )}
           </div>
-        </GlassSurface>
+        </Surface>
       )}
 
       {editingBaseline || monthlyIncome || entriesTotal > 0 ? (
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <Surface borderRadius={28}>
           {editingBaseline ? (
             <div className="px-4 py-4 flex items-center gap-3 w-full">
               <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
@@ -268,7 +267,7 @@ const IncomeSection = memo(function IncomeSection({
               </button>
             </div>
           )}
-        </GlassSurface>
+        </Surface>
       ) : (
         <button
           onClick={openBaselineEdit}
@@ -278,7 +277,7 @@ const IncomeSection = memo(function IncomeSection({
         </button>
       )}
 
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+      <Surface borderRadius={28}>
         <div className="w-full">
           <div className="px-4 py-3 flex items-center justify-between border-b border-ink/7">
             <span className="font-sans text-xs text-muted font-semibold">One-off Income</span>
@@ -418,7 +417,7 @@ const IncomeSection = memo(function IncomeSection({
             </div>
           )}
         </div>
-      </GlassSurface>
+      </Surface>
 
       <BottomDrawer open={showSourceDrawer} onClose={() => setShowSourceDrawer(false)} title="Income Source">
         <SourceList

@@ -6,7 +6,7 @@ import { addSubscription, deleteSubscription, updateSubscription } from "@/lib/s
 import { hapticBump, hapticSuccess } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import { CATEGORY_COLORS } from "@/lib/categories";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
@@ -123,7 +123,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
   return (
     <div className="flex flex-col gap-4" onClick={() => setSwipedId(null)}>
       {subscriptions.length > 0 && (
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <Surface borderRadius={28}>
           <div className="px-5 py-4 flex items-center justify-between w-full">
             <span className="font-sans text-xs text-muted font-semibold">Monthly Recurring</span>
             <AnimatedNumber
@@ -245,11 +245,11 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
               );
             })}
           </div>
-        </GlassSurface>
+        </Surface>
       )}
 
       <Collapse open={showAdd}>
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <Surface borderRadius={28}>
           <div className="p-4 flex flex-col gap-3 w-full">
             <input
               className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"
@@ -292,7 +292,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
               </button>
             </div>
           </div>
-        </GlassSurface>
+        </Surface>
       </Collapse>
 
       <Collapse open={!showAdd}>
