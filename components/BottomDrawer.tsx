@@ -178,7 +178,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
         aria-modal="true"
         aria-label={title}
         aria-hidden={isBehind}
-        className={`fixed z-drawer backdrop-blur-2xl flex flex-col origin-bottom ${
+        className={`fixed z-drawer flex flex-col origin-bottom ${
           dragging.current ? "" : "transition-transform duration-slow ease-out"
         } ${isBehind ? "pointer-events-none" : ""} ${
           fullScreen
@@ -186,7 +186,7 @@ export default function BottomDrawer({ open, onClose, title, children, contentCl
             : "bottom-0 left-0 right-0 max-w-2xl mx-auto rounded-t-2xl"
         }`}
         style={{
-          backgroundColor: "rgb(var(--sheet) / 0.9)",
+          backgroundColor: "rgb(var(--surface))",
           // A full-screen sheet has no room to travel, so it gives the keyboard
           // its bottom edge; a bottom sheet rides up on the transform it is
           // already animating.

@@ -205,7 +205,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
               </span>
             </div>
 
-            <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+            <GlassSurface borderRadius={28}>
             <div className="w-full divide-y divide-ink/10">
               {dayExpenses.map((expense) => {
                 const isEditing = editingId === expense.id;

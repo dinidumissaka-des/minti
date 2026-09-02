@@ -83,7 +83,7 @@ const CategoryChart = memo(function CategoryChart({
 
   if (stats.length === 0) {
     return (
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+      <GlassSurface borderRadius={28}>
         <div className="px-6 py-10 text-center w-full">
           <p className="text-muted text-body font-mono">No spending data yet</p>
         </div>
@@ -92,7 +92,7 @@ const CategoryChart = memo(function CategoryChart({
   }
 
   return (
-    <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+    <GlassSurface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <span className="font-sans text-xs text-muted font-semibold">
           Spending by Category
@@ -271,7 +271,6 @@ const InsightCards = memo(function InsightCards({
         <GlassSurface
           key={insight.id}
           borderRadius={24}
-          backgroundOpacity={0.07}
           className="animate-row-in"
           style={{
             animationDelay: `${Math.min(i * 60, 300)}ms`,
@@ -351,7 +350,7 @@ const MomComparison = memo(function MomComparison({
   if (categories.length === 0) return null;
 
   return (
-    <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+    <GlassSurface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
           <span className="font-sans text-xs text-muted font-semibold">

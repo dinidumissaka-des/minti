@@ -61,39 +61,17 @@ html.light {
      light lifted off black rather than a charcoal page. Cards land on #1D1414
      at ink/7, still ~17 levels above the ground, so surfaces stay separable. */
   --background:  12  5   5;
-  /* A lift of the ground, not a ramp step, so it has to move when the ground
-     does. It didn't: 52 24 25 was picked against the old 25 11 11 page and
-     stayed put when that dropped to near-black, leaving every drawer painting
-     a maroon panel four times the page's luminance.
-     Re-deriving it off 12 5 5 fixed the luminance and left the colour: at
-     38 27 27 a sheet composited to #221818, only 1.4 points lighter than a
-     glass card but 5.3 points MORE saturated, so it went up in colour without
-     going up in lightness — which is what reads as a maroon panel rather than
-     a raised one. Measure a sheet against a card, not against the page: the
-     page is 75% saturated under the scrim and everything clears it.
-     Now #221B1B — 12.0% lightness and 20.6% saturation against a card's 10.0%
-     and 24.1%, so it lifts on both axes at once. This matters more here than
-     anywhere else because at 0.9 alpha a sheet is almost entirely its own
-     token (a glass card is 93% page showing through), and because ink at
-     5-7% barely desaturates a red, so every input and chip inside a drawer
-     inherits whatever cast it has. */
-  --sheet:       37  30  30;
-  /* What a glass card frosts toward. It was a literal white, which meant a
-     card diluted the brand instead of carrying it: at the 62% the light theme
-     frosts at, white dragged the card to 0.8% saturation on a 2.2% ground, so
-     the one surface the eye spends the most time on was the only neutral thing
-     on an oxblood-tinted page.
-     Derived, not picked: the oxblood hue at the saturation that makes a card
-     come out matching the ground it lifts off (2.29% vs 2.16%) rather than
-     under it. Not the raw oxblood-50 either — frosting with a ramp step lands
-     the card at 5.1%, over twice the ground, which is the "every card reads as
-     red" failure --background was moved off oxblood-950 to escape.
-     Deliberately NOT overridden in .light: a card lifts toward the same
-     near-white on either ground, and only the alpha differs (7% dark, 62%
-     light). At 7% the frost's own hue barely registers — the dark card is the
-     page showing through 93% of itself — so this token earns its keep in light
-     mode. */
-  --card:        255 249 249;
+  /* Every raised surface in the app — cards, drawers, the install prompt, the
+     desktop auth panel — is this one opaque colour. It replaced two tokens and
+     three mechanisms: a card used to frost --card over the page at 7%, a
+     drawer painted --sheet at 0.9, and the two were re-derived against each
+     other by hand every time --background moved. An opaque surface has nothing
+     to re-derive: it is a fixed step above the ground, and a drawer is told
+     apart from a card by the scrim behind it, not by being a different colour.
+     29 22 22 is exactly what a glass card already composited to, so cards do
+     not move — the dark theme keeps the surface it had and only stops
+     computing it. */
+  --surface:     29  22  22;
   --ink:         255 255 255;
   /* --accent and --accent-text are two different colours now, not one colour
      at two lightnesses. --accent is the brand green and stays put in both
@@ -122,9 +100,12 @@ html.light {
 
 .light {
   --background:  231 226 226;
-  /* Off-white, not pure: the light ground is oxblood-tinted too, and a neutral
-     sheet on top of it reads cool. */
-  --sheet:       255 252 252;
+  /* Reads as white against the 231 226 226 ground, but carries the oxblood hue
+     at 2.0% saturation — the ground's own 2.2% — rather than the 0% a literal
+     white would. Cards were 246 240 240 as a frost composite; opaque they can
+     go brighter, which buys separation the translucent version could not have
+     without more frost. */
+  --surface:     253 248 248;
   --ink:         26  14  15;
   /* Light mode takes the other end of the ramp for the neutral: oxblood-1000,
      15.83:1 on the page and 13.73:1 on a glass card.
@@ -232,7 +213,7 @@ html.light {
      white fill now come from the tokens. The inset highlight stays literal
      white: it is a specular reflection, not a surface. */
   .light .glass-chip {
-    background-color: rgb(var(--card) / 0.88);
+    background-color: rgb(var(--surface) / 0.88);
     border-color: rgb(var(--ink) / 0.07);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.9),

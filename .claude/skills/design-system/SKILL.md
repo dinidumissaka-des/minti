@@ -52,7 +52,7 @@ If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
 
 ## Raised surfaces
-Three mechanisms, not interchangeable: a glass card frosts `--card` over the page; a drawer paints `--sheet` at 0.9; chips wash a token at low alpha. `--card` is a near-white at the oxblood hue — never a literal white, which washes the brand out of the card at light mode's 62% frost. `backgroundOpacity` on GlassSurface sets only the alpha, and every card passes `0.07`.
+One mechanism: paint `--surface`, opaque. Cards, drawers, the install prompt and the desktop auth panel are all the same colour — a drawer is told apart from a card by the scrim behind it. `bg-surface` or `rgb(var(--surface))`. There is no `--card`, no `--sheet`, and no `backgroundOpacity` prop on GlassSurface. Chips are not raised surfaces; they wash a token at low alpha to mark state.
 
 ## Component patterns
 

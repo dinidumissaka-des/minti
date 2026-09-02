@@ -12,7 +12,7 @@ const config: Config = {
         background: "rgb(var(--background) / <alpha-value>)",
         ink:        "rgb(var(--ink)        / <alpha-value>)",
         scrim:      "rgb(var(--scrim)      / <alpha-value>)",
-        sheet:      "rgb(var(--sheet)      / <alpha-value>)",
+        surface:    "rgb(var(--surface)    / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
         brand:        "rgb(var(--brand)       / <alpha-value>)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",

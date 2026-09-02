@@ -123,7 +123,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
   return (
     <div className="flex flex-col gap-4" onClick={() => setSwipedId(null)}>
       {subscriptions.length > 0 && (
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <GlassSurface borderRadius={28}>
           <div className="px-5 py-4 flex items-center justify-between w-full">
             <span className="font-sans text-xs text-muted font-semibold">Monthly Recurring</span>
             <AnimatedNumber
@@ -249,7 +249,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
       )}
 
       <Collapse open={showAdd}>
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <GlassSurface borderRadius={28}>
           <div className="p-4 flex flex-col gap-3 w-full">
             <input
               className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink placeholder:text-muted outline-none focus:border-ink/40"

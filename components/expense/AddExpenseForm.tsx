@@ -187,7 +187,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
   return (
     <>
       {bare ? body : (
-        <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+        <GlassSurface borderRadius={28}>
           {body}
         </GlassSurface>
       )}

@@ -55,7 +55,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
 
   if (editing) {
     return (
-      <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+      <GlassSurface borderRadius={28}>
       <div className="px-4 py-4 flex items-center gap-3 w-full">
         <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
         <input
@@ -84,7 +84,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
   const remaining = budget! - spent;
 
   return (
-    <GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+    <GlassSurface borderRadius={28}>
     <div className="px-4 py-4 flex flex-col gap-3 w-full">
       <div className="flex items-center justify-between">
         <span className="font-sans text-xs text-muted font-semibold">Monthly Budget</span>
