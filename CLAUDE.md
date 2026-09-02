@@ -24,7 +24,8 @@ components/
   ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/MonthPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
   Surface.tsx       The one raised surface — paints --surface opaque, owns the card radius
   BottomDrawer.tsx  Modal sheet — currency/month/category/date pickers, currency converter, add-expense sheet
-  SettingsSheet.tsx Account / Preferences / Data sheet behind the header avatar (replaced the "⋯" More menu)
+  AccountPage.tsx   Full-screen account page pushed in from the header avatar — identity block + Your account / Settings / Session rows (replaced the "⋯" More menu)
+  Avatar.tsx        Profile circle — OAuth photo when the session has one, initials otherwise; also exports displayName()
   HeroAmount.tsx    The big figure at the top of a view — label, month chip, tappable currency, swipe-to-change-month
   MonthChip.tsx     Mobile month pill (`Sep 2026 ⌄`) — opens the month picker
   StatsBar.tsx      Month total (hero), Today, Avg/Day — includes subscriptionsTotal
@@ -119,7 +120,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 - Platform manifests can't read CSS variables, so `lib/brand.ts` holds those literals in one place. Keep it in sync with `--background` and `--accent`.
 
 **Layout scales** — same rule as color: name it in `tailwind.config.ts`, don't bracket it in a component.
-- **Z-index**: `z-background` (0), `z-content` (10), `z-nav-scrim` (45), `z-nav` (50), `z-prompt` (55), `z-scrim` (60), `z-drawer` (70), `z-skip` (200), `z-lock` (300). New overlays join this ladder — never invent a bigger number inline.
+- **Z-index**: `z-background` (0), `z-content` (10), `z-nav-scrim` (45), `z-nav` (50), `z-prompt` (55), `z-page` (58), `z-scrim` (60), `z-drawer` (70), `z-skip` (200), `z-lock` (300). `z-page` is a pushed full-screen page: over the nav it covers, under the drawer scrim so a sheet opened from it dims it. New overlays join this ladder — never invent a bigger number inline.
 - **Radius**: `sm` 6 · `DEFAULT` 10 · `md` 12 · `lg` 16 · `xl` 20 · `2xl` 24 · `3xl` 32 · `full`. `md` and `lg` were both 16px until they were split, so anything written before that reads `rounded-lg`.
 - **Type**: `text-body` (15px) is the list-row / menu-row size, between `text-sm` and `text-base`.
 - **Sizing**: `h-control`/`w-control` (52px) is the standard input and button height; `w-reveal` (60px) is the hover-reveal action strip.
@@ -158,7 +159,7 @@ RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (ha
 
 ## Key patterns
 - **Month and currency live on the figure, not in a menu**: every hero renders through `HeroAmount`, which carries the month chip (mobile only — desktop has the header month nav) and the tappable currency code. They qualify the number, so hiding them behind the header left the largest figure on the screen unexplained. Bills are the one hero with no month chip: subscriptions recur, so the figure isn't scoped to the selected month.
-- **Settings, not overflow**: the header avatar opens `SettingsSheet` (Account / Preferences / Data / Session). Nav destinations never appear in it — Insights is a bottom-nav tab and having it in both taught two depths for one place. Rows read label-primary, value-secondary, and sign out asks first.
+- **Settings, not overflow**: the header avatar (mobile: it replaces the wordmark in the top-left corner; desktop: it sits in the right-hand pill) pushes `AccountPage` in from the right — identity block, then Your account / Settings / Session. It takes a history entry, so hardware and browser back close it. Nav destinations never appear in it — Insights is a bottom-nav tab and having it in both taught two depths for one place. Rows read label-primary, value-secondary, and sign out asks first.
 - **Category/date picker**: `CategoryList`/`CalendarPicker`/`SourceList` (`components/ui/DrawerPickers.tsx`) always render inside a `BottomDrawer` — used from AddExpenseForm, ExpenseList/SubscriptionList edit rows, IncomeSection
 - **Hover-reveal actions**: edit/delete buttons use `w-0 group-hover:w-[60px] overflow-hidden transition-all duration-200` inside a `group` parent
 - **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch

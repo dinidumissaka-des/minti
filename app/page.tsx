@@ -23,7 +23,8 @@ import AuthShowcase from "@/components/AuthShowcase";
 import StatsBar from "@/components/StatsBar";
 import HeroAmount from "@/components/HeroAmount";
 import MonthChip from "@/components/MonthChip";
-import SettingsSheet from "@/components/SettingsSheet";
+import AccountPage from "@/components/AccountPage";
+import Avatar from "@/components/Avatar";
 import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
 import ExpenseList from "@/components/expense/ExpenseList";
@@ -101,7 +102,7 @@ export default function Home() {
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
@@ -442,12 +443,12 @@ export default function Home() {
         />
       </BottomDrawer>
 
-      <SettingsSheet
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        email={user.email}
+      <AccountPage
+        open={showAccount}
+        onClose={() => setShowAccount(false)}
+        user={user}
         currency={currency}
-        onCurrencyClick={() => { setShowSettings(false); setShowCurrencyPicker(true); }}
+        onCurrencyClick={() => setShowCurrencyPicker(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
         privacyMode={privacyMode}
@@ -458,8 +459,8 @@ export default function Home() {
         onToggleAppLock={toggleAppLock}
         billingReminders={billingReminders}
         onToggleBillingReminders={toggleBillingReminders}
-        onExportCSV={() => { exportCSV(); setShowSettings(false); }}
-        onSignOut={() => { handleSignOut(); setShowSettings(false); }}
+        onExportCSV={exportCSV}
+        onSignOut={() => { handleSignOut(); setShowAccount(false); }}
       />
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
@@ -522,9 +523,20 @@ export default function Home() {
           className="flex flex-col gap-5 sticky sm:static z-content"
           style={{ top: "env(safe-area-inset-top)" }}
         >
-          {/* Row 1: Logo + privacy + account */}
+          {/* Row 1: account + privacy. On mobile the avatar takes the corner
+              the wordmark had — you are always one tap from your account, the
+              way the banking apps this borrows from do it. Desktop keeps the
+              wordmark and puts the avatar in the right-hand pill, which is
+              where a web app is expected to carry it. */}
           <div className="flex items-center justify-between pt-1 pb-2">
-            <Logo className="h-5 w-auto" />
+            <button
+              onClick={() => { hapticTap(); setShowAccount(true); }}
+              aria-label="Account and settings"
+              className="sm:hidden rounded-full transition-transform duration-fast active:scale-90"
+            >
+              <Avatar user={user} size={40} className="border border-ink/10" />
+            </button>
+            <Logo className="hidden sm:block h-5 w-auto" />
             {/* One shared glass background rather than four floating ones:
                 Apple groups toolbar items and warns against layering separate
                 Liquid Glass elements, and combining the effect also means one
@@ -544,19 +556,15 @@ export default function Home() {
                 {privacyMode ? <EyeClosed size={16} /> : <Eye size={16} />}
               </button>
               {/* Theme is a set-once choice that already follows the OS, so it
-                  gave up its permanent header slot to Settings. What is left in
-                  the header is the one control that has to be instant — hiding
-                  amounts — and the way into everything else. "⋯" became an
-                  avatar: the sheet behind it is an account, not an overflow of
-                  the current view. */}
+                  gave up its permanent header slot. What stays in the header is
+                  the one control that has to be instant — hiding amounts — and
+                  the way into everything else. */}
               <button
-                onClick={() => setShowSettings(true)}
+                onClick={() => setShowAccount(true)}
                 aria-label="Account and settings"
-                className="w-11 h-11 flex items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
+                className="hidden sm:flex w-11 h-11 items-center justify-center rounded-full text-ink/55 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-90"
               >
-                <span className="w-7 h-7 flex items-center justify-center rounded-full bg-ink/10 font-sans text-xs font-semibold text-ink">
-                  {(user.email?.[0] ?? "?").toUpperCase()}
-                </span>
+                <Avatar user={user} size={28} />
               </button>
             </div>
           </div>
