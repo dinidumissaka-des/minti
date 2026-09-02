@@ -532,7 +532,10 @@ export default function Home() {
               aria-label="Account and settings"
               className="sm:hidden rounded-full transition-transform duration-fast active:scale-90"
             >
-              <Avatar user={user} size={40} className="border border-ink/10" />
+              {/* 52px, matching the glass pill opposite it — the pill is
+                  h-control and cannot shrink without taking the eye's touch
+                  target under 44px. */}
+              <Avatar user={user} size={52} className="border border-ink/10" />
             </button>
             <Logo className="hidden sm:block h-5 w-auto" />
             {/* One shared glass background rather than four floating ones:
