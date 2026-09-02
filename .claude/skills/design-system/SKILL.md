@@ -5,7 +5,7 @@ Loaded when working on UI, styling, or component tasks.
 The app supports light and dark themes (CSS variables flip on `.light`/`.dark` class on `<html>`, see `app/globals.css`). There are two categories of surface — check which one you're styling before picking a color:
 
 ## 1. Content surfaces — fully theme-adaptive
-GlassSurface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt. Use `ink`-opacity utilities, never literal `white`/`black`:
+Surface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt. Use `ink`-opacity utilities, never literal `white`/`black`:
 
 | Use | Class |
 |-----|-------|
@@ -52,19 +52,19 @@ If a chip needs a stronger fill than `flat-chip` provides, adjust the shared CSS
 **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` with `theme` from `useTheme()` — not the raw `CATEGORY_COLORS` map — for any category color rendered as text, a dot, or a chart fill.
 
 ## Raised surfaces
-One mechanism: paint `--surface`, opaque. Cards, drawers, the install prompt and the desktop auth panel are all the same colour — a drawer is told apart from a card by the scrim behind it. `bg-surface` or `rgb(var(--surface))`. There is no `--card`, no `--sheet`, and no `backgroundOpacity` prop on GlassSurface. Chips are not raised surfaces; they wash a token at low alpha to mark state.
+One mechanism: paint `--surface`, opaque. Cards, drawers, the install prompt and the desktop auth panel are all the same colour — a drawer is told apart from a card by the scrim behind it. `bg-surface` or `rgb(var(--surface))`. There is no `--card`, no `--sheet`, and no `backgroundOpacity` prop on Surface. Chips are not raised surfaces; they wash a token at low alpha to mark state.
 
 ## Component patterns
 
 ### Glass card
 ```tsx
-<GlassSurface borderRadius={28} backgroundOpacity={0.07}>
+<Surface borderRadius={28}>
   <div className="px-5 py-4 w-full">...</div>
-</GlassSurface>
+</Surface>
 ```
-No drop shadow (removed intentionally) — definition comes from the border, which `GlassSurface.css` already bumps for light mode via `.light` overrides.
+No drop shadow and no border by default — definition comes from `--surface` being a step off the ground. `Surface.css` carries a transparent 1px border only so a caller can tint the edge with `style={{ borderColor: … }}`.
 
-### Pill toggle (active/inactive) — e.g. filter tabs inside GlassSurface
+### Pill toggle (active/inactive) — e.g. filter tabs inside Surface
 ```tsx
 className={`flex-1 py-2 text-sm font-mono rounded-full transition-colors ${
   active ? "flat-chip-active text-ink font-semibold border"
@@ -114,7 +114,7 @@ style={{ backgroundColor: isSelected ? ACCENT : "rgb(var(--ink) / 0.07)" }}
 - Body: `text-sm text-ink font-sans`
 
 ## Spacing & radius
-- GlassSurface cards: `borderRadius={28}` always
+- Surface cards: `borderRadius={28}` always
 - Pill buttons: `rounded-full`
 - Inputs: `rounded-lg`
 - Gap between cards: `gap-2` in the main flex column

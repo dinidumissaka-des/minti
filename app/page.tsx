@@ -16,7 +16,7 @@ import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import Collapse from "@/components/ui/Collapse";
 import GradualBlur from "@/components/GradualBlur";
 import AddExpenseForm from "@/components/expense/AddExpenseForm";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import Logo from "@/components/Logo";
 import AuthForm from "@/components/AuthForm";
 import AuthShowcase from "@/components/AuthShowcase";
@@ -777,7 +777,7 @@ export default function Home() {
                   className="font-mono text-5xl font-bold text-ink leading-tight"
                 />
               </div>
-              <GlassSurface borderRadius={28}>
+              <Surface borderRadius={28}>
                 <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
                   <div className="px-5 py-4 flex flex-col gap-1">
                     <span className="font-sans text-xs text-muted font-semibold leading-none">Active</span>
@@ -792,7 +792,7 @@ export default function Home() {
                     />
                   </div>
                 </div>
-              </GlassSurface>
+              </Surface>
             </div>
           )}
           {view === "income" && (

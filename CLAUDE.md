@@ -22,7 +22,7 @@ components/
   expense/          AddExpenseForm, ExpenseList (pickers live in ui/DrawerPickers.tsx)
   subscription/     SubscriptionList — list + inline add/edit/delete
   ui/               Shadcn primitives (button, input, label) + DrawerPickers.tsx (CalendarPicker/CategoryList/SourceList — rendered inside BottomDrawer app-wide)
-  GlassSurface.tsx  Core reusable glass card (SVG displacement + backdrop-blur)
+  Surface.tsx       The one raised surface — paints --surface opaque, owns the card radius
   BottomDrawer.tsx  Modal sheet — currency/category/date pickers, currency converter, mobile "More" menu
   StatsBar.tsx      Month total (hero), Today, Avg/Day — includes subscriptionsTotal
   BudgetBar.tsx     Monthly budget progress bar
@@ -66,14 +66,14 @@ Anything that differs between platforms goes behind `isNative()` from `lib/platf
 ## Design system rules
 The app supports light and dark themes (toggle in the header, defaults to OS preference, persisted to `localStorage` as `minti_theme`). Theming works via CSS variables that flip on an `.light`/`.dark` class on `<html>` (set in `app/globals.css`). There are two categories of surface — pick the right one, don't guess:
 
-**1. Content surfaces** (GlassSurface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt) — these fully adapt per theme:
+**1. Content surfaces** (Surface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt) — these fully adapt per theme:
 - **Never** use literal `white`/`black` opacity utilities (`bg-white/7`, `text-white`, etc.) here — they don't flip with the theme. Always use `ink`-opacity utilities:
   - Backgrounds: `bg-ink/7`, `bg-ink/4`, `bg-ink/10`
   - Borders: `border-ink/10`, `border-ink/15`
   - Text: `text-ink`, `text-ink/40`, or `text-muted` (= ink/50%)
   - In inline JS styles, use `"rgb(var(--ink) / 0.07)"` instead of a literal `rgba(255,255,255,0.07)` string.
 - **Raised surfaces are opaque and all one colour.** Cards, drawers, the install prompt and the desktop auth panel are all `--surface` at full alpha — `bg-surface`, or `rgb(var(--surface))` inline. There is no frost, no translucency and nothing to re-derive when `--background` moves. A drawer is told apart from a card by the **scrim behind it**, not by being a different colour, which is why `--sheet` no longer exists.
-- **Glass cards**: always use `<GlassSurface borderRadius={28}>`, not raw divs — it paints `--surface` and owns the radius. The name is historical: it has no backdrop-filter and no `backgroundOpacity` prop any more. Nothing in the app stacks a blur behind a card, so don't reintroduce one; the only surviving `backdrop-filter` is `.glass-chip` on the mobile nav and header, where content genuinely scrolls underneath.
+- **Cards**: always use `<Surface borderRadius={28}>`, not raw divs — it paints `--surface` and owns the radius. It was `GlassSurface`; there is no frost, no `backgroundOpacity` prop and no backdrop-filter. It ships a transparent 1px border so a caller can tint a card's edge via `style={{ borderColor: … }}` — Tailwind's preflight zeroes `border-width` on every element, so without that declaration a passed `borderColor` paints nothing at all. Nothing in the app stacks a blur behind a card, so don't reintroduce one; the only surviving `backdrop-filter` is `.glass-chip` on the mobile nav and header, where content genuinely scrolls underneath.
 - **Inputs**: `bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink outline-none focus:border-ink/30` — hide number spinners with `[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`
 - **Focus is a border change, never a ring** — on a boxed field the border darkens (`focus:border-ink/40`); on the bare hero amount in AddExpenseForm the rule beneath it thickens and turns accent (`peer-focus-visible:`). A `ring` around a `bg-transparent` field draws a pill in empty space with nothing to attach to, which is what the budget and income editors shipped with. A focus mark that has to read on its own uses `bg-accent`/`text-accent`, not `-fill` — the fill green is 1.6:1 on a light card.
 
@@ -132,7 +132,7 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 
 **Other rules:**
 - **Pill buttons** (active state, on a content surface): `bg-ink/10 backdrop-blur-md text-ink font-semibold border border-ink/15`
-- **Rounded**: **every button is `rounded-full`** — pills for anything with a label, circles for icon-only actions (save/cancel, swipe actions, hover-reveal icons, the converter swap). No `rounded-lg`/`rounded-xl` buttons; they read as a different control language next to the pills. `rounded-lg` is for inputs, `borderRadius={28}` for GlassSurface cards. The exceptions are things that are not buttons in the visual sense: full-bleed drawer menu rows and picker rows (a divided list, no radius or `rounded-xl`), and bare text/icon buttons with no fill or border, where the radius never paints.
+- **Rounded**: **every button is `rounded-full`** — pills for anything with a label, circles for icon-only actions (save/cancel, swipe actions, hover-reveal icons, the converter swap). No `rounded-lg`/`rounded-xl` buttons; they read as a different control language next to the pills. `rounded-lg` is for inputs, `borderRadius={28}` for Surface cards. The exceptions are things that are not buttons in the visual sense: full-bleed drawer menu rows and picker rows (a divided list, no radius or `rounded-xl`), and bare text/icon buttons with no fill or border, where the radius never paints.
 - **Font**: Manrope for everything. `font-mono` class still uses Manrope (overridden in tailwind.config.ts)
 - **No comments** unless the WHY is non-obvious. No docstrings.
 

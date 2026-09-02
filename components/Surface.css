@@ -1,0 +1,38 @@
+/* One --surface token for cards and drawers alike, opaque, separated from the
+   page by lightness rather than by translucency. No backdrop-filter: it had
+   nothing to sample once the fill stopped being see-through, and it cost a
+   filter pass per card.
+   The transparent 1px border is load-bearing. Callers tint a card's edge by
+   passing borderColor through `style` (the insight cards in AnalyticsView, the
+   savings card in IncomeSection), and with Tailwind's preflight zeroing
+   border-width on every element that colour had nothing to paint — those
+   tinted edges never rendered at all. box-sizing is border-box, so declaring
+   the width here costs no layout. */
+.surface {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  background: rgb(var(--surface));
+  border: 1px solid transparent;
+  transition: opacity 0.26s ease-out;
+}
+
+.surface__content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  border-radius: inherit;
+  position: relative;
+  z-index: 1;
+}
+
+.surface:focus-visible {
+  outline: 2px solid rgb(var(--accent-text));
+  outline-offset: 2px;
+}

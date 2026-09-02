@@ -6,7 +6,7 @@ import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
 import { getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import Meter from "@/components/ui/Meter";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
 import ViewTransition from "@/components/ui/ViewTransition";
@@ -83,16 +83,16 @@ const CategoryChart = memo(function CategoryChart({
 
   if (stats.length === 0) {
     return (
-      <GlassSurface borderRadius={28}>
+      <Surface borderRadius={28}>
         <div className="px-6 py-10 text-center w-full">
           <p className="text-muted text-body font-mono">No spending data yet</p>
         </div>
-      </GlassSurface>
+      </Surface>
     );
   }
 
   return (
-    <GlassSurface borderRadius={28}>
+    <Surface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <span className="font-sans text-xs text-muted font-semibold">
           Spending by Category
@@ -122,7 +122,7 @@ const CategoryChart = memo(function CategoryChart({
           ))}
         </div>
       </div>
-    </GlassSurface>
+    </Surface>
   );
 });
 
@@ -268,7 +268,7 @@ const InsightCards = memo(function InsightCards({
   return (
     <div className="flex flex-col gap-3">
       {insights.map((insight, i) => (
-        <GlassSurface
+        <Surface
           key={insight.id}
           borderRadius={24}
           className="animate-row-in"
@@ -292,7 +292,7 @@ const InsightCards = memo(function InsightCards({
               )}
             </div>
           </div>
-        </GlassSurface>
+        </Surface>
       ))}
     </div>
   );
@@ -350,7 +350,7 @@ const MomComparison = memo(function MomComparison({
   if (categories.length === 0) return null;
 
   return (
-    <GlassSurface borderRadius={28}>
+    <Surface borderRadius={28}>
       <div className="px-5 py-5 flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
           <span className="font-sans text-xs text-muted font-semibold">
@@ -383,7 +383,7 @@ const MomComparison = memo(function MomComparison({
           })}
         </div>
       </div>
-    </GlassSurface>
+    </Surface>
   );
 });
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { formatAmount } from "@/lib/currencies";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import Meter from "@/components/ui/Meter";
 import { usePrivacy } from "@/components/PrivacyContext";
@@ -55,7 +55,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
 
   if (editing) {
     return (
-      <GlassSurface borderRadius={28}>
+      <Surface borderRadius={28}>
       <div className="px-4 py-4 flex items-center gap-3 w-full">
         <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
         <input
@@ -75,7 +75,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
           <X size={13} />
         </button>
       </div>
-      </GlassSurface>
+      </Surface>
     );
   }
 
@@ -84,7 +84,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
   const remaining = budget! - spent;
 
   return (
-    <GlassSurface borderRadius={28}>
+    <Surface borderRadius={28}>
     <div className="px-4 py-4 flex flex-col gap-3 w-full">
       <div className="flex items-center justify-between">
         <span className="font-sans text-xs text-muted font-semibold">Monthly Budget</span>
@@ -113,7 +113,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
         </span>
       </div>
     </div>
-    </GlassSurface>
+    </Surface>
   );
 });
 

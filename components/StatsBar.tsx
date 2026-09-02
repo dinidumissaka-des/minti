@@ -3,7 +3,7 @@
 import { memo } from "react";
 import type { Expense } from "@/types";
 import { formatAmount } from "@/lib/currencies";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 
 interface Props {
@@ -52,7 +52,7 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
       </div>
 
       {/* Today + Avg/Day — one container */}
-      <GlassSurface borderRadius={28}>
+      <Surface borderRadius={28}>
         <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
           <div className="px-5 py-4 flex flex-col gap-1">
             <span className="font-sans text-xs text-muted font-semibold leading-none">
@@ -75,7 +75,7 @@ const StatsBar = memo(function StatsBar({ expenses, selectedMonth, currency, sub
             />
           </div>
         </div>
-      </GlassSurface>
+      </Surface>
     </div>
   );
 });

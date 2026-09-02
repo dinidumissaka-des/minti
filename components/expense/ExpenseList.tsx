@@ -5,7 +5,7 @@ import { Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
 import { hapticTap, hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
-import GlassSurface from "@/components/GlassSurface";
+import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
 import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
@@ -205,7 +205,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
               </span>
             </div>
 
-            <GlassSurface borderRadius={28}>
+            <Surface borderRadius={28}>
             <div className="w-full divide-y divide-ink/10">
               {dayExpenses.map((expense) => {
                 const isEditing = editingId === expense.id;
@@ -354,7 +354,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                 );
               })}
             </div>
-            </GlassSurface>
+            </Surface>
           </div>
         );
       })}
