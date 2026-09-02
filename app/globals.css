@@ -64,13 +64,20 @@ html.light {
   /* A lift of the ground, not a ramp step, so it has to move when the ground
      does. It didn't: 52 24 25 was picked against the old 25 11 11 page and
      stayed put when that dropped to near-black, leaving every drawer painting
-     a maroon panel four times the page's luminance. Re-derived off 12 5 5 —
-     through the sheet's own 0.9 alpha this lands at #231818, one step above a
-     glass card (#1D1717) so a sheet still reads as raised. Saturation drops as
-     it lifts (29% against the ground's 58%) for the same reason the ramp is
-     not used directly: ink at 5-7% barely desaturates a red, so the inputs and
-     chips inside a sheet inherit whatever cast it has. */
-  --sheet:       38  27  27;
+     a maroon panel four times the page's luminance.
+     Re-deriving it off 12 5 5 fixed the luminance and left the colour: at
+     38 27 27 a sheet composited to #221818, only 1.4 points lighter than a
+     glass card but 5.3 points MORE saturated, so it went up in colour without
+     going up in lightness — which is what reads as a maroon panel rather than
+     a raised one. Measure a sheet against a card, not against the page: the
+     page is 75% saturated under the scrim and everything clears it.
+     Now #221B1B — 12.0% lightness and 20.6% saturation against a card's 10.0%
+     and 24.1%, so it lifts on both axes at once. This matters more here than
+     anywhere else because at 0.9 alpha a sheet is almost entirely its own
+     token (a glass card is 93% page showing through), and because ink at
+     5-7% barely desaturates a red, so every input and chip inside a drawer
+     inherits whatever cast it has. */
+  --sheet:       37  30  30;
   /* What a glass card frosts toward. It was a literal white, which meant a
      card diluted the brand instead of carrying it: at the 62% the light theme
      frosts at, white dragged the card to 0.8% saturation on a 2.2% ground, so
