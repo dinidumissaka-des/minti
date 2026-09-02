@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { ChevronDown, ChevronRight, Download, Plus } from "lucide-react";
+import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
-import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
+import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
 import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
@@ -24,6 +24,7 @@ import StatsBar from "@/components/StatsBar";
 import HeroAmount from "@/components/HeroAmount";
 import MonthChip from "@/components/MonthChip";
 import AccountPage from "@/components/AccountPage";
+import CurrencyPage from "@/components/CurrencyPage";
 import Avatar from "@/components/Avatar";
 import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
@@ -102,7 +103,6 @@ export default function Home() {
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
-  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
@@ -178,8 +178,6 @@ export default function Home() {
   const selectCurrency = useCallback((code: string) => {
     setCurrency(code);
     localStorage.setItem("minti_currency", code);
-    setShowCurrencyPicker(false);
-    setShowCurrencyMenu(false);
     upsertUserSettings({ currency: code }).catch(() => {});
   }, []);
 
@@ -398,57 +396,6 @@ export default function Home() {
         <CurrencyConverter defaultFrom={currency} />
       </BottomDrawer>
 
-      {/* Currency, one level up from the list. Everything currency-shaped is
-          behind it — which code the app counts in, and what a figure is worth
-          in another one — so neither has to be found inside the other. Both
-          drill in on top of it: dismissing one comes back here, picking a code
-          finishes the errand and closes both. */}
-      <BottomDrawer
-        open={showCurrencyMenu}
-        onClose={() => setShowCurrencyMenu(false)}
-        title="Currency"
-      >
-        <button
-          onClick={() => setShowCurrencyPicker(true)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-4 text-body text-ink rounded-xl hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
-        >
-          <span>Change currency</span>
-          <span className="flex items-center gap-1.5 font-mono text-sm text-ink/50">
-            {currency}
-            <ChevronRight size={14} className="text-ink/40" />
-          </span>
-        </button>
-        <button
-          onClick={() => setShowConverterDrawer(true)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-4 text-body text-ink rounded-xl hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
-        >
-          <span>Convert currency</span>
-          <ArrowsLeftRight size={16} className="text-ink/40" />
-        </button>
-      </BottomDrawer>
-
-      {/* The list itself — one level in from the Currency menu */}
-      <BottomDrawer
-        open={showCurrencyPicker}
-        onClose={() => setShowCurrencyPicker(false)}
-        title="Change currency"
-      >
-        {CURRENCIES.map((c) => (
-          <button
-            key={c.code}
-            onClick={() => selectCurrency(c.code)}
-            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] border-t border-ink/10 ${
-              currency === c.code
-                ? "text-accent bg-accent/10"
-                : "text-ink hover:bg-ink/7"
-            }`}
-          >
-            <span className="font-mono font-semibold text-base">{c.code}</span>
-            <span className="text-sm text-ink/50">{c.name}</span>
-          </button>
-        ))}
-      </BottomDrawer>
-
       {/* Month picker — opened by the month chip on each hero */}
       <BottomDrawer
         open={showMonthPicker}
@@ -464,6 +411,9 @@ export default function Home() {
         />
       </BottomDrawer>
 
+      {/* Pushed pages portal to <body> at one z-index, so the later of two
+          paints on top. CurrencyPage opens from AccountPage as well as from
+          the hero, so it is declared after it. */}
       <AccountPage
         open={showAccount}
         onClose={() => setShowAccount(false)}
@@ -480,6 +430,14 @@ export default function Home() {
         onToggleBillingReminders={toggleBillingReminders}
         onExportCSV={exportCSV}
         onSignOut={() => { handleSignOut(); setShowAccount(false); }}
+      />
+
+      <CurrencyPage
+        open={showCurrencyMenu}
+        onClose={() => setShowCurrencyMenu(false)}
+        currency={currency}
+        onSelect={selectCurrency}
+        onOpenConverter={() => setShowConverterDrawer(true)}
       />
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
