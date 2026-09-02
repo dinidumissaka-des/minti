@@ -3,6 +3,7 @@ import { Preferences } from '@capacitor/preferences';
 import { Browser } from '@capacitor/browser';
 import type { Expense, NewExpense, Subscription, NewSubscription, Income, NewIncome } from '@/types';
 import { isNative } from '@/lib/platform';
+import { monthKey, prevMonthKey } from '@/lib/months';
 
 export const NATIVE_OAUTH_REDIRECT = 'com.minti.app://auth/callback';
 
@@ -146,32 +147,86 @@ export async function updateExpense(id: string, data: Partial<Omit<Expense, 'id'
   if (error) throw error;
 }
 
-export async function getSubscriptions(): Promise<Subscription[]> {
+// A bill is a chain of rows, each valid for a range of months, so a change
+// made in one month never rewrites what an earlier month was charged.
+export async function getSubscriptionsForMonth(year: number, month: number): Promise<Subscription[]> {
+  const key = monthKey(year, month);
   const { data, error } = await getClient()
     .from('subscriptions')
     .select('*')
+    .lte('start_month', key)
+    .or(`end_month.is.null,end_month.gte.${key}`)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
-export async function addSubscription(data: NewSubscription, userId: string): Promise<Subscription> {
+// Starts in the month being viewed, and runs from there on.
+export async function addSubscription(
+  data: NewSubscription,
+  userId: string,
+  from: { year: number; month: number },
+): Promise<Subscription> {
   const { data: inserted, error } = await getClient()
     .from('subscriptions')
-    .insert([{ ...data, user_id: userId }])
+    .insert([{ ...data, user_id: userId, start_month: monthKey(from.year, from.month), end_month: null }])
     .select()
     .single();
   if (error) throw error;
   return inserted;
 }
 
-export async function deleteSubscription(id: string): Promise<void> {
-  const { error } = await getClient().from('subscriptions').delete().eq('id', id);
+// Stops from this month on. A bill that started in the month being viewed
+// never applied to an earlier one, so that row is removed outright.
+export async function deleteSubscription(
+  sub: Subscription,
+  from: { year: number; month: number },
+): Promise<void> {
+  if (sub.start_month >= monthKey(from.year, from.month)) {
+    const { error } = await getClient().from('subscriptions').delete().eq('id', sub.id);
+    if (error) throw error;
+    return;
+  }
+  const { error } = await getClient()
+    .from('subscriptions')
+    .update({ end_month: prevMonthKey(from.year, from.month) })
+    .eq('id', sub.id);
   if (error) throw error;
 }
 
-export async function updateSubscription(id: string, data: Partial<NewSubscription>): Promise<void> {
-  const { error } = await getClient().from('subscriptions').update(data).eq('id', id);
+// Applies from this month on: the old row is closed at the month before and a
+// new one opens, inheriting the end of the row it replaces so a later version
+// of the same bill is not overlapped. A row that started this month is edited
+// in place — there is no earlier month for it to protect.
+export async function updateSubscription(
+  sub: Subscription,
+  data: Partial<NewSubscription>,
+  from: { year: number; month: number },
+  userId: string,
+): Promise<void> {
+  const key = monthKey(from.year, from.month);
+  if (sub.start_month >= key) {
+    const { error } = await getClient().from('subscriptions').update(data).eq('id', sub.id);
+    if (error) throw error;
+    return;
+  }
+
+  const { error: closeError } = await getClient()
+    .from('subscriptions')
+    .update({ end_month: prevMonthKey(from.year, from.month) })
+    .eq('id', sub.id);
+  if (closeError) throw closeError;
+
+  const { error } = await getClient().from('subscriptions').insert([{
+    name: sub.name,
+    amount: sub.amount,
+    category: sub.category,
+    billing_day: sub.billing_day,
+    ...data,
+    user_id: userId,
+    start_month: key,
+    end_month: sub.end_month,
+  }]);
   if (error) throw error;
 }
 

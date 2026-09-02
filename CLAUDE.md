@@ -152,18 +152,21 @@ The app supports light and dark themes (toggle in the header, defaults to OS pre
 id uuid, user_id uuid, description text, category text, amount numeric,
 date text (YYYY-MM-DD), time text (HH:MM AM/PM), created_at timestamptz
 
--- subscriptions
+-- subscriptions — one row is one *version* of a bill, valid for a range of
+-- months. Active in month M when start_month <= M and (end_month is null or
+-- end_month >= M); both are 'YYYY-MM', so string comparison is chronological.
 id uuid, user_id uuid, name text, amount numeric, category text,
-billing_day integer default 1, created_at timestamptz
+billing_day integer default 1, start_month text, end_month text, created_at timestamptz
 ```
 RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (hardcoded to 1).
 
 ## Key patterns
-- **Month and currency live on the figure, not in a menu**: every hero renders through `HeroAmount`, which carries the month chip (mobile only — desktop has the header month nav) and the tappable currency code. They qualify the number, so hiding them behind the header left the largest figure on the screen unexplained. Bills are the one hero with no month chip: subscriptions recur, so the figure isn't scoped to the selected month.
+- **Month and currency live on the figure, not in a menu**: every hero renders through `HeroAmount`, which carries the month chip (mobile only — desktop has the header month nav) and the tappable currency code. They qualify the number, so hiding them behind the header left the largest figure on the screen unexplained.
 - **Pushed pages**: `ui/PushPage` is the shell for a screen you navigate to — in from the right, out under a back arrow with the title beneath it, holding a history entry so hardware and browser back close it. AccountPage, CurrencyPage and the converter are all this one component. It keeps a module-level stack (pages portal to `<body>`, so a page opened from a page is a DOM sibling, not a descendant) and only the top page answers Escape or a back press; a page closed from its own back button unwinds its entry and suppresses the resulting pop so it does not travel on and close the page underneath. **They all share one z-index, so the later of two in the tree paints on top** — a page opened from another page must be declared after it in `page.tsx`. Rows come from `ui/ListRow`: `ListRow` navigates when it ends in a chevron (`RowValue` keeps one beside a value) and acts in place when it does not.
 - **Settings, not overflow**: the header avatar (mobile: it replaces the wordmark in the top-left corner; desktop: it sits in the right-hand pill) pushes `AccountPage` in from the right — identity block, then Your account / Settings / Session. It takes a history entry, so hardware and browser back close it. Nav destinations never appear in it — Insights is a bottom-nav tab and having it in both taught two depths for one place. Rows read label-primary, value-secondary, and sign out asks first.
 - **Category/date picker**: `CategoryList`/`CalendarPicker`/`SourceList` (`components/ui/DrawerPickers.tsx`) always render inside a `BottomDrawer` — used from AddExpenseForm, ExpenseList/SubscriptionList edit rows, IncomeSection
 - **Hover-reveal actions**: edit/delete buttons use `w-0 group-hover:w-[60px] overflow-hidden transition-all duration-200` inside a `group` parent
+- **Bills are month-scoped, and edits never rewrite the past**: a bill added while viewing September applies to September and every month after it, never to August. Editing it in a later month closes the old row at the month before and opens a new one (inheriting the old row's `end_month`, so a later version is not overlapped); deleting sets `end_month` to the month before. A row that *started* in the month being viewed is edited or deleted outright — there is no earlier month for it to protect. All of that lives in `getSubscriptionsForMonth` / `addSubscription` / `updateSubscription` / `deleteSubscription`, which take the viewed month; components never write the period themselves.
 - **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch
 - **View state**: `view: "expenses" | "subscriptions"` lives in page.tsx. Expenses view shows AddExpenseForm + filter tabs + ExpenseList. Subscriptions view shows SubscriptionList only.
 - **subscriptionsTotal**: calculated in page.tsx, passed to StatsBar and added to BudgetBar `spent`

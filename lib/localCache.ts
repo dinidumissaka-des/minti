@@ -16,7 +16,8 @@ const LAST_USER_KEY = "minti_last_user";
 // browser must never read each other's rows out of the offline fallback.
 export const expensesKey = (userId: string, year: number, month: number) =>
   `${PREFIX}expenses_${userId}_${year}_${month}`;
-export const subscriptionsKey = (userId: string) => `${PREFIX}subscriptions_${userId}`;
+export const subscriptionsKey = (userId: string, year: number, month: number) =>
+  `${PREFIX}subscriptions_${userId}_${year}-${String(month).padStart(2, '0')}`;
 export const budgetKey = (userId: string) => `${PREFIX}budget_${userId}`;
 export const monthlyIncomeKey = (userId: string) => `${PREFIX}monthly_income_${userId}`;
 

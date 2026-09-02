@@ -22,6 +22,9 @@ interface Props {
   subscriptions: Subscription[];
   userId: string;
   currency: string;
+  /** The month being viewed. Adds start here; edits and deletes apply from
+      here on, so an earlier month keeps what it was actually charged. */
+  selectedMonth: { year: number; month: number };
   onChanged: () => void;
 }
 
@@ -31,7 +34,7 @@ interface EditState {
   category: string;
 }
 
-export default function SubscriptionList({ subscriptions, userId, currency, onChanged }: Props) {
+export default function SubscriptionList({ subscriptions, userId, currency, selectedMonth, onChanged }: Props) {
   const { mask } = usePrivacy();
   const [showAdd, setShowAdd] = useState(false);
   const [showAddCatDrawer, setShowAddCatDrawer] = useState(false);
@@ -73,7 +76,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
     setAdding(true);
     try {
       const data: NewSubscription = { name: newName.trim(), amount: parsed, category: newCategory, billing_day: 1 };
-      await addSubscription(data, userId);
+      await addSubscription(data, userId, selectedMonth);
       setNewName(""); setNewAmount(""); setNewCategory(PRESET_CATEGORIES[0]);
       setShowAdd(false);
       hapticSuccess();
@@ -89,13 +92,18 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
     setEditState({ name: sub.name, amount: String(sub.amount), category: sub.category });
   }
 
-  async function handleSave(id: string) {
+  async function handleSave(sub: Subscription) {
     if (!editState) return;
     const parsed = parseFloat(editState.amount);
     if (!editState.name.trim() || isNaN(parsed) || parsed <= 0) return;
     setSaving(true);
     try {
-      await updateSubscription(id, { name: editState.name.trim(), amount: parsed, category: editState.category });
+      await updateSubscription(
+        sub,
+        { name: editState.name.trim(), amount: parsed, category: editState.category },
+        selectedMonth,
+        userId,
+      );
       setEditingId(null); setEditState(null);
       onChanged();
     } finally {
@@ -105,14 +113,14 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
 
   // Collapse the row before the request, so the list closes the gap smoothly
   // instead of snapping once the delete resolves.
-  async function handleDelete(id: string) {
+  async function handleDelete(sub: Subscription) {
     hapticBump();
     setSwipedId(null);
-    setDeletingId(id);
-    setRemovingId(id);
+    setDeletingId(sub.id);
+    setRemovingId(sub.id);
     await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
     try {
-      await deleteSubscription(id);
+      await deleteSubscription(sub, selectedMonth);
       onChanged();
     } finally {
       setDeletingId(null);
@@ -164,7 +172,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       >
                         {editState.category}
                       </button>
-                      <button onClick={() => handleSave(sub.id)} disabled={saving} aria-label="Save changes"
+                      <button onClick={() => handleSave(sub)} disabled={saving} aria-label="Save changes"
                         className="w-11 h-11 flex items-center justify-center rounded-full bg-accent-fill text-accent-on hover:bg-accent-fill/85 disabled:opacity-50 flex-shrink-0">
                         <Check size={15} />
                       </button>
@@ -204,7 +212,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                       <Pencil size={14} />
                     </button>
                     <button
-                      onClick={() => handleDelete(sub.id)}
+                      onClick={() => handleDelete(sub)}
                       disabled={deletingId === sub.id}
                       aria-label="Delete subscription"
                       className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger disabled:opacity-30"
@@ -233,7 +241,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, onCh
                         className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-ink transition-colors flex-shrink-0">
                         <Pencil size={13} />
                       </button>
-                      <button onClick={() => handleDelete(sub.id)} disabled={deletingId === sub.id} aria-label="Delete"
+                      <button onClick={() => handleDelete(sub)} disabled={deletingId === sub.id} aria-label="Delete"
                         className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0">
                         {deletingId === sub.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
                       </button>

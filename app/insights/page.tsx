@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Subscription } from "@/types";
-import { getExpensesByMonth, getSubscriptions, getUserSettings, onAuthStateChange } from "@/lib/supabase";
+import { getExpensesByMonth, getSubscriptionsForMonth, getUserSettings, onAuthStateChange } from "@/lib/supabase";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import Logo from "@/components/Logo";
@@ -54,8 +54,14 @@ export default function InsightsPage() {
         setMonthlyIncome(s.monthly_income ?? null);
       }
     }).catch(() => {});
-    getSubscriptions().then(setSubscriptions).catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month)
+      .then(setSubscriptions)
+      .catch(() => {});
+  }, [user, selectedMonth]);
 
   useEffect(() => {
     if (!user) return;

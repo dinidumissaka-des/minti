@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
-import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
+import { getExpensesByMonth, getSubscriptionsForMonth, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
 import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
@@ -207,9 +207,9 @@ export default function Home() {
 
   const fetchSubscriptions = useCallback(async () => {
     if (!user) return;
-    const cacheKey = subscriptionsKey(user.id);
+    const cacheKey = subscriptionsKey(user.id, selectedMonth.year, selectedMonth.month);
     try {
-      const data = await getSubscriptions();
+      const data = await getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month);
       setSubscriptions(data);
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota exceeded */ }
     } catch {
@@ -218,7 +218,7 @@ export default function Home() {
         try { setSubscriptions(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
       }
     }
-  }, [user]);
+  }, [user, selectedMonth]);
 
   useEffect(() => {
     if (!user) return;
@@ -273,10 +273,13 @@ export default function Home() {
     areRemindersEnabled().then(setBillingReminders);
   }, []);
 
+  const isCurrentMonth =
+    selectedMonth.year === now.getFullYear() && selectedMonth.month === now.getMonth() + 1;
+
   useEffect(() => {
-    if (!isNative() || !user) return;
+    if (!isNative() || !user || !isCurrentMonth) return;
     syncBillingReminders(subscriptions, currency).catch(() => {});
-  }, [user, subscriptions, currency, billingReminders]);
+  }, [user, subscriptions, currency, billingReminders, isCurrentMonth]);
 
   async function toggleAppLock() {
     const next = !appLock;
@@ -311,18 +314,14 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (!native || !user) return;
-    const today = new Date();
-    const isCurrentMonth =
-      selectedMonth.year === today.getFullYear() && selectedMonth.month === today.getMonth() + 1;
-    if (!isCurrentMonth) return;
+    if (!native || !user || !isCurrentMonth) return;
     publishWidgetSnapshot({
       spent: expensesTotal + subscriptionsTotal,
       budget,
       currency,
       month: `${MONTH_NAMES[selectedMonth.month - 1]} ${selectedMonth.year}`,
     }).catch(() => {});
-  }, [native, user, expensesTotal, subscriptionsTotal, budget, currency, selectedMonth]);
+  }, [native, user, expensesTotal, subscriptionsTotal, budget, currency, selectedMonth, isCurrentMonth]);
 
   if (user === undefined) {
     return (
@@ -616,13 +615,14 @@ export default function Home() {
           )}
           {view === "subscriptions" && (
             <div className="flex flex-col gap-2">
-              {/* No month chip: bills recur every month, so this figure is
-                  not scoped to the selected one. */}
               <HeroAmount
                 label="Monthly Bills"
                 value={subscriptionsTotal}
                 currency={currency}
                 onCurrencyClick={openCurrencyMenu}
+                month={selectedMonth}
+                onMonthClick={openMonthPicker}
+                onMonthStep={stepMonth}
               />
               <Surface borderRadius={28}>
                 <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
@@ -716,6 +716,7 @@ export default function Home() {
                 subscriptions={subscriptions}
                 userId={user.id}
                 currency={currency}
+                selectedMonth={selectedMonth}
                 onChanged={fetchSubscriptions}
               />
             </>
