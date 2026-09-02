@@ -13,6 +13,8 @@ const config: Config = {
         ink:        "rgb(var(--ink)        / <alpha-value>)",
         scrim:      "rgb(var(--scrim)      / <alpha-value>)",
         surface:    "rgb(var(--surface)    / <alpha-value>)",
+        chip:       "rgb(var(--chip)       / <alpha-value>)",
+        "chip-on":  "rgb(var(--chip-on)    / <alpha-value>)",
         muted:      "rgb(var(--ink) / 0.5)",
         brand:        "rgb(var(--brand)       / <alpha-value>)",
         accent:       "rgb(var(--accent-text) / <alpha-value>)",

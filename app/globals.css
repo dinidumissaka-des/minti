@@ -93,6 +93,13 @@ html.light {
      1.15:1 on the light page. Same green here (13.71:1 on the near-black
      ground), darkened in .light. */
   --brand:       159 232 112;
+  /* The selected segment's fill and its label. Both are ramp steps, pulled one
+     stop in from the ends: the pill is brand-coloured rather than a flat black
+     or white, and its label is too. Dark takes oxblood-100 — a soft warm white
+     rather than the near-white 50 — at 15.47:1 on the page and 14.02:1 against
+     an unselected chip, with an oxblood-900 label on it at 12.19:1. */
+  --chip:        var(--oxblood-100);
+  --chip-on:     var(--oxblood-900);
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -128,6 +135,15 @@ html.light {
      lighten it back toward --accent without re-measuring against --background,
      not against a card. */
   --brand:       57  112 28;
+  /* Light reads the pair from the other end: oxblood-800, a deep brand maroon
+     rather than the near-black 1000, at 10.34:1 on the page and 9.31:1 against
+     an unselected chip, labelled oxblood-50 at 11.62:1.
+     Don't reach further up the ramp for a *pale* pill. 50 through 200 sit
+     within 1.0-1.3:1 of the light ground, so they separate on hue alone, and
+     the hue they separate on is the danger family — a selected filter would
+     read as an error. The ramp only has luminance to spend at its ends. */
+  --chip:        var(--oxblood-800);
+  --chip-on:     var(--oxblood-50);
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       26  14  15;
@@ -182,16 +198,14 @@ html.light {
      a pale fill is not what a selected segment looks like. Filled, the same
      comparison is 14.24:1 in light and 16.03:1 in dark, and the pill clears
      its page at 15.83:1 / 17.69:1.
-     --accent-text already inverts per theme, so one rule serves both: a
-     near-black pill on a light ground, near-white on a dark one. The label
-     therefore has to invert with it — that is `text-surface`, the opposite end
-     of the ramp, at 19.29:1 and 15.60:1. It does not compete with the primary
-     button: this pill is neutral and the button is the only green fill in the
+     The fill is --chip and the label --chip-on, both ramp steps that invert
+     per theme, so one rule serves both. It does not compete with the primary
+     button: the pill is oxblood and the button is the only green fill in the
      app. The border-color matches the fill so the `border`/`border-2` the
      SegmentedControl pills carry for sizing paints nothing. */
   .flat-chip-active {
-    background-color: rgb(var(--accent-text));
-    border-color: rgb(var(--accent-text));
+    background-color: rgb(var(--chip));
+    border-color: rgb(var(--chip));
   }
 
   .flat-chip-dashed {

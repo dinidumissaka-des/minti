@@ -753,7 +753,7 @@ export default function Home() {
             className="hidden sm:flex items-center h-10 p-0.5 rounded-full border flat-chip w-full"
             itemClassName="flex-1 h-9 rounded-full text-sm font-mono"
             pillClassName="flat-chip-active border rounded-full"
-            activeClassName="text-surface"
+            activeClassName="text-chip-on"
             inactiveClassName="text-ink/40 hover:text-ink/80"
           />
         </header>
@@ -828,7 +828,7 @@ export default function Home() {
                 className="flex gap-2"
                 itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
                 pillClassName="flat-chip-active border-2 rounded-full"
-                activeClassName="text-surface border-transparent"
+                activeClassName="text-chip-on border-transparent"
                 inactiveClassName="flat-chip text-ink/60 hover:text-ink"
               />
 
