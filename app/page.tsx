@@ -25,6 +25,7 @@ import HeroAmount from "@/components/HeroAmount";
 import MonthChip from "@/components/MonthChip";
 import AccountPage from "@/components/AccountPage";
 import CurrencyPage from "@/components/CurrencyPage";
+import PushPage from "@/components/ui/PushPage";
 import Avatar from "@/components/Avatar";
 import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
@@ -42,7 +43,6 @@ import { areRemindersEnabled, setRemindersEnabled, requestPermission, syncBillin
 import { publishWidgetSnapshot } from "@/lib/widget";
 import { hapticTap } from "@/lib/haptics";
 
-type Filter = "all" | "today" | "week";
 type View = "expenses" | "subscriptions" | "income" | "insights";
 
 // Nav order, so a view change knows which way the content should travel.
@@ -61,27 +61,10 @@ const SECTION_ITEMS: Segment<View>[] = [
   { key: "income",        label: "Income" },
 ];
 
-const FILTER_ITEMS: Segment<Filter>[] = [
-  { key: "all",   label: "All" },
-  { key: "today", label: "Today" },
-  { key: "week",  label: "This Week" },
-];
-
-function startOfWeekISO() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff)).toISOString().split("T")[0];
-}
-
 // GradualBlur adds +100 to zIndex for page targets, so this lands the scroll
 // edge effect at 5: above scrolling content, below the sticky header (z-content).
 // Passing 10 here would put it at 110 and blur the header itself.
 const SCROLL_EDGE_Z = -95;
-
-function todayISO() {
-  return new Date().toISOString().split("T")[0];
-}
 
 export default function Home() {
   const now = new Date();
@@ -94,7 +77,6 @@ export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<View>("expenses");
   const [viewDir, setViewDir] = useState(1);
   const [monthDir, setMonthDir] = useState(1);
@@ -342,12 +324,6 @@ export default function Home() {
     }).catch(() => {});
   }, [native, user, expensesTotal, subscriptionsTotal, budget, currency, selectedMonth]);
 
-  const filteredExpenses = useMemo(() => {
-    if (filter === "today") return expenses.filter((e) => e.date === todayISO());
-    if (filter === "week") return expenses.filter((e) => e.date >= startOfWeekISO());
-    return expenses;
-  }, [expenses, filter]);
-
   if (user === undefined) {
     return (
       <main className="relative z-content min-h-screen flex items-center justify-center">
@@ -386,16 +362,6 @@ export default function Home() {
           background: 'linear-gradient(to bottom, transparent, rgb(var(--background)) 70%)',
         }}
       />
-      {/* Currency converter drawer */}
-      <BottomDrawer
-        open={showConverterDrawer}
-        onClose={() => setShowConverterDrawer(false)}
-        title="Convert Currency"
-        fullScreen
-      >
-        <CurrencyConverter defaultFrom={currency} />
-      </BottomDrawer>
-
       {/* Month picker — opened by the month chip on each hero */}
       <BottomDrawer
         open={showMonthPicker}
@@ -439,6 +405,19 @@ export default function Home() {
         onSelect={selectCurrency}
         onOpenConverter={() => setShowConverterDrawer(true)}
       />
+
+      {/* Opened from the currency page, so it is declared after it — see the
+          ordering note above. */}
+      <PushPage
+        open={showConverterDrawer}
+        onClose={() => setShowConverterDrawer(false)}
+        title="Convert currency"
+        ariaLabel="Convert currency"
+      >
+        <div className="pt-6">
+          <CurrencyConverter defaultFrom={currency} />
+        </div>
+      </PushPage>
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
           Accent fill rather than glass: Apple asks to limit Liquid Glass to
@@ -694,23 +673,16 @@ export default function Home() {
               {/* Budget */}
               <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
 
-              {/* Filter tabs */}
-              <SegmentedControl<Filter>
-                items={FILTER_ITEMS}
-                value={filter}
-                onChange={setFilter}
-                ariaLabel="Filter expenses"
-                className="flex gap-2"
-                itemClassName="flex-1 h-10 rounded-full text-sm font-semibold border transition-colors"
-                pillClassName="flat-chip-active border-2 rounded-full"
-                activeClassName="text-chip-on border-transparent"
-                inactiveClassName="flat-chip text-ink/60 hover:text-ink"
-              />
+              {/* The list names itself. All / Today / This Week stood here
+                  instead: three tabs to cut a month that is already scoped by
+                  the chip on the hero, and the list groups by day anyway, so
+                  Today was the first group and This Week the first few. */}
+              <h2 className="px-1 pt-1 font-sans text-xl font-bold text-ink">Expenses</h2>
 
-              {/* Expense list / loading / error. Keyed on filter and month so
-                  both replay the enter animation; the month supplies direction. */}
+              {/* Expense list / loading / error. Keyed on the month so it
+                  replays the enter animation, which supplies the direction. */}
               <ViewTransition
-                trigger={`${filter}|${selectedMonth.year}-${selectedMonth.month}`}
+                trigger={`${selectedMonth.year}-${selectedMonth.month}`}
                 direction={monthDir}
               >
                 {fetchError ? (
@@ -727,7 +699,7 @@ export default function Home() {
                   // of replacing it between two frames.
                   <div key="list" className="animate-fade-slide-in">
                     <ExpenseList
-                      expenses={filteredExpenses}
+                      expenses={expenses}
                       onDeleted={fetchExpenses}
                       onUpdated={fetchExpenses}
                       currency={currency}

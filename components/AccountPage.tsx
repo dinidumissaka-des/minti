@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Coins, FileText, LogOut, Moon, ShieldCheck, Sun } from "lucide-react";
+import { Bell, Coins, FileText, LogOut, Moon, Palette, ShieldCheck, Sun } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import Avatar, { displayName } from "@/components/Avatar";
 import Collapse from "@/components/ui/Collapse";
@@ -85,14 +85,15 @@ export default function AccountPage({
           onClick={onCurrencyClick}
         />
         <ListRow
-          icon={theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+          icon={<Palette size={18} />}
           label="Appearance"
           description="Follows your device"
           trailing={
-            <span className="flex items-center gap-2.5">
-              <Switch on={theme === "dark"} />
-              <span className="font-mono text-sm text-ink/50">{theme === "dark" ? "Dark" : "Light"}</span>
-            </span>
+            <Switch
+              on={theme === "dark"}
+              onIcon={<Moon size={12} />}
+              offIcon={<Sun size={12} />}
+            />
           }
           onClick={onToggleTheme}
           role="switch"
