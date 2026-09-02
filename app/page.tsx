@@ -6,7 +6,7 @@ import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsL
 import type { User } from "@supabase/supabase-js";
 import { getExpensesByMonth, getSubscriptions, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
-import { CURRENCIES, DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
+import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
 import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
@@ -24,6 +24,7 @@ import StatsBar from "@/components/StatsBar";
 import HeroAmount from "@/components/HeroAmount";
 import MonthChip from "@/components/MonthChip";
 import AccountPage from "@/components/AccountPage";
+import CurrencyPage from "@/components/CurrencyPage";
 import Avatar from "@/components/Avatar";
 import { MonthPicker } from "@/components/ui/DrawerPickers";
 import BudgetBar from "@/components/BudgetBar";
@@ -101,7 +102,7 @@ export default function Home() {
   const [budget, setBudget] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
-  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showConverterDrawer, setShowConverterDrawer] = useState(false);
@@ -177,7 +178,6 @@ export default function Home() {
   const selectCurrency = useCallback((code: string) => {
     setCurrency(code);
     localStorage.setItem("minti_currency", code);
-    setShowCurrencyPicker(false);
     upsertUserSettings({ currency: code }).catch(() => {});
   }, []);
 
@@ -260,7 +260,7 @@ export default function Home() {
   const prevMonth = useCallback(() => stepMonth(-1), [stepMonth]);
   const nextMonth = useCallback(() => stepMonth(1), [stepMonth]);
   const openMonthPicker = useCallback(() => setShowMonthPicker(true), []);
-  const openCurrencyPicker = useCallback(() => setShowCurrencyPicker(true), []);
+  const openCurrencyMenu = useCallback(() => setShowCurrencyMenu(true), []);
 
   // Content travels the same way the nav does, so switching sections reads as
   // moving along a row rather than as a replacement.
@@ -396,38 +396,6 @@ export default function Home() {
         <CurrencyConverter defaultFrom={currency} />
       </BottomDrawer>
 
-      {/* Currency picker — the one place currency is chosen, opened from the
-          hero amount, the desktop chip and Settings alike. The converter rides
-          along at the bottom: it is a currency subtask, not a peer of Sign out,
-          which is where the overflow menu had it. */}
-      <BottomDrawer
-        open={showCurrencyPicker}
-        onClose={() => setShowCurrencyPicker(false)}
-        title="Currency"
-      >
-        {CURRENCIES.map((c) => (
-          <button
-            key={c.code}
-            onClick={() => selectCurrency(c.code)}
-            className={`w-full flex items-center justify-between px-4 py-4 text-sm transition-[color,background-color,transform] duration-fast active:scale-[0.98] border-b border-ink/10 ${
-              currency === c.code
-                ? "text-accent bg-accent/10"
-                : "text-ink hover:bg-ink/7"
-            }`}
-          >
-            <span className="font-mono font-semibold text-base">{c.code}</span>
-            <span className="text-sm text-ink/50">{c.name}</span>
-          </button>
-        ))}
-        <button
-          onClick={() => { setShowCurrencyPicker(false); setShowConverterDrawer(true); }}
-          className="w-full flex items-center justify-between px-4 py-4 text-body text-ink rounded-xl hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
-        >
-          <span>Convert currency</span>
-          <ArrowsLeftRight size={16} className="text-ink/40" />
-        </button>
-      </BottomDrawer>
-
       {/* Month picker — opened by the month chip on each hero */}
       <BottomDrawer
         open={showMonthPicker}
@@ -443,12 +411,15 @@ export default function Home() {
         />
       </BottomDrawer>
 
+      {/* Pushed pages portal to <body> at one z-index, so the later of two
+          paints on top. CurrencyPage opens from AccountPage as well as from
+          the hero, so it is declared after it. */}
       <AccountPage
         open={showAccount}
         onClose={() => setShowAccount(false)}
         user={user}
         currency={currency}
-        onCurrencyClick={() => setShowCurrencyPicker(true)}
+        onCurrencyClick={openCurrencyMenu}
         theme={theme}
         onToggleTheme={toggleTheme}
         native={native}
@@ -459,6 +430,14 @@ export default function Home() {
         onToggleBillingReminders={toggleBillingReminders}
         onExportCSV={exportCSV}
         onSignOut={() => { handleSignOut(); setShowAccount(false); }}
+      />
+
+      <CurrencyPage
+        open={showCurrencyMenu}
+        onClose={() => setShowCurrencyMenu(false)}
+        currency={currency}
+        onSelect={selectCurrency}
+        onOpenConverter={() => setShowConverterDrawer(true)}
       />
 
       {/* Floating "+ Add" — mobile only, sits above the bottom nav.
@@ -575,7 +554,7 @@ export default function Home() {
             {/* Currency picker */}
             <div className="relative">
               <button
-                onClick={openCurrencyPicker}
+                onClick={openCurrencyMenu}
                 className="flex items-center gap-1 h-10 px-3 rounded-full border flat-chip text-ink/40 hover:text-ink/90 transition-[color,background-color,border-color,transform] duration-fast active:scale-95 text-xs font-mono"
               >
                 {currency}
@@ -653,7 +632,7 @@ export default function Home() {
               subscriptionsTotal={subscriptionsTotal}
               onMonthClick={openMonthPicker}
               onMonthStep={stepMonth}
-              onCurrencyClick={openCurrencyPicker}
+              onCurrencyClick={openCurrencyMenu}
             />
           )}
           {view === "subscriptions" && (
@@ -664,7 +643,7 @@ export default function Home() {
                 label="Monthly Bills"
                 value={subscriptionsTotal}
                 currency={currency}
-                onCurrencyClick={openCurrencyPicker}
+                onCurrencyClick={openCurrencyMenu}
               />
               <Surface borderRadius={28}>
                 <div className="w-full grid grid-cols-2 divide-x divide-ink/7">
@@ -695,7 +674,7 @@ export default function Home() {
               label="Monthly Income"
               value={incomeTotalHero}
               currency={currency}
-              onCurrencyClick={openCurrencyPicker}
+              onCurrencyClick={openCurrencyMenu}
               month={selectedMonth}
               onMonthClick={openMonthPicker}
               onMonthStep={stepMonth}
