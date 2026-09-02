@@ -83,7 +83,7 @@ export default function HeroAmount({
         />
         <button
           onClick={onCurrencyClick}
-          aria-label={`Change currency — currently ${currency}`}
+          aria-label={`Currency — currently ${currency}`}
           className="font-mono text-5xl font-bold leading-tight text-ink/40 hover:text-ink/70 py-2 -my-2 rounded-full transition-[color,transform] duration-fast active:scale-95"
         >
           {currency}
