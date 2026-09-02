@@ -187,8 +187,12 @@ export default function AccountPage({
         open ? "translate-x-0" : "translate-x-full"
       }`}
     >
+      {/* px-2 is the gutter the pressed/hovered row highlight sits in — without
+          it the row's rounded fill runs into both screen edges. Everything
+          inside keeps its own px-4, so content lands 24px in and the fill 8px
+          in, the same relationship the drawer rows have. */}
       <div
-        className="max-w-2xl mx-auto"
+        className="max-w-2xl mx-auto px-2"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 3rem)" }}
       >
         <div className="px-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}>
@@ -216,7 +220,7 @@ export default function AccountPage({
           <Row
             icon={<FileText size={18} />}
             label="Statements and reports"
-            description="Export what you are looking at as a CSV"
+            description="Export your expenses as a CSV"
             onClick={onExportCSV}
           />
         </Section>
