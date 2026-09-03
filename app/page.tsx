@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
-import { getExpensesByMonth, getSubscriptionsForMonth, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
+import { getExpensesByMonth, getSubscriptionsForMonth, subscriptionsNeedMigration, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
 import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
@@ -77,7 +77,7 @@ export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [subsError, setSubsError] = useState<string | null>(null);
+  const [subsError, setSubsError] = useState<{ message: string; retry: boolean } | null>(null);
   const [view, setView] = useState<View>("expenses");
   const [viewDir, setViewDir] = useState(1);
   const [monthDir, setMonthDir] = useState(1);
@@ -212,17 +212,32 @@ export default function Home() {
     try {
       const data = await getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month);
       setSubscriptions(data);
-      setSubsError(null);
+      // The rows are here but unscoped: every bill shows in every month until
+      // the period columns exist, so name the fix rather than leaving the list
+      // quietly wrong.
+      setSubsError(
+        subscriptionsNeedMigration()
+          ? { message: "Bills aren’t scoped to the month yet. Apply supabase/migration.sql to the database.", retry: false }
+          : null,
+      );
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota exceeded */ }
-    } catch {
+    } catch (error) {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try { setSubscriptions(JSON.parse(cached)); setSubsError(null); return; } catch { /* ignore corrupt cache */ }
       }
-      // Say so. A failed query used to leave an empty list behind, which is
-      // indistinguishable from having no bills — it reads as lost data.
+      // Say so, and say which failure it was. A failed query used to leave an
+      // empty list behind, which is indistinguishable from having no bills —
+      // it reads as lost data — and then blamed the network for a request the
+      // server had answered.
       setSubscriptions([]);
-      setSubsError("Could not load bills. Check your connection.");
+      const rejected = typeof error === "object" && error !== null && "code" in error;
+      setSubsError({
+        message: rejected
+          ? "Could not load bills — the server rejected the request."
+          : "Could not load bills. Check your connection.",
+        retry: true,
+      });
     }
   }, [user, selectedMonth]);
 
@@ -725,10 +740,12 @@ export default function Home() {
               <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
               {subsError && (
                 <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
-                  <p className="text-danger font-mono text-sm">{subsError}</p>
-                  <button onClick={fetchSubscriptions} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
-                    Retry
-                  </button>
+                  <p className="text-danger font-mono text-sm">{subsError.message}</p>
+                  {subsError.retry && (
+                    <button onClick={fetchSubscriptions} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
+                      Retry
+                    </button>
+                  )}
                 </div>
               )}
               <SubscriptionList

@@ -10,7 +10,10 @@ create table if not exists expenses (
 
 alter table expenses enable row level security;
 
--- Allow all operations (no auth for now)
+-- Allow all operations (no auth for now). Dropped first so the whole file stays
+-- re-runnable: a duplicate policy aborts the transaction before anything below
+-- it is applied.
+drop policy if exists "allow all" on expenses;
 create policy "allow all" on expenses for all using (true) with check (true);
 
 -- ─── Subscriptions become month-scoped ────────────────────────────────────────
