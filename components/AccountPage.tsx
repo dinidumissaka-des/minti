@@ -135,7 +135,7 @@ export default function AccountPage({
         {/* Sign out sat one row under Export CSV and fired on the first tap.
             It is the only irreversible row on the page, so it asks. */}
         <Collapse open={confirmSignOut}>
-          <div className="px-4 pt-1 flex items-center gap-2">
+          <div className="px-4 py-3 flex items-center gap-2">
             <button
               onClick={() => setConfirmSignOut(false)}
               className="flex-1 h-12 rounded-full border flat-chip text-ink/60 hover:text-ink text-sm font-semibold transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
