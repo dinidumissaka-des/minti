@@ -33,14 +33,14 @@ export default function CurrencyPage({ open, onClose, currency, onSelect, onOpen
           <Surface borderRadius={28}>
             <div className="w-full divide-y divide-ink/10">
               <ListRow
-                icon={<Coins size={18} />}
+                icon={<Coins size={20} />}
                 label="Change currency"
                 description={name}
                 trailing={<RowValue>{currency}</RowValue>}
                 onClick={() => setShowList(true)}
               />
               <ListRow
-                icon={<ArrowLeftRight size={18} />}
+                icon={<ArrowLeftRight size={20} />}
                 label="Convert currency"
                 description="What an amount is worth elsewhere"
                 onClick={onOpenConverter}

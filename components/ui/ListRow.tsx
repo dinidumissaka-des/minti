@@ -47,9 +47,12 @@ export function ListRow({ icon, label, description, trailing, onClick, danger, .
       className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-ink/7 transition-[background-color,transform] duration-fast active:scale-[0.98]"
       {...rest}
     >
+      {/* A fixed column rather than the icon's own width: the glyphs differ in
+          bearing, and every label on the page has to start on the same line.
+          It is what is left of the 48px circle each icon used to sit in. */}
       <span
-        className={`w-12 h-12 shrink-0 flex items-center justify-center rounded-full border ${
-          danger ? "border-danger-fill/30 text-danger" : "border-ink/15 text-ink"
+        className={`w-6 shrink-0 flex items-center justify-center ${
+          danger ? "text-danger" : "text-ink"
         }`}
       >
         {icon}

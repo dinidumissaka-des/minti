@@ -69,7 +69,7 @@ export default function AccountPage({
 
       <ListSection title="Your account">
         <ListRow
-          icon={<FileText size={18} />}
+          icon={<FileText size={20} />}
           label="Statements and reports"
           description="Export your expenses as a CSV"
           onClick={onExportCSV}
@@ -78,14 +78,14 @@ export default function AccountPage({
 
       <ListSection title="Settings">
         <ListRow
-          icon={<Coins size={18} />}
+          icon={<Coins size={20} />}
           label="Currency"
           description="Used for every figure"
           trailing={<RowValue>{currency}</RowValue>}
           onClick={onCurrencyClick}
         />
         <ListRow
-          icon={<Palette size={18} />}
+          icon={<Palette size={20} />}
           label="Appearance"
           description="Follows your device"
           trailing={
@@ -101,7 +101,7 @@ export default function AccountPage({
         />
         {native && biometryAvailable && (
           <ListRow
-            icon={<ShieldCheck size={18} />}
+            icon={<ShieldCheck size={20} />}
             label="Require Face ID"
             description="Unlock with Face ID or passcode"
             trailing={<RowToggle on={appLock} />}
@@ -112,7 +112,7 @@ export default function AccountPage({
         )}
         {native && (
           <ListRow
-            icon={<Bell size={18} />}
+            icon={<Bell size={20} />}
             label="Billing reminders"
             description="A nudge before each bill"
             trailing={<RowToggle on={billingReminders} />}
@@ -125,7 +125,7 @@ export default function AccountPage({
 
       <ListSection title="Session">
         <ListRow
-          icon={<LogOut size={18} />}
+          icon={<LogOut size={20} />}
           label={confirmSignOut ? "Sign out of this account?" : "Sign out"}
           danger={!confirmSignOut}
           trailing={<span />}
