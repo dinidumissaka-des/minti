@@ -77,6 +77,7 @@ export default function Home() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [subsError, setSubsError] = useState<string | null>(null);
   const [view, setView] = useState<View>("expenses");
   const [viewDir, setViewDir] = useState(1);
   const [monthDir, setMonthDir] = useState(1);
@@ -211,12 +212,17 @@ export default function Home() {
     try {
       const data = await getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month);
       setSubscriptions(data);
+      setSubsError(null);
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota exceeded */ }
     } catch {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
-        try { setSubscriptions(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
+        try { setSubscriptions(JSON.parse(cached)); setSubsError(null); return; } catch { /* ignore corrupt cache */ }
       }
+      // Say so. A failed query used to leave an empty list behind, which is
+      // indistinguishable from having no bills — it reads as lost data.
+      setSubscriptions([]);
+      setSubsError("Could not load bills. Check your connection.");
     }
   }, [user, selectedMonth]);
 
@@ -646,7 +652,7 @@ export default function Home() {
               figure stands on every other view — same size, same centred axis,
               same chip above it. */}
           {view === "insights" && (
-            <div className="px-1 pt-2 pb-5 flex flex-col items-center gap-1 text-center">
+            <div className="px-1 pt-2 pb-9 flex flex-col items-center gap-1 text-center">
               <div className="flex items-center justify-center min-h-[2rem] sm:min-h-0">
                 <MonthChip year={selectedMonth.year} month={selectedMonth.month} onClick={openMonthPicker} />
               </div>
@@ -717,6 +723,14 @@ export default function Home() {
           ) : view === "subscriptions" ? (
             <>
               <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
+              {subsError && (
+                <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
+                  <p className="text-danger font-mono text-sm">{subsError}</p>
+                  <button onClick={fetchSubscriptions} className="mt-3 text-xs font-mono text-muted underline hover:text-ink">
+                    Retry
+                  </button>
+                </div>
+              )}
               <SubscriptionList
                 subscriptions={subscriptions}
                 userId={user.id}

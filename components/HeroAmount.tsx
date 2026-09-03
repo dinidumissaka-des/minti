@@ -54,7 +54,7 @@ export default function HeroAmount({
 
   return (
     <div
-      className="px-1 pt-2 pb-5 flex flex-col items-center gap-1 text-center"
+      className="px-1 pt-2 pb-9 flex flex-col items-center gap-1 text-center"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >

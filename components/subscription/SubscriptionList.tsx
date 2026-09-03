@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X, Loader2, RefreshCw } from "lucide-react";
 import { addSubscription, deleteSubscription, updateSubscription } from "@/lib/supabase";
 import { hapticBump, hapticSuccess } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
@@ -315,7 +315,12 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
 
       {subscriptions.length === 0 && !showAdd && (
         <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-slide-in">
-          <span className="text-4xl mb-3" aria-hidden="true">🔄</span>
+          <span
+            aria-hidden="true"
+            className="w-16 h-16 mb-4 flex items-center justify-center rounded-full border border-ink/10 bg-ink/4 text-ink/30"
+          >
+            <RefreshCw size={26} />
+          </span>
           <p className="font-sans font-semibold text-lg text-muted">No subscriptions yet</p>
           <p className="font-sans text-sm text-muted mt-1">Add rent, Netflix, gym — anything recurring.</p>
         </div>
