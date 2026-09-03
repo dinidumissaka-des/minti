@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Subscription } from "@/types";
-import { getExpensesByMonth, getSubscriptions, getUserSettings, onAuthStateChange } from "@/lib/supabase";
+import { getExpensesByMonth, getSubscriptionsForMonth, getUserSettings, onAuthStateChange } from "@/lib/supabase";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
 import Logo from "@/components/Logo";
@@ -25,6 +25,7 @@ export default function InsightsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
+  const [budget, setBudget] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState({
     year: now.getFullYear(),
     month: now.getMonth() + 1,
@@ -51,11 +52,18 @@ export default function InsightsPage() {
     getUserSettings().then((s) => {
       if (s) {
         setCurrency(s.currency);
+        setBudget(s.budget ?? null);
         setMonthlyIncome(s.monthly_income ?? null);
       }
     }).catch(() => {});
-    getSubscriptions().then(setSubscriptions).catch(() => {});
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month)
+      .then(setSubscriptions)
+      .catch(() => {});
+  }, [user, selectedMonth]);
 
   useEffect(() => {
     if (!user) return;
@@ -148,6 +156,7 @@ export default function InsightsPage() {
             selectedMonth={selectedMonth}
             currency={currency}
             monthlyIncome={monthlyIncome}
+            budget={budget}
           />
         </ViewTransition>
       </div>

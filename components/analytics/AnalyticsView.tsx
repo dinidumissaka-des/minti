@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
-import { TrendingUp, TrendingDown, PieChart, Calendar, RefreshCw } from "lucide-react";
+import { AlertTriangle, CalendarDays, Gauge, PieChart, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
@@ -19,6 +19,7 @@ interface Props {
   selectedMonth: { year: number; month: number };
   currency: string;
   monthlyIncome: number | null;
+  budget: number | null;
 }
 
 function daysInMonth(year: number, month: number) {
@@ -128,118 +129,68 @@ const CategoryChart = memo(function CategoryChart({
 
 // ─── Insight Cards ────────────────────────────────────────────────────────────
 
-interface Insight {
-  id: string;
-  text: string;
+// ─── Overview ─────────────────────────────────────────────────────────────────
+//
+// A grid of tiles rather than a column of sentences: each figure is the loudest
+// thing in its own tile, and the tile is coloured by what it is — the two brand
+// fills for the month and what it kept, a wash of the category's own colour for
+// where it went, a wash of accent or danger for the direction of travel.
+
+type TileTone = "chip" | "accent" | "danger" | "good" | "plain";
+
+const TONES: Record<TileTone, { tile: string; icon: string; value: string; label: string }> = {
+  // The documented pairings: a solid brand fill carries the text made for it.
+  chip:   { tile: "bg-chip",             icon: "text-chip-on/70",   value: "text-chip-on",   label: "text-chip-on/70" },
+  accent: { tile: "bg-accent-fill",      icon: "text-accent-on/70", value: "text-accent-on", label: "text-accent-on/70" },
+  danger: { tile: "bg-danger-fill/15",   icon: "text-danger",       value: "text-danger",    label: "text-muted" },
+  // There is no green wash in this system — the -fill token at low alpha reads
+  // as a stain — so a good-news tile that is not the green fill marks itself
+  // with the green as a bare mark instead.
+  good:   { tile: "bg-surface",          icon: "text-brand",        value: "text-ink",       label: "text-muted" },
+  plain:  { tile: "bg-surface",          icon: "text-ink/40",       value: "text-ink",       label: "text-muted" },
+};
+
+function Tile({
+  icon,
+  value,
+  label,
+  sub,
+  tone = "plain",
+  color,
+  wide,
+  delay,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
   sub?: string;
-  type: "neutral" | "positive" | "warning";
-  icon?: React.ReactNode;
+  tone?: TileTone;
+  /** A category's own colour, washed for the tile and solid for the icon. */
+  color?: string;
+  wide?: boolean;
+  delay: number;
+}) {
+  const t = TONES[tone];
+  return (
+    <div
+      className={`animate-row-in rounded-2xl p-4 flex flex-col gap-3 min-w-0 ${wide ? "col-span-2" : ""} ${color ? "" : t.tile}`}
+      style={{ animationDelay: `${delay}ms`, ...(color ? { backgroundColor: `${color}26` } : null) }}
+    >
+      <span className={color ? "" : t.icon} style={color ? { color } : undefined}>{icon}</span>
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <span
+          className={`font-mono font-bold leading-none truncate ${wide ? "text-4xl" : "text-2xl"} ${color ? "text-ink" : t.value}`}
+        >
+          {value}
+        </span>
+        <span className={`font-sans text-sm font-semibold truncate ${color ? "text-ink/80" : t.label}`}>{label}</span>
+        {sub && <span className={`font-mono text-xs truncate ${color ? "text-muted" : t.label}`}>{sub}</span>}
+      </div>
+    </div>
+  );
 }
 
-function buildInsights(
-  expenses: Expense[],
-  subscriptions: Subscription[],
-  prevExpenses: Expense[],
-  selectedMonth: { year: number; month: number },
-  currency: string,
-  monthlyIncome: number | null,
-  budget: number | null,
-  mask: (v: string) => string,
-): Insight[] {
-  const insights: Insight[] = [];
-  const now = new Date();
-  const isCurrentMonth =
-    now.getFullYear() === selectedMonth.year && now.getMonth() + 1 === selectedMonth.month;
-
-  const stats = buildCategoryStats(expenses, subscriptions);
-  const expTotal = expenses.reduce((s, e) => s + Number(e.amount), 0);
-  const subTotal = subscriptions.reduce((s, s2) => s + Number(s2.amount), 0);
-  const total = expTotal + subTotal;
-
-  if (stats.length > 0) {
-    const top = stats[0];
-    insights.push({
-      id: "top-cat",
-      text: `${top.category} is your biggest spend`,
-      sub: `${top.pct.toFixed(0)}% of total — ${mask(formatAmount(top.amount, currency))} ${currency}`,
-      type: "neutral",
-      icon: <PieChart size={26} className="text-ink/40" />,
-    });
-  }
-
-  if (isCurrentMonth && expenses.length > 0) {
-    const elapsed = daysElapsed(selectedMonth.year, selectedMonth.month);
-    const totalDays = daysInMonth(selectedMonth.year, selectedMonth.month);
-    const avgDay = expTotal / elapsed;
-    const projected = avgDay * totalDays + subTotal;
-    insights.push({
-      id: "projection",
-      text: `On track to spend ${mask(formatAmount(projected, currency))} ${currency} this month`,
-      sub: `Avg ${mask(formatAmount(avgDay, currency))} ${currency}/day over ${elapsed} days`,
-      type: projected > (budget ?? Infinity) ? "warning" : "neutral",
-      icon: projected > (budget ?? Infinity)
-        ? <TrendingUp size={26} className="text-danger" />
-        : <Calendar size={26} className="text-ink/40" />,
-    });
-  }
-
-  if (monthlyIncome && monthlyIncome > 0) {
-    const saved = monthlyIncome - total;
-    const rate = (saved / monthlyIncome) * 100;
-    if (saved >= 0) {
-      insights.push({
-        id: "savings",
-        text: `You've saved ${mask(formatAmount(saved, currency))} ${currency} this month`,
-        sub: `${rate.toFixed(0)}% savings rate`,
-        type: "positive",
-        icon: <TrendingUp size={26} className="text-accent" />,
-      });
-    } else {
-      insights.push({
-        id: "overspend-income",
-        text: `You're ${mask(formatAmount(Math.abs(saved), currency))} ${currency} over your income`,
-        sub: `Spending exceeds income by ${Math.abs(rate).toFixed(0)}%`,
-        type: "warning",
-        icon: <TrendingDown size={26} className="text-danger" />,
-      });
-    }
-  }
-
-  if (prevExpenses.length > 0 && stats.length > 0) {
-    const prevMap: Record<string, number> = {};
-    for (const e of prevExpenses) prevMap[e.category] = (prevMap[e.category] ?? 0) + Number(e.amount);
-    const topCat = stats[0].category;
-    const prev = prevMap[topCat] ?? 0;
-    const curr = stats[0].amount;
-    if (prev > 0) {
-      const pctChange = ((curr - prev) / prev) * 100;
-      const dir = pctChange > 0 ? "up" : "down";
-      insights.push({
-        id: "mom",
-        text: `${topCat} is ${dir} ${Math.abs(pctChange).toFixed(0)}% from last month`,
-        sub: `${mask(formatAmount(prev, currency))} → ${mask(formatAmount(curr, currency))} ${currency}`,
-        type: pctChange > 15 ? "warning" : pctChange < -10 ? "positive" : "neutral",
-        icon: pctChange > 0
-          ? <TrendingUp size={26} className="text-danger" />
-          : <TrendingDown size={26} className="text-accent" />,
-      });
-    }
-  }
-
-  if (subscriptions.length > 0) {
-    insights.push({
-      id: "subs",
-      text: `${subscriptions.length} active subscription${subscriptions.length > 1 ? "s" : ""}`,
-      sub: `${mask(formatAmount(subTotal, currency))} ${currency}/month fixed cost`,
-      type: "neutral",
-      icon: <RefreshCw size={26} className="text-muted" />,
-    });
-  }
-
-  return insights;
-}
-
-const InsightCards = memo(function InsightCards({
+const Overview = memo(function Overview({
   expenses,
   subscriptions,
   prevExpenses,
@@ -257,43 +208,125 @@ const InsightCards = memo(function InsightCards({
   budget: number | null;
 }) {
   const { mask } = usePrivacy();
-  const insights = useMemo(
-    () => buildInsights(expenses, subscriptions, prevExpenses, selectedMonth, currency, monthlyIncome, budget, mask),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [expenses, subscriptions, prevExpenses, selectedMonth, currency, monthlyIncome, budget, mask],
+  const { theme } = useTheme();
+
+  const stats = useMemo(
+    () => buildCategoryStats(expenses, subscriptions, theme),
+    [expenses, subscriptions, theme],
   );
 
-  if (insights.length === 0) return null;
+  const amount = (v: number) => mask(formatAmount(v, currency));
+
+  const now = new Date();
+  const isCurrentMonth =
+    now.getFullYear() === selectedMonth.year && now.getMonth() + 1 === selectedMonth.month;
+  const elapsed = daysElapsed(selectedMonth.year, selectedMonth.month);
+  const totalDays = daysInMonth(selectedMonth.year, selectedMonth.month);
+
+  const expTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const subTotal = subscriptions.reduce((sum, s) => sum + Number(s.amount), 0);
+  const total = expTotal + subTotal;
+  const avgDay = expTotal / Math.max(elapsed, 1);
+  const projected = isCurrentMonth ? avgDay * totalDays + subTotal : total;
+  const limit = budget ?? monthlyIncome ?? null;
+  const over = limit != null && projected > limit;
+
+  const saved = monthlyIncome != null ? monthlyIncome - total : null;
+
+  const momPct = useMemo(() => {
+    if (stats.length === 0 || prevExpenses.length === 0) return null;
+    const top = stats[0];
+    const prev = prevExpenses
+      .filter((e) => e.category === top.category)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    if (prev <= 0) return null;
+    return { category: top.category, pct: ((top.amount - prev) / prev) * 100 };
+  }, [stats, prevExpenses]);
+
+  const prevLabel = useMemo(() => {
+    const { year, month } = prevMonthOf(selectedMonth.year, selectedMonth.month);
+    return new Date(year, month - 1, 1).toLocaleDateString("en", { month: "short" });
+  }, [selectedMonth]);
+
+  if (total === 0) return null;
+
+  const top = stats[0];
+  let delay = 0;
+  const next = () => (delay += 60);
 
   return (
-    <div className="flex flex-col gap-3">
-      {insights.map((insight, i) => (
-        <Surface
-          key={insight.id}
-          borderRadius={24}
-          className="animate-row-in"
-          style={{
-            animationDelay: `${Math.min(i * 60, 300)}ms`,
-            ...(insight.type === "positive"
-              ? { borderColor: "rgb(var(--accent-text) / 0.2)" }
-              : insight.type === "warning"
-              ? { borderColor: "rgb(var(--danger) / 0.2)" }
-              : {}),
-          }}
-        >
-          <div className="px-5 py-5 flex items-start gap-4 w-full">
-            {insight.icon && (
-              <span className="flex-shrink-0">{insight.icon}</span>
-            )}
-            <div className="flex flex-col gap-1 min-w-0">
-              <p className="font-sans text-sm font-semibold text-ink leading-snug">{insight.text}</p>
-              {insight.sub && (
-                <p className="font-mono text-sm text-muted leading-relaxed">{insight.sub}</p>
-              )}
-            </div>
-          </div>
-        </Surface>
-      ))}
+    // The hero spans both columns, so a trailing tile is alone in its row when
+    // its index is even. It takes the whole row rather than leaving a hole.
+    <div className="grid grid-cols-2 gap-3 [&>*:last-child:nth-child(even)]:col-span-2">
+      {/* The alarm is the icon and the words, not the fill: this tile is the
+          month, and the month keeps its colour whether or not it is going
+          badly. */}
+      <Tile
+        wide
+        tone="chip"
+        icon={over ? <AlertTriangle size={22} /> : <CalendarDays size={22} />}
+        value={`${amount(projected)} ${currency}`}
+        label={isCurrentMonth ? "On track this month" : "Spent this month"}
+        sub={
+          limit != null
+            ? over
+              ? `${amount(projected - limit)} over ${budget == null ? "income" : "budget"}`
+              : `of ${amount(limit)} ${budget == null ? "income" : "budget"}`
+            : `day ${elapsed} of ${totalDays}`
+        }
+        delay={0}
+      />
+
+      {saved != null && (
+        <Tile
+          tone={saved >= 0 ? "accent" : "danger"}
+          icon={saved >= 0 ? <PiggyBank size={22} /> : <TrendingDown size={22} />}
+          value={amount(Math.abs(saved))}
+          label={saved >= 0 ? "Saved" : "Over income"}
+          sub={monthlyIncome ? `${Math.abs((saved / monthlyIncome) * 100).toFixed(0)}% of income` : undefined}
+          delay={next()}
+        />
+      )}
+
+      {top && (
+        <Tile
+          color={top.color}
+          icon={<PieChart size={22} />}
+          value={`${top.pct.toFixed(0)}%`}
+          label={top.category}
+          sub={`${amount(top.amount)} ${currency}`}
+          delay={next()}
+        />
+      )}
+
+      <Tile
+        icon={<Gauge size={22} />}
+        value={amount(avgDay)}
+        label="Per day"
+        sub={`over ${elapsed} day${elapsed === 1 ? "" : "s"}`}
+        delay={next()}
+      />
+
+      {subscriptions.length > 0 && (
+        <Tile
+          icon={<RefreshCw size={22} />}
+          value={String(subscriptions.length)}
+          label={`Bill${subscriptions.length === 1 ? "" : "s"}`}
+          sub={`${amount(subTotal)} fixed`}
+          delay={next()}
+        />
+      )}
+
+      {momPct && (
+        <Tile
+          tone={momPct.pct > 0 ? "danger" : "good"}
+          icon={momPct.pct > 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+          value={`${momPct.pct > 0 ? "+" : "−"}${Math.abs(momPct.pct).toFixed(0)}%`}
+          label={momPct.category}
+          sub={`vs ${prevLabel}`}
+          delay={next()}
+        />
+      )}
     </div>
   );
 });
@@ -392,7 +425,7 @@ const MomComparison = memo(function MomComparison({
 type Tab = "insights" | "spending" | "vs-last";
 
 const TABS: Segment<Tab>[] = [
-  { key: "insights",  label: "Insights" },
+  { key: "insights",  label: "Overview" },
   { key: "spending",  label: "By Category" },
   { key: "vs-last",   label: "vs Last Month" },
 ];
@@ -405,9 +438,9 @@ export default function AnalyticsView({
   selectedMonth,
   currency,
   monthlyIncome,
+  budget,
 }: Props) {
   const [prevExpenses, setPrevExpenses] = useState<Expense[]>([]);
-  const [budget, setBudget] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("insights");
   const [tabDir, setTabDir] = useState(1);
 
@@ -426,11 +459,6 @@ export default function AnalyticsView({
       .catch(() => {});
   }, [selectedMonth]);
 
-  useEffect(() => {
-    const b = localStorage.getItem("minti_budget");
-    if (b) setBudget(parseFloat(b));
-  }, []);
-
   return (
     <div className="flex flex-col gap-5">
       {/* Tab bar */}
@@ -448,7 +476,7 @@ export default function AnalyticsView({
 
       <ViewTransition trigger={tab} direction={tabDir}>
         {tab === "insights" && (
-          <InsightCards
+          <Overview
             expenses={expenses}
             subscriptions={subscriptions}
             prevExpenses={prevExpenses}
