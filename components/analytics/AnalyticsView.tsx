@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { AlertTriangle, CalendarDays, Gauge, PieChart, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
 import { formatAmount } from "@/lib/currencies";
@@ -130,23 +131,61 @@ const CategoryChart = memo(function CategoryChart({
 
 // ─── Overview ─────────────────────────────────────────────────────────────────
 //
-// This was five identical cards — icon, sentence, sentence — which is a list of
-// prose where every figure is a number the reader has to picture for themselves.
-// Each one is now shown as the shape of its own question: a pace against a
-// limit, two headline figures, a part-to-whole, and a before/after.
+// A grid of tiles rather than a column of sentences: each figure is the loudest
+// thing in its own tile, and the tile is coloured by what it is — the two brand
+// fills for the month and what it kept, a wash of the category's own colour for
+// where it went, a wash of accent or danger for the direction of travel.
 
-function StatTile({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "positive" | "warning" }) {
+type TileTone = "chip" | "accent" | "danger" | "good" | "plain";
+
+const TONES: Record<TileTone, { tile: string; icon: string; value: string; label: string }> = {
+  // The documented pairings: a solid brand fill carries the text made for it.
+  chip:   { tile: "bg-chip",             icon: "text-chip-on/70",   value: "text-chip-on",   label: "text-chip-on/70" },
+  accent: { tile: "bg-accent-fill",      icon: "text-accent-on/70", value: "text-accent-on", label: "text-accent-on/70" },
+  danger: { tile: "bg-danger-fill/15",   icon: "text-danger",       value: "text-danger",    label: "text-muted" },
+  // There is no green wash in this system — the -fill token at low alpha reads
+  // as a stain — so a good-news tile that is not the green fill marks itself
+  // with the green as a bare mark instead.
+  good:   { tile: "bg-surface",          icon: "text-brand",        value: "text-ink",       label: "text-muted" },
+  plain:  { tile: "bg-surface",          icon: "text-ink/40",       value: "text-ink",       label: "text-muted" },
+};
+
+function Tile({
+  icon,
+  value,
+  label,
+  sub,
+  tone = "plain",
+  color,
+  wide,
+  delay,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  sub?: string;
+  tone?: TileTone;
+  /** A category's own colour, washed for the tile and solid for the icon. */
+  color?: string;
+  wide?: boolean;
+  delay: number;
+}) {
+  const t = TONES[tone];
   return (
-    <div className="px-5 py-4 flex flex-col gap-1 min-w-0">
-      <span className="font-sans text-xs text-muted font-semibold leading-none">{label}</span>
-      <span
-        className={`font-mono text-2xl font-bold leading-tight truncate ${
-          tone === "warning" ? "text-danger" : "text-ink"
-        }`}
-      >
-        {value}
-      </span>
-      <span className="font-mono text-xs text-muted truncate">{sub}</span>
+    <div
+      className={`animate-row-in rounded-2xl p-4 flex flex-col gap-3 min-w-0 ${wide ? "col-span-2" : ""} ${color ? "" : t.tile}`}
+      style={{ animationDelay: `${delay}ms`, ...(color ? { backgroundColor: `${color}26` } : null) }}
+    >
+      <span className={color ? "" : t.icon} style={color ? { color } : undefined}>{icon}</span>
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <span
+          className={`font-mono font-bold leading-none truncate ${wide ? "text-4xl" : "text-2xl"} ${color ? "text-ink" : t.value}`}
+        >
+          {value}
+        </span>
+        <span className={`font-sans text-sm font-semibold truncate ${color ? "text-ink/80" : t.label}`}>{label}</span>
+        {sub && <span className={`font-mono text-xs truncate ${color ? "text-muted" : t.label}`}>{sub}</span>}
+      </div>
     </div>
   );
 }
@@ -176,7 +215,7 @@ const Overview = memo(function Overview({
     [expenses, subscriptions, theme],
   );
 
-  const money = (v: number) => `${mask(formatAmount(v, currency))} ${currency}`;
+  const amount = (v: number) => mask(formatAmount(v, currency));
 
   const now = new Date();
   const isCurrentMonth =
@@ -189,22 +228,19 @@ const Overview = memo(function Overview({
   const total = expTotal + subTotal;
   const avgDay = expTotal / Math.max(elapsed, 1);
   const projected = isCurrentMonth ? avgDay * totalDays + subTotal : total;
-
-  // Budget is the limit the bar is drawn against; income stands in when there
-  // is no budget, because a bar needs something to be a fraction of.
   const limit = budget ?? monthlyIncome ?? null;
-  const spentPct = limit ? Math.min((total / limit) * 100, 100) : 0;
-  const projectedPct = limit ? Math.min((projected / limit) * 100, 100) : 0;
   const over = limit != null && projected > limit;
 
-  const prevTop = useMemo(() => {
+  const saved = monthlyIncome != null ? monthlyIncome - total : null;
+
+  const momPct = useMemo(() => {
     if (stats.length === 0 || prevExpenses.length === 0) return null;
     const top = stats[0];
     const prev = prevExpenses
       .filter((e) => e.category === top.category)
       .reduce((sum, e) => sum + Number(e.amount), 0);
     if (prev <= 0) return null;
-    return { ...top, prev };
+    return { category: top.category, pct: ((top.amount - prev) / prev) * 100 };
   }, [stats, prevExpenses]);
 
   const prevLabel = useMemo(() => {
@@ -212,172 +248,84 @@ const Overview = memo(function Overview({
     return new Date(year, month - 1, 1).toLocaleDateString("en", { month: "short" });
   }, [selectedMonth]);
 
-  const shares = useMemo(() => {
-    const head = stats.slice(0, 4);
-    const restPct = stats.slice(4).reduce((sum, s) => sum + s.pct, 0);
-    const restAmount = stats.slice(4).reduce((sum, s) => sum + s.amount, 0);
-    return restPct > 0
-      ? [...head, { category: "Other", amount: restAmount, pct: restPct, color: OTHER_CATEGORY_COLOR[theme] }]
-      : head;
-  }, [stats, theme]);
-
   if (total === 0) return null;
 
+  const top = stats[0];
+  let delay = 0;
+  const next = () => (delay += 60);
+
   return (
-    <div className="flex flex-col gap-3">
-      {/* Pace: what is spent, where it is heading, against what it is allowed */}
-      <Surface borderRadius={28} className="animate-row-in">
-        <div className="px-5 py-5 flex flex-col gap-3 w-full">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="font-sans text-xs text-muted font-semibold">
-              {isCurrentMonth ? "On track for" : "Spent"}
-            </span>
-            <span className="font-mono text-xs text-muted">
-              {isCurrentMonth ? `day ${elapsed} of ${totalDays}` : `${totalDays} days`}
-            </span>
-          </div>
-          <span className={`font-mono text-4xl font-bold leading-none ${over ? "text-danger" : "text-ink"}`}>
-            {money(projected)}
-          </span>
+    // The hero spans both columns, so a trailing tile is alone in its row when
+    // its index is even. It takes the whole row rather than leaving a hole.
+    <div className="grid grid-cols-2 gap-3 [&>*:last-child:nth-child(even)]:col-span-2">
+      {/* The alarm is the icon and the words, not the fill: this tile is the
+          month, and the month keeps its colour whether or not it is going
+          badly. */}
+      <Tile
+        wide
+        tone="chip"
+        icon={over ? <AlertTriangle size={22} /> : <CalendarDays size={22} />}
+        value={`${amount(projected)} ${currency}`}
+        label={isCurrentMonth ? "On track this month" : "Spent this month"}
+        sub={
+          limit != null
+            ? over
+              ? `${amount(projected - limit)} over ${budget == null ? "income" : "budget"}`
+              : `of ${amount(limit)} ${budget == null ? "income" : "budget"}`
+            : `day ${elapsed} of ${totalDays}`
+        }
+        delay={0}
+      />
 
-          {limit != null && (
-            <div className="relative pt-1">
-              <Meter
-                value={spentPct}
-                className="h-2 bg-ink/10"
-                barClassName={over ? "bg-danger-fill" : "bg-accent-fill"}
-              />
-              {/* Where the month lands if the rest of it looks like the part
-                  already spent. Nothing to mark once the month is over. */}
-              {isCurrentMonth && projectedPct > spentPct && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1 h-2 w-0.5 rounded-full bg-ink/60"
-                  style={{ left: `${projectedPct}%` }}
-                />
-              )}
-            </div>
-          )}
-
-          <p className="font-mono text-xs text-muted">
-            {limit != null
-              ? `${money(total)} of ${money(limit)}${budget == null ? " income" : " budget"}`
-              : `${money(avgDay)}/day over ${elapsed} day${elapsed === 1 ? "" : "s"}`}
-          </p>
-        </div>
-      </Surface>
-
-      {(monthlyIncome != null || subscriptions.length > 0) && (
-        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "60ms" }}>
-          <div
-            className={`w-full grid divide-x divide-ink/7 ${
-              monthlyIncome != null && subscriptions.length > 0 ? "grid-cols-2" : "grid-cols-1"
-            }`}
-          >
-            {monthlyIncome != null && monthlyIncome > 0 && (
-              <StatTile
-                label={total > monthlyIncome ? "Over income" : "Saved"}
-                value={mask(formatAmount(Math.abs(monthlyIncome - total), currency))}
-                sub={`${Math.abs(((monthlyIncome - total) / monthlyIncome) * 100).toFixed(0)}% of income`}
-                tone={total > monthlyIncome ? "warning" : undefined}
-              />
-            )}
-            {subscriptions.length > 0 && (
-              <StatTile
-                label={`Bill${subscriptions.length === 1 ? "" : "s"}`}
-                value={String(subscriptions.length)}
-                sub={`${mask(formatAmount(subTotal, currency))} fixed`}
-              />
-            )}
-          </div>
-        </Surface>
+      {saved != null && (
+        <Tile
+          tone={saved >= 0 ? "accent" : "danger"}
+          icon={saved >= 0 ? <PiggyBank size={22} /> : <TrendingDown size={22} />}
+          value={amount(Math.abs(saved))}
+          label={saved >= 0 ? "Saved" : "Over income"}
+          sub={monthlyIncome ? `${Math.abs((saved / monthlyIncome) * 100).toFixed(0)}% of income` : undefined}
+          delay={next()}
+        />
       )}
 
-      {/* Part-to-whole. The segments are direct-labelled below rather than left
-          to colour alone: the category hues sit inside the CVD floor band. */}
-      {shares.length > 0 && (
-        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "120ms" }}>
-          <div className="px-5 py-5 flex flex-col gap-4 w-full">
-            <span className="font-sans text-xs text-muted font-semibold">Where it went</span>
-            <div className="flex gap-0.5 h-2.5 w-full">
-              {shares.map((s) => (
-                <span
-                  key={s.category}
-                  className="h-full rounded-full"
-                  style={{ width: `${s.pct}%`, backgroundColor: s.color }}
-                />
-              ))}
-            </div>
-            <div className="flex flex-col gap-2.5">
-              {shares.map((s) => (
-                <div key={s.category} className="flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-                  <span className="font-sans text-body text-ink/80 flex-1 truncate">{s.category}</span>
-                  <span className="font-mono text-sm text-muted w-10 text-right">{s.pct.toFixed(0)}%</span>
-                  <span className="font-mono text-sm text-ink w-24 text-right truncate">
-                    {mask(formatAmount(s.amount, currency))}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Surface>
+      {top && (
+        <Tile
+          color={top.color}
+          icon={<PieChart size={22} />}
+          value={`${top.pct.toFixed(0)}%`}
+          label={top.category}
+          sub={`${amount(top.amount)} ${currency}`}
+          delay={next()}
+        />
       )}
 
-      {/* Before and after on one scale, so the size of the move is the picture */}
-      {prevTop && (
-        <Surface borderRadius={28} className="animate-row-in" style={{ animationDelay: "180ms" }}>
-          <div className="px-5 py-5 flex flex-col gap-4 w-full">
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-sans text-xs text-muted font-semibold">
-                {prevTop.category} vs {prevLabel}
-              </span>
-              <span
-                className={`font-mono text-xs font-semibold ${
-                  prevTop.amount > prevTop.prev ? "text-danger" : "text-accent"
-                }`}
-              >
-                {prevTop.amount > prevTop.prev ? "↑" : "↓"}{" "}
-                {Math.abs(((prevTop.amount - prevTop.prev) / prevTop.prev) * 100).toFixed(0)}%
-              </span>
-            </div>
-            {(() => {
-              const scale = Math.max(prevTop.amount, prevTop.prev);
-              const at = (v: number) => `${(v / scale) * 100}%`;
-              const lo = Math.min(prevTop.amount, prevTop.prev);
-              const hi = Math.max(prevTop.amount, prevTop.prev);
-              return (
-                <div className="relative h-3 mx-1.5">
-                  <span
-                    className="absolute top-1/2 -translate-y-1/2 h-0.5 rounded-full bg-ink/15"
-                    style={{ left: at(lo), width: `calc(${at(hi)} - ${at(lo)})` }}
-                  />
-                  <span
-                    className="absolute top-1/2 w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/30"
-                    style={{ left: at(prevTop.prev) }}
-                  />
-                  <span
-                    className="absolute top-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{ left: at(prevTop.amount), backgroundColor: prevTop.color }}
-                  />
-                </div>
-              );
-            })()}
-            {/* Tied to the dots by swatch and month, not by position: the two
-                values sit at the edges while their dots sit wherever the scale
-                puts them. */}
-            <div className="flex items-baseline justify-between font-mono text-sm gap-3">
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-ink/30 flex-shrink-0" />
-                <span className="text-muted truncate">{prevLabel} {mask(formatAmount(prevTop.prev, currency))}</span>
-              </span>
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: prevTop.color }} />
-                <span className="text-ink font-semibold truncate">{mask(formatAmount(prevTop.amount, currency))}</span>
-              </span>
-            </div>
-          </div>
-        </Surface>
+      <Tile
+        icon={<Gauge size={22} />}
+        value={amount(avgDay)}
+        label="Per day"
+        sub={`over ${elapsed} day${elapsed === 1 ? "" : "s"}`}
+        delay={next()}
+      />
+
+      {subscriptions.length > 0 && (
+        <Tile
+          icon={<RefreshCw size={22} />}
+          value={String(subscriptions.length)}
+          label={`Bill${subscriptions.length === 1 ? "" : "s"}`}
+          sub={`${amount(subTotal)} fixed`}
+          delay={next()}
+        />
+      )}
+
+      {momPct && (
+        <Tile
+          tone={momPct.pct > 0 ? "danger" : "good"}
+          icon={momPct.pct > 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+          value={`${momPct.pct > 0 ? "+" : "−"}${Math.abs(momPct.pct).toFixed(0)}%`}
+          label={momPct.category}
+          sub={`vs ${prevLabel}`}
+          delay={next()}
+        />
       )}
     </div>
   );
