@@ -151,10 +151,13 @@ export async function updateExpense(id: string, data: Partial<Omit<Expense, 'id'
 // made in one month never rewrites what an earlier month was charged.
 export async function getSubscriptionsForMonth(year: number, month: number): Promise<Subscription[]> {
   const key = monthKey(year, month);
+  // A row with no period at all — one written before the columns existed, or
+  // one the backfill missed — is treated as always active rather than filtered
+  // out of every month. Losing sight of a bill is worse than showing it early.
   const { data, error } = await getClient()
     .from('subscriptions')
     .select('*')
-    .lte('start_month', key)
+    .or(`start_month.is.null,start_month.lte.${key}`)
     .or(`end_month.is.null,end_month.gte.${key}`)
     .order('created_at', { ascending: false });
   if (error) throw error;
