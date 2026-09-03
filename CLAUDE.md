@@ -31,7 +31,8 @@ components/
   MonthChip.tsx     Mobile month pill (`Sep 2026 ⌄`) — opens the month picker
   StatsBar.tsx      Month total (hero), Today, Avg/Day — includes subscriptionsTotal
   BudgetBar.tsx     Monthly budget progress bar
-  AuthForm.tsx      Sign in / sign up — three steps: identify (OAuth + email), code, password fallback
+  AuthForm.tsx      Sign in / sign up — three steps: identify (OAuth + passkey + email), code, password fallback
+  PasskeySetting.tsx Passkey enrolment and removal — one Account row, owns its own state; renders nothing where WebAuthn cannot work
   ThemeContext.tsx  Light/dark theme provider — `useTheme()` returns `{ theme, toggleTheme }`, persists to localStorage (`minti_theme`)
   PrivacyContext.tsx Hide-amounts provider — `usePrivacy()` returns `{ privacyMode, togglePrivacy, mask }`
   Logo.tsx
@@ -171,5 +172,6 @@ RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (ha
 - **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch
 - **View state**: `view: "expenses" | "subscriptions"` lives in page.tsx. Expenses view shows AddExpenseForm + filter tabs + ExpenseList. Subscriptions view shows SubscriptionList only.
 - **Auth is a ladder, not a method**: OAuth first, an emailed 6-digit code as the fallback that always works, password kept only so existing accounts still open. Every credential lives in `lib/auth.ts`; `AuthForm` never imports `supabase.auth`, so adding one (passkeys next) is a change to one module. The email path is `signInWithOtp`/`verifyOtp` — a **code, never a link**, because a link hands the user to a browser that on iOS never comes back. One call covers sign-in and sign-up, so the form does not ask which. Supabase only sends a code if the Magic Link template contains `{{ .Token }}`, and identity linking across Google/code/password needs *Confirm email* left on — see README → Authentication.
-- **App lock is not authentication**: `lib/appLock.ts` is a local re-lock over an existing session. Keep it separate from anything in `lib/auth.ts`.
+- **Passkeys are enrolled after first sign-in, never at signup**: a passkey can only be made for an account that already exists, so the front door stays OAuth/code and `PasskeySetting` adds the credential later from the Account page. Web only — WebAuthn binds to a registrable domain and the Capacitor shell has none, so `passkeysSupported()` is false on native. Supabase's passkey API is beta and returns `{ data, error }` rather than throwing; `lib/auth.ts` rethrows so it matches everything around it.
+- **App lock is not authentication**: `lib/appLock.ts` is a local re-lock over an existing session. Keep it separate from anything in `lib/auth.ts`, including the passkey flow.
 - **subscriptionsTotal**: calculated in page.tsx, passed to StatsBar and added to BudgetBar `spent`

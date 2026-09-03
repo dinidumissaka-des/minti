@@ -7,6 +7,7 @@ import Avatar, { displayName } from "@/components/Avatar";
 import Collapse from "@/components/ui/Collapse";
 import PushPage from "@/components/ui/PushPage";
 import { ListRow, ListSection, RowToggle, RowValue } from "@/components/ui/ListRow";
+import PasskeySetting from "@/components/PasskeySetting";
 import Switch from "@/components/ui/Switch";
 
 interface Props {
@@ -74,6 +75,7 @@ export default function AccountPage({
           description="Export your expenses as a CSV"
           onClick={onExportCSV}
         />
+        <PasskeySetting open={open} />
       </ListSection>
 
       <ListSection title="Settings">

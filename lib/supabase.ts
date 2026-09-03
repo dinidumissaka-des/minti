@@ -20,6 +20,9 @@ export function getClient(): SupabaseClient {
   if (!_client) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    // Passkeys are opt-in and every auth.passkey call throws without the flag.
+    // Harmless on native, where lib/auth.ts declines to offer them anyway.
+    const experimental = { passkey: true };
     _client = isNative()
       ? createClient(url, key, {
           auth: {
@@ -28,9 +31,10 @@ export function getClient(): SupabaseClient {
             autoRefreshToken: true,
             detectSessionInUrl: false,
             flowType: 'pkce',
+            experimental,
           },
         })
-      : createClient(url, key);
+      : createClient(url, key, { auth: { experimental } });
   }
   return _client;
 }

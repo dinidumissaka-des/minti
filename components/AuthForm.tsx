@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
 import {
   sendEmailCode,
   verifyEmailCode,
   signInWithPassword,
   signInWithGoogle,
   signInWithApple,
+  signInWithPasskey,
+  passkeysSupported,
+  isPasskeyCeremonyAborted,
   appleWebSignInEnabled,
   EMAIL_CODE_LENGTH,
 } from "@/lib/auth";
@@ -45,6 +48,7 @@ type Step = "identify" | "code" | "password";
 
 export default function AuthForm() {
   const [native, setNative] = useState(false);
+  const [canPasskey, setCanPasskey] = useState(false);
   const [step, setStep] = useState<Step>("identify");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -60,6 +64,7 @@ export default function AuthForm() {
 
   useEffect(() => {
     setNative(isNative());
+    setCanPasskey(passkeysSupported());
   }, []);
 
   useEffect(() => {
@@ -140,6 +145,19 @@ export default function AuthForm() {
       await signInWithPassword(target, password);
     } catch (err: unknown) {
       setError(readableError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handlePasskey() {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await signInWithPasskey();
+    } catch (err: unknown) {
+      // Dismissing the system sheet is a choice, not a failure.
+      if (!isPasskeyCeremonyAborted(err)) setError(readableError(err));
     } finally {
       setSubmitting(false);
     }
@@ -330,6 +348,20 @@ export default function AuthForm() {
               <path d="M14.94 9.57c-.02-2.1 1.71-3.11 1.79-3.16-.98-1.43-2.5-1.62-3.04-1.64-1.29-.13-2.52.76-3.18.76-.65 0-1.67-.74-2.74-.72-1.41.02-2.71.82-3.43 2.08-1.46 2.54-.37 6.3 1.05 8.36.7 1.01 1.53 2.14 2.62 2.1 1.05-.04 1.45-.68 2.72-.68 1.27 0 1.63.68 2.74.66 1.13-.02 1.85-1.03 2.54-2.04.8-1.17 1.13-2.3 1.15-2.36-.03-.01-2.2-.84-2.22-3.36zM12.86 3.4c.58-.7.97-1.68.86-2.65-.83.03-1.84.55-2.44 1.25-.53.62-1 1.61-.87 2.56.93.07 1.87-.47 2.45-1.16z" />
             </svg>
             Continue with Apple
+          </button>
+        )}
+
+        {/* Last in the stack deliberately: it only works once a passkey has
+            been enrolled from the account page, so it cannot lead. */}
+        {canPasskey && (
+          <button
+            type="button"
+            onClick={() => void handlePasskey()}
+            disabled={submitting}
+            className={SSO_BUTTON}
+          >
+            <KeyRound size={18} />
+            Sign in with a passkey
           </button>
         )}
       </div>

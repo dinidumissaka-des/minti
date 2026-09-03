@@ -31,6 +31,7 @@ so existing accounts are not locked out.
 | Google | OAuth, both platforms |
 | Apple | OAuth. Native always; on web only when `NEXT_PUBLIC_APPLE_WEB_AUTH=true` |
 | Email code | `signInWithOtp` sends a 6-digit code, `verifyOtp` redeems it. One call covers sign-in and sign-up |
+| Passkey | Face ID / Touch ID / Windows Hello. Web only, and enrolled after first sign-in — never at signup |
 | Password | Reachable behind *Use a password instead*, no longer advertised |
 
 All of it lives in `lib/auth.ts`, which is the only module that touches
@@ -60,6 +61,26 @@ links instead:
 *Authentication → Providers → Apple*. Native uses the bundle ID and needs none
 of that, which is why the web button is behind an env flag — without the
 Services ID it can only return a 400.
+
+### Passkeys
+
+Passkeys are enrolled from *Account → Passkey sign-in*, never at signup: a
+passkey can only be made for an account that already exists, and gating the
+front door on one turns away anyone on a shared or older device. Once enrolled,
+*Sign in with a passkey* appears under the OAuth buttons.
+
+Turn them on under *Authentication → Sign In / Providers → Passkeys* in the
+dashboard. The client opts in separately through `auth.experimental.passkey`
+(set in `lib/supabase.ts`) — every `auth.passkey` call throws without it. The
+feature is beta and Supabase documents the API as subject to change without
+notice, which is the reason it is an added credential rather than the only one.
+
+**Passkeys are hidden in the iOS app.** WebAuthn binds a credential to a
+registrable domain and the Capacitor shell serves from `capacitor://localhost`,
+which has none, so the ceremony cannot complete however it is called.
+`passkeysSupported()` returns false there. Native already re-locks an existing
+session with Face ID through `lib/appLock.ts` — a different job, and worth
+keeping separate.
 
 ## iOS app
 

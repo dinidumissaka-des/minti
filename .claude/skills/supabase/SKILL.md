@@ -11,7 +11,8 @@ Every call into `supabase.auth` lives in `lib/auth.ts`. `lib/supabase.ts` is the
 - `onAuthStateChange(cb)` — subscribe, returns `{ data: { subscription } }` to unsubscribe
 - `sendEmailCode(email)` / `verifyEmailCode(email, token)` — the primary email path. A **6-digit code, never a magic link**: a link dead-ends in a browser on iOS. `shouldCreateUser: true`, so one call serves sign-in and sign-up
 - `signInWithGoogle()` / `signInWithApple()` — `appleWebSignInEnabled()` gates the web Apple button
-- `signInWithPassword()` / `signUpWithPassword()` — legacy fallback, unadvertised in the UI. Don't build on it
+- `signInWithPasskey()` / `registerPasskey()` / `listPasskeys()` / `deletePasskey(id)` — gate every one behind `passkeysSupported()` (false on native: no registrable domain in the Capacitor shell). Supabase returns `{ data, error }` here instead of throwing; `lib/auth.ts` rethrows so callers match the rest. Needs `auth.experimental.passkey` on the client and Passkeys enabled in the dashboard
+- `signInWithPassword()` — legacy fallback, unadvertised in the UI. There is no password sign-up counterpart; don't add one back
 - `signOut()`, `completeNativeOAuth(url)`
 - User ID from `user.id` (UUID) — always pass to insert functions
 

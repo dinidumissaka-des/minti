@@ -97,3 +97,52 @@ export async function completeNativeOAuth(callbackUrl: string) {
   await Browser.close().catch(() => {});
   if (error) throw error;
 }
+
+export type Passkey = {
+  id: string;
+  friendly_name?: string;
+  created_at: string;
+  last_used_at?: string;
+};
+
+// WebAuthn binds a credential to an origin's domain. The Capacitor shell serves
+// the bundle from capacitor://localhost, which has no registrable domain to
+// bind to, so the ceremony cannot complete there however it is called. Native
+// already has Face ID over the session through lib/appLock.ts.
+export function passkeysSupported(): boolean {
+  if (typeof window === 'undefined' || isNative()) return false;
+  return typeof window.PublicKeyCredential !== 'undefined';
+}
+
+// Dismissing the system sheet is a decision, not a failure; the caller should
+// go quiet rather than show an error for it.
+export function isPasskeyCeremonyAborted(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { code?: string }).code === 'ERROR_CEREMONY_ABORTED'
+  );
+}
+
+// The passkey methods report failure through `error` instead of throwing;
+// rethrow so they behave like every other call in this module.
+export async function signInWithPasskey() {
+  const { error } = await getClient().auth.signInWithPasskey();
+  if (error) throw error;
+}
+
+export async function registerPasskey() {
+  const { error } = await getClient().auth.registerPasskey();
+  if (error) throw error;
+}
+
+export async function listPasskeys(): Promise<Passkey[]> {
+  const { data, error } = await getClient().auth.passkey.list();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function deletePasskey(passkeyId: string) {
+  const { error } = await getClient().auth.passkey.delete({ passkeyId });
+  if (error) throw error;
+}
