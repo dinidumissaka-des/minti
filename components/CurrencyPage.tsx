@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeftRight, Check, Coins } from "lucide-react";
 import PushPage from "@/components/ui/PushPage";
+import Surface from "@/components/Surface";
 import { ListRow, RowValue } from "@/components/ui/ListRow";
 import { CURRENCIES } from "@/lib/currencies";
 
@@ -25,20 +26,27 @@ export default function CurrencyPage({ open, onClose, currency, onSelect, onOpen
   return (
     <>
       <PushPage open={open} onClose={onClose} title="Currency" ariaLabel="Currency">
-        <div className="pt-6">
-          <ListRow
-            icon={<Coins size={18} />}
-            label="Change currency"
-            description={name}
-            trailing={<RowValue>{currency}</RowValue>}
-            onClick={() => setShowList(true)}
-          />
-          <ListRow
-            icon={<ArrowLeftRight size={18} />}
-            label="Convert currency"
-            description="What an amount is worth elsewhere"
-            onClick={onOpenConverter}
-          />
+        {/* One card, same as a section on the account page: these rows are
+            built from ListRow, which is full-bleed and expects a card edge to
+            clip it. */}
+        <div className="px-2 pt-6">
+          <Surface borderRadius={28}>
+            <div className="w-full divide-y divide-ink/10">
+              <ListRow
+                icon={<Coins size={20} />}
+                label="Change currency"
+                description={name}
+                trailing={<RowValue>{currency}</RowValue>}
+                onClick={() => setShowList(true)}
+              />
+              <ListRow
+                icon={<ArrowLeftRight size={20} />}
+                label="Convert currency"
+                description="What an amount is worth elsewhere"
+                onClick={onOpenConverter}
+              />
+            </div>
+          </Surface>
         </div>
       </PushPage>
 

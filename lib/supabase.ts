@@ -147,6 +147,37 @@ export async function updateExpense(id: string, data: Partial<Omit<Expense, 'id'
   if (error) throw error;
 }
 
+// The month-scoping columns arrive with supabase/migration.sql. Until that has
+// been applied, PostgREST rejects every query that names them and the whole
+// Bills view dies — which is how "Could not load bills" got blamed on the
+// network. A bill you cannot see is worse than one shown in the wrong month,
+// so each call below falls back to the unscoped behaviour and records that the
+// database is behind, for the UI to say so.
+let periodColumnsMissing = false;
+
+export function subscriptionsNeedMigration(): boolean {
+  return periodColumnsMissing;
+}
+
+function isMissingPeriodColumn(error: { code?: string; message?: string; details?: string | null } | null): boolean {
+  if (!error) return false;
+  // 42703 is Postgres' undefined_column on a filter; PGRST204 is PostgREST not
+  // finding the column in its schema cache on a write.
+  if (error.code !== '42703' && error.code !== 'PGRST204') return false;
+  if (!/start_month|end_month/.test(`${error.message ?? ''} ${error.details ?? ''}`)) return false;
+  periodColumnsMissing = true;
+  return true;
+}
+
+async function allSubscriptions(): Promise<Subscription[]> {
+  const { data, error } = await getClient()
+    .from('subscriptions')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 // A bill is a chain of rows, each valid for a range of months, so a change
 // made in one month never rewrites what an earlier month was charged.
 export async function getSubscriptionsForMonth(year: number, month: number): Promise<Subscription[]> {
@@ -160,8 +191,9 @@ export async function getSubscriptionsForMonth(year: number, month: number): Pro
     .or(`start_month.is.null,start_month.lte.${key}`)
     .or(`end_month.is.null,end_month.gte.${key}`)
     .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data ?? [];
+  if (!error) return data ?? [];
+  if (!isMissingPeriodColumn(error)) throw error;
+  return allSubscriptions();
 }
 
 // Starts in the month being viewed, and runs from there on.
@@ -175,17 +207,26 @@ export async function addSubscription(
     .insert([{ ...data, user_id: userId, start_month: monthKey(from.year, from.month), end_month: null }])
     .select()
     .single();
-  if (error) throw error;
-  return inserted;
+  if (!error) return inserted;
+  if (!isMissingPeriodColumn(error)) throw error;
+
+  const { data: unscoped, error: unscopedError } = await getClient()
+    .from('subscriptions')
+    .insert([{ ...data, user_id: userId }])
+    .select()
+    .single();
+  if (unscopedError) throw unscopedError;
+  return unscoped;
 }
 
 // Stops from this month on. A bill that started in the month being viewed
-// never applied to an earlier one, so that row is removed outright.
+// never applied to an earlier one, so that row is removed outright — as is one
+// carrying no start at all, which has no earlier month to protect either.
 export async function deleteSubscription(
   sub: Subscription,
   from: { year: number; month: number },
 ): Promise<void> {
-  if (sub.start_month >= monthKey(from.year, from.month)) {
+  if (!sub.start_month || sub.start_month >= monthKey(from.year, from.month)) {
     const { error } = await getClient().from('subscriptions').delete().eq('id', sub.id);
     if (error) throw error;
     return;
@@ -194,13 +235,18 @@ export async function deleteSubscription(
     .from('subscriptions')
     .update({ end_month: prevMonthKey(from.year, from.month) })
     .eq('id', sub.id);
-  if (error) throw error;
+  if (!error) return;
+  if (!isMissingPeriodColumn(error)) throw error;
+
+  const { error: dropError } = await getClient().from('subscriptions').delete().eq('id', sub.id);
+  if (dropError) throw dropError;
 }
 
 // Applies from this month on: the old row is closed at the month before and a
 // new one opens, inheriting the end of the row it replaces so a later version
-// of the same bill is not overlapped. A row that started this month is edited
-// in place — there is no earlier month for it to protect.
+// of the same bill is not overlapped. A row that started this month — or that
+// carries no start at all — is edited in place, having no earlier month to
+// protect.
 export async function updateSubscription(
   sub: Subscription,
   data: Partial<NewSubscription>,
@@ -208,7 +254,7 @@ export async function updateSubscription(
   userId: string,
 ): Promise<void> {
   const key = monthKey(from.year, from.month);
-  if (sub.start_month >= key) {
+  if (!sub.start_month || sub.start_month >= key) {
     const { error } = await getClient().from('subscriptions').update(data).eq('id', sub.id);
     if (error) throw error;
     return;
@@ -218,7 +264,12 @@ export async function updateSubscription(
     .from('subscriptions')
     .update({ end_month: prevMonthKey(from.year, from.month) })
     .eq('id', sub.id);
-  if (closeError) throw closeError;
+  if (closeError) {
+    if (!isMissingPeriodColumn(closeError)) throw closeError;
+    const { error } = await getClient().from('subscriptions').update(data).eq('id', sub.id);
+    if (error) throw error;
+    return;
+  }
 
   const { error } = await getClient().from('subscriptions').insert([{
     name: sub.name,
