@@ -646,7 +646,7 @@ export default function Home() {
               figure stands on every other view — same size, same centred axis,
               same chip above it. */}
           {view === "insights" && (
-            <div className="px-1 pt-2 pb-5 flex flex-col items-center gap-1 text-center">
+            <div className="px-1 pt-2 pb-9 flex flex-col items-center gap-1 text-center">
               <div className="flex items-center justify-center min-h-[2rem] sm:min-h-0">
                 <MonthChip year={selectedMonth.year} month={selectedMonth.month} onClick={openMonthPicker} />
               </div>
