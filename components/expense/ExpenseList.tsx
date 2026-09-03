@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
+import { Trash2, Pencil, Check, X, Loader2, Receipt } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
 import { hapticTap, hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
@@ -169,9 +169,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
   if (expenses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-slide-in">
-        <span className="text-4xl mb-3" aria-hidden="true">🪙</span>
+        <span
+          aria-hidden="true"
+          className="w-16 h-16 mb-4 flex items-center justify-center rounded-full border border-ink/10 bg-ink/4 text-ink/30"
+        >
+          <Receipt size={26} />
+        </span>
         <p className="font-sans font-semibold text-lg text-muted">No expenses yet</p>
-        <p className="font-sans text-sm text-muted mt-1">Add one above to get started.</p>
+        <p className="font-sans text-sm text-muted mt-1">Add your first one to get started.</p>
       </div>
     );
   }
