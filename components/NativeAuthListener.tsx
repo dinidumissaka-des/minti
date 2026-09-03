@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { App } from "@capacitor/app";
-import { completeNativeOAuth } from "@/lib/supabase";
+import { completeNativeOAuth } from "@/lib/auth";
 import { isNative } from "@/lib/platform";
 
 export default function NativeAuthListener() {

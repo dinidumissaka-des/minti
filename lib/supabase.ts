@@ -1,11 +1,8 @@
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Preferences } from '@capacitor/preferences';
-import { Browser } from '@capacitor/browser';
 import type { Expense, NewExpense, Subscription, NewSubscription, Income, NewIncome } from '@/types';
 import { isNative } from '@/lib/platform';
 import { monthKey, prevMonthKey } from '@/lib/months';
-
-export const NATIVE_OAUTH_REDIRECT = 'com.minti.app://auth/callback';
 
 const nativeStorage = {
   getItem: async (key: string) => (await Preferences.get({ key })).value,
@@ -19,7 +16,7 @@ const nativeStorage = {
 
 let _client: SupabaseClient | null = null;
 
-function getClient(): SupabaseClient {
+export function getClient(): SupabaseClient {
   if (!_client) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -53,77 +50,6 @@ export async function getExpensesByMonth(year: number, month: number): Promise<E
 
   if (error) throw error;
   return data ?? [];
-}
-
-export function onAuthStateChange(callback: (user: User | null) => void) {
-  return getClient().auth.onAuthStateChange((_, session) => {
-    callback(session?.user ?? null);
-  });
-}
-
-export async function signUp(email: string, password: string) {
-  const { data, error } = await getClient().auth.signUp({ email, password });
-  if (error) throw error;
-  return data;
-}
-
-export async function signIn(email: string, password: string) {
-  const { data, error } = await getClient().auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
-}
-
-export async function signOut() {
-  const { error } = await getClient().auth.signOut();
-  if (error) throw error;
-}
-
-async function startOAuth(provider: "google" | "apple") {
-  if (!isNative()) {
-    const { error } = await getClient().auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-    if (error) throw error;
-    return;
-  }
-
-  const { data, error } = await getClient().auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: NATIVE_OAUTH_REDIRECT,
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error) throw error;
-  if (data.url) await Browser.open({ url: data.url });
-}
-
-export async function signInWithGoogle() {
-  await startOAuth("google");
-}
-
-export async function signInWithApple() {
-  await startOAuth("apple");
-}
-
-export async function completeNativeOAuth(callbackUrl: string) {
-  const params = new URL(callbackUrl).searchParams;
-
-  const errorDescription = params.get("error_description") ?? params.get("error");
-  if (errorDescription) {
-    await Browser.close().catch(() => {});
-    throw new Error(errorDescription);
-  }
-
-  const code = params.get("code");
-  if (!code) return;
-
-  const { error } = await getClient().auth.exchangeCodeForSession(code);
-  await Browser.close().catch(() => {});
-  if (error) throw error;
 }
 
 export async function addExpense(data: NewExpense, userId: string): Promise<Expense> {

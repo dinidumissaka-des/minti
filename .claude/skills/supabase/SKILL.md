@@ -3,12 +3,19 @@
 Loaded when working on database queries, auth, or data fetching.
 
 ## Client
-Singleton in `lib/supabase.ts` — `getClient()` returns the shared SupabaseClient. Never create a new client elsewhere.
+Singleton in `lib/supabase.ts` — `getClient()` returns the shared SupabaseClient. Never create a new client elsewhere; `lib/auth.ts` imports this one.
 
-## Auth
-- `onAuthStateChange(cb)` — subscribe to auth events, returns `{ data: { subscription } }` to unsubscribe
-- `signIn(email, password)` / `signUp(email, password)` / `signOut()`
+## Auth — `lib/auth.ts`, not `lib/supabase.ts`
+Every call into `supabase.auth` lives in `lib/auth.ts`. `lib/supabase.ts` is the data layer and only reaches for auth to read `user.id`. Keep it that way — it is what makes a new credential type (passkeys next) a one-file change.
+
+- `onAuthStateChange(cb)` — subscribe, returns `{ data: { subscription } }` to unsubscribe
+- `sendEmailCode(email)` / `verifyEmailCode(email, token)` — the primary email path. A **6-digit code, never a magic link**: a link dead-ends in a browser on iOS. `shouldCreateUser: true`, so one call serves sign-in and sign-up
+- `signInWithGoogle()` / `signInWithApple()` — `appleWebSignInEnabled()` gates the web Apple button
+- `signInWithPassword()` / `signUpWithPassword()` — legacy fallback, unadvertised in the UI. Don't build on it
+- `signOut()`, `completeNativeOAuth(url)`
 - User ID from `user.id` (UUID) — always pass to insert functions
+
+Codes only send if the Supabase Magic Link template contains `{{ .Token }}`, and *Confirm email* must stay on for identity linking. See README → Authentication.
 
 ## CRUD pattern
 ```ts

@@ -20,6 +20,47 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Authentication
+
+Sign-in is passwordless by default. The order of the ladder is deliberate: OAuth
+first, an emailed code as the fallback that always works, and password kept only
+so existing accounts are not locked out.
+
+| Path | How it works |
+| --- | --- |
+| Google | OAuth, both platforms |
+| Apple | OAuth. Native always; on web only when `NEXT_PUBLIC_APPLE_WEB_AUTH=true` |
+| Email code | `signInWithOtp` sends a 6-digit code, `verifyOtp` redeems it. One call covers sign-in and sign-up |
+| Password | Reachable behind *Use a password instead*, no longer advertised |
+
+All of it lives in `lib/auth.ts`, which is the only module that touches
+`supabase.auth`. `lib/supabase.ts` exports `getClient()` and holds the data
+queries alone, so a new credential type is a change to one file.
+
+### Supabase dashboard setup
+
+Three things must be configured or the email code path silently keeps sending
+links instead:
+
+1. **Email template.** Under *Authentication → Email Templates → Magic Link*,
+   the body must contain `{{ .Token }}`. Supabase only sends a code if the
+   template asks for one; the stock template uses `{{ .ConfirmationURL }}` and
+   produces a link, which is exactly the hand-off to a browser this flow exists
+   to avoid.
+2. **Leave "Confirm email" on.** Supabase automatically links Google, email-code
+   and password identities that share an address into one account, but only for
+   *verified* addresses — that check is what blocks pre-account-takeover. A code
+   verifies the address inherently, so nothing is lost by keeping it on.
+3. **Custom SMTP.** The built-in mailer allows only a handful of sends per hour.
+   Email delivery is now on the critical path of every sign-in, not just signup,
+   so point *Project Settings → Authentication → SMTP* at a real sender and add
+   SPF/DKIM records for the domain.
+
+**Apple on the web** additionally needs a Services ID and key under
+*Authentication → Providers → Apple*. Native uses the bundle ID and needs none
+of that, which is why the web button is behind an env flag — without the
+Services ID it can only return a 400.
+
 ## iOS app
 
 The iOS app is the same web bundle running in a native shell via [Capacitor](https://capacitorjs.com). The web build is unaffected — `npm run build` still produces a normal server build for Vercel.

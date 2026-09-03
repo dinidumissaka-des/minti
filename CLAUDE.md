@@ -31,7 +31,7 @@ components/
   MonthChip.tsx     Mobile month pill (`Sep 2026 ⌄`) — opens the month picker
   StatsBar.tsx      Month total (hero), Today, Avg/Day — includes subscriptionsTotal
   BudgetBar.tsx     Monthly budget progress bar
-  AuthForm.tsx      Sign in / sign up
+  AuthForm.tsx      Sign in / sign up — three steps: identify (OAuth + email), code, password fallback
   ThemeContext.tsx  Light/dark theme provider — `useTheme()` returns `{ theme, toggleTheme }`, persists to localStorage (`minti_theme`)
   PrivacyContext.tsx Hide-amounts provider — `usePrivacy()` returns `{ privacyMode, togglePrivacy, mask }`
   Logo.tsx
@@ -39,7 +39,8 @@ components/
   ServiceWorkerRegistration.tsx
 
 lib/
-  supabase.ts       All DB + auth functions — expenses CRUD, subscriptions CRUD, auth
+  supabase.ts       Data layer only — exports getClient(), expenses/subscriptions/income/settings CRUD
+  auth.ts           The only module that touches supabase.auth — OAuth, email codes, the password fallback
   categories.ts     CATEGORY_COLORS_DARK / CATEGORY_COLORS_LIGHT maps + getCategoryColor(category, theme) — keys are the valid category names
   currencies.ts     CURRENCIES list, DEFAULT_CURRENCY, formatAmount()
   months.ts         MONTH_NAMES_SHORT / MONTH_NAMES_LONG / monthLabel()
@@ -169,4 +170,6 @@ RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (ha
 - **Bills are month-scoped, and edits never rewrite the past**: a bill added while viewing September applies to September and every month after it, never to August. Editing it in a later month closes the old row at the month before and opens a new one (inheriting the old row's `end_month`, so a later version is not overlapped); deleting sets `end_month` to the month before. A row that *started* in the month being viewed is edited or deleted outright — there is no earlier month for it to protect. All of that lives in `getSubscriptionsForMonth` / `addSubscription` / `updateSubscription` / `deleteSubscription`, which take the viewed month; components never write the period themselves.
 - **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch
 - **View state**: `view: "expenses" | "subscriptions"` lives in page.tsx. Expenses view shows AddExpenseForm + filter tabs + ExpenseList. Subscriptions view shows SubscriptionList only.
+- **Auth is a ladder, not a method**: OAuth first, an emailed 6-digit code as the fallback that always works, password kept only so existing accounts still open. Every credential lives in `lib/auth.ts`; `AuthForm` never imports `supabase.auth`, so adding one (passkeys next) is a change to one module. The email path is `signInWithOtp`/`verifyOtp` — a **code, never a link**, because a link hands the user to a browser that on iOS never comes back. One call covers sign-in and sign-up, so the form does not ask which. Supabase only sends a code if the Magic Link template contains `{{ .Token }}`, and identity linking across Google/code/password needs *Confirm email* left on — see README → Authentication.
+- **App lock is not authentication**: `lib/appLock.ts` is a local re-lock over an existing session. Keep it separate from anything in `lib/auth.ts`.
 - **subscriptionsTotal**: calculated in page.tsx, passed to StatsBar and added to BudgetBar `spent`
