@@ -144,12 +144,16 @@ type TileTone = "chip" | "accent" | "danger" | "good" | "plain";
 
 const TONES: Record<TileTone, { tile: string; icon: string; value: string; label: string }> = {
   // The documented pairings: a solid brand fill carries the text made for it.
+  // Both fills are green since --chip moved onto the green ramp, so the pair
+  // reads as one colour at two weights — the deep end and the bright one —
+  // rather than as two different brand fills.
   chip:   { tile: "bg-chip",             icon: "text-chip-on/70",   value: "text-chip-on",   label: "text-chip-on/70" },
   accent: { tile: "bg-accent-fill",      icon: "text-accent-on/70", value: "text-accent-on", label: "text-accent-on/70" },
   danger: { tile: "bg-danger-fill/15",   icon: "text-danger",       value: "text-danger",    label: "text-muted" },
-  // There is no green wash in this system — the -fill token at low alpha reads
-  // as a stain — so a good-news tile that is not the green fill marks itself
-  // with the green as a bare mark instead.
+  // --accent-fill at low alpha reads as a stain, and the one green wash that
+  // does exist (--chip at 6% on an unselected chip) is pitched to disappear.
+  // So a good-news tile that is not the green fill marks itself with the green
+  // as a bare mark instead.
   good:   { tile: "bg-surface",          icon: "text-brand",        value: "text-ink",       label: "text-muted" },
   plain:  { tile: "bg-surface",          icon: "text-ink/40",       value: "text-ink",       label: "text-muted" },
 };
