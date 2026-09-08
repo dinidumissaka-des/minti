@@ -18,6 +18,8 @@ export const expensesKey = (userId: string, year: number, month: number) =>
   `${PREFIX}expenses_${userId}_${year}_${month}`;
 export const subscriptionsKey = (userId: string, year: number, month: number) =>
   `${PREFIX}subscriptions_${userId}_${year}-${String(month).padStart(2, '0')}`;
+// Not month-scoped: the suggestion row reads across the whole history.
+export const expenseHistoryKey = (userId: string) => `${PREFIX}expense_history_${userId}`;
 export const budgetKey = (userId: string) => `${PREFIX}budget_${userId}`;
 export const monthlyIncomeKey = (userId: string) => `${PREFIX}monthly_income_${userId}`;
 // Account data, not a display preference: these say what a saved amount was
