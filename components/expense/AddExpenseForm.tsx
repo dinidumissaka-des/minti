@@ -18,11 +18,6 @@ import { CATEGORY_COLORS } from "@/lib/categories";
 
 const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
-// Whatever you spent in last time is what you are most likely spending in now,
-// so the picker opens on it rather than resetting to the display currency
-// after every entry.
-const LAST_ENTRY_CURRENCY = "minti_last_entry_currency";
-
 const QUICK_ADD_LIMIT = 4;
 
 type QuickAdd = { key: string; description: string; category: string; amount: number; currency: string };
@@ -88,16 +83,17 @@ export default function AddExpenseForm({ userId, currency, recent = [], onExpens
   const [showDateDrawer, setShowDateDrawer] = useState(false);
   const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
   const [showCurrencyDrawer, setShowCurrencyDrawer] = useState(false);
-  const [entryCurrency, setEntryCurrency] = useState(() => {
-    if (typeof window === "undefined") return currency;
-    try { return localStorage.getItem(LAST_ENTRY_CURRENCY) || currency; } catch { return currency; }
-  });
+  // Follows the currency on screen unless this entry overrides it. It used to
+  // be seeded once from a remembered value, which the form then kept for the
+  // rest of its life: mounted while the display said LKR, it went on tagging
+  // expenses LKR long after the display was switched back.
+  const [entryOverride, setEntryOverride] = useState<string | null>(null);
+  const entryCurrency = entryOverride ?? currency;
 
   const quickAdds = useMemo(() => buildQuickAdds(recent, currency), [recent, currency]);
 
   function selectEntryCurrency(code: string) {
-    setEntryCurrency(code);
-    try { localStorage.setItem(LAST_ENTRY_CURRENCY, code); } catch { /* private mode */ }
+    setEntryOverride(code === currency ? null : code);
   }
 
   function applyQuickAdd(item: QuickAdd) {
@@ -151,6 +147,7 @@ export default function AddExpenseForm({ userId, currency, recent = [], onExpens
       await addExpense({ description: description.trim(), category: effectiveCategory, amount: parsed, currency: entryCurrency, date, time }, userId);
       setDescription(""); setCategory(PRESET_CATEGORIES[0]); setCustomCategory("");
       setAmount(""); setDisplayAmount(""); setDate(new Date().toISOString().split("T")[0]);
+      setEntryOverride(null);
       setSuccess(true);
       hapticSuccess();
       setTimeout(() => setSuccess(false), 2000);
