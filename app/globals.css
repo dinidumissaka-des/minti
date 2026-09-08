@@ -49,6 +49,28 @@ html.light {
   --oxblood-1000: 20 1   1;
 }
 
+/* Raw green ramp, built from the brand green's own hue and saturation
+   (96.5deg, 72%) by walking lightness. Same status as the oxblood ramp: a
+   palette layer with no meaning of its own, never used directly in a
+   component. It exists because --accent is a single green with no steps, and a
+   chip needs the end of a ramp the ground is not at — the same thing the
+   oxblood ramp is doing for --ink and --chip. 300 is the brand green to within
+   a rounding step, which is what keeps the ramp reading as *this* green. */
+:root {
+  --green-50:   243 251 238;
+  --green-100:  226 246 213;
+  --green-200:  196 241 167;
+  --green-300:  161 232 114;
+  --green-400:  125 224  62;
+  --green-500:   99 202  33;
+  --green-600:   82 167  27;
+  --green-700:   65 132  21;
+  --green-800:   52 105  17;
+  --green-900:   39  79  13;
+  --green-950:   22  42   9;
+  --green-1000:  15  29   6;
+}
+
 :root,
 .dark {
   /* Not ramp steps, deliberately. The ramp runs at ~90% saturation because a
@@ -93,13 +115,15 @@ html.light {
      1.15:1 on the light page. Same green here (13.71:1 on the near-black
      ground), darkened in .light. */
   --brand:       159 232 112;
-  /* The selected segment's fill and its label. Both are ramp steps, pulled one
-     stop in from the ends: the pill is brand-coloured rather than a flat black
-     or white, and its label is too. Dark takes oxblood-100 — a soft warm white
-     rather than the near-white 50 — at 15.47:1 on the page and 14.02:1 against
-     an unselected chip, with an oxblood-900 label on it at 12.19:1. */
-  --chip:        var(--oxblood-100);
-  --chip-on:     var(--oxblood-900);
+  /* The selected segment's fill and its label, and the wash every unselected
+     chip is tinted with. Both are steps of the *green* ramp now — the chip is
+     the brand colour, not the brand's neutral. It still has to be a step the
+     ground is not at, so dark takes the pale end: green-100, a soft green-cast
+     white, at 17.68:1 on the page and 13.55:1 against an unselected chip, with
+     a green-900 label on it at 8.31:1. A dark green here would be 2.13:1 on
+     this near-black page — the direction is set by the ground, not by taste. */
+  --chip:        var(--green-100);
+  --chip-on:     var(--green-900);
   --danger:      224 92  92;
   --danger-text: 224 92  92;
   --scrim:       0   0   0;
@@ -135,15 +159,16 @@ html.light {
      lighten it back toward --accent without re-measuring against --background,
      not against a card. */
   --brand:       57  112 28;
-  /* Light reads the pair from the other end: oxblood-800, a deep brand maroon
-     rather than the near-black 1000, at 10.34:1 on the page and 9.31:1 against
-     an unselected chip, labelled oxblood-50 at 11.62:1.
-     Don't reach further up the ramp for a *pale* pill. 50 through 200 sit
-     within 1.0-1.3:1 of the light ground, so they separate on hue alone, and
-     the hue they separate on is the danger family — a selected filter would
-     read as an error. The ramp only has luminance to spend at its ends. */
-  --chip:        var(--oxblood-800);
-  --chip-on:     var(--oxblood-50);
+  /* Light reads the pair from the other end of the green ramp: green-900, a
+     deep forest green, at 7.41:1 on the page and 8.08:1 against an unselected
+     chip, labelled green-50 at 8.98:1.
+     Don't reach up the ramp for a *pale* pill here. 50 through 300 sit within
+     1.0-1.4:1 of the light ground — that is the brand green's whole problem as
+     a mark, and a chip that separates on hue alone is not a selected chip. The
+     ramp only has luminance to spend at its ends, and light mode is at the
+     bright one. */
+  --chip:        var(--green-900);
+  --chip-on:     var(--green-50);
   --danger:      224 92  92;
   --danger-text: 176 44  44;
   --scrim:       26  14  15;
@@ -170,24 +195,30 @@ html.light {
   }
 
   /* Flat chips (header buttons, nav pills, filter tabs, tags): a low-alpha
-     wash of --accent-text in both themes. Chips mark state, so they take the
-     neutral rather than the brand green, and --accent-text already inverts to
-     whichever end of the ramp contrasts against the ground it sits on. That is
-     also why the two blocks differ only in alpha now — a green tint used to
-     need a different *colour* per theme to register at all. */
+     wash of --chip, the same colour the selected pill is filled with. One
+     colour at two alphas ties the track to the pill that slides along it, and
+     --chip already inverts to whichever end of the green ramp the ground is
+     not at, which is what a wash needs too — a dark-green tint lightens
+     nothing on a near-black page. It was a wash of --accent-text, the neutral,
+     back when the brand green had no ramp to take a legible step from.
+     The alphas stay where the neutral left them. A tint is not a fill: at 6%
+     over the surface this is a warm grey with a green cast, and the state it
+     marks is *unselected*. Raising it to make the green read would put two
+     washes back in competition with each other, which is the arrangement the
+     solid pill below replaced. */
   .flat-chip {
-    background-color: rgb(var(--accent-text) / 0.06);
-    border-color: rgb(var(--accent-text) / 0.14);
+    background-color: rgb(var(--chip) / 0.06);
+    border-color: rgb(var(--chip) / 0.14);
   }
   .flat-chip:hover {
-    border-color: rgb(var(--accent-text) / 0.24);
+    border-color: rgb(var(--chip) / 0.24);
   }
   .light .flat-chip {
-    background-color: rgb(var(--accent-text) / 0.05);
-    border-color: rgb(var(--accent-text) / 0.12);
+    background-color: rgb(var(--chip) / 0.05);
+    border-color: rgb(var(--chip) / 0.12);
   }
   .light .flat-chip:hover {
-    border-color: rgb(var(--accent-text) / 0.22);
+    border-color: rgb(var(--chip) / 0.22);
   }
 
   /* A solid fill, not a wash behind an outline. Two doubled-alpha washes
@@ -195,13 +226,20 @@ html.light {
      1.23:1 in dark — selection was never carried by luminance there, it was
      carried by hue, and once chips went neutral there was none left to spend.
      Pushing the border to a real alpha rescued it, but a heavy outline around
-     a pale fill is not what a selected segment looks like. Filled, the same
-     comparison is 14.24:1 in light and 16.03:1 in dark, and the pill clears
-     its page at 15.83:1 / 17.69:1.
-     The fill is --chip and the label --chip-on, both ramp steps that invert
-     per theme, so one rule serves both. It does not compete with the primary
-     button: the pill is oxblood and the button is the only green fill in the
-     app. The border-color matches the fill so the `border`/`border-2` the
+     a pale fill is not what a selected segment looks like.
+     The fill is --chip and the label --chip-on, both green-ramp steps that
+     invert per theme, so one rule serves both: filled, the active/inactive
+     comparison is 8.08:1 in light and 13.55:1 in dark, and the pill clears its
+     page at 7.41:1 / 17.68:1.
+     The pill and the primary button are now both green, which they were not
+     when the pill was oxblood. They are told apart by weight, not hue: the
+     button is always the one saturated mid-green (--accent, 159 232 112) and
+     the pill is always an end of the ramp — a deep forest green in light
+     (6.45:1 from the button), a green-cast white in dark. In dark they are
+     within 1.29:1 of each other, so don't sit a selected pill *next to* a
+     primary button and expect the fills alone to separate them; the labels
+     (--chip-on green vs --accent-on oxblood) carry it there.
+     The border-color matches the fill so the `border`/`border-2` the
      SegmentedControl pills carry for sizing paints nothing. */
   .flat-chip-active {
     background-color: rgb(var(--chip));
@@ -295,6 +333,13 @@ html.light {
      not progress feedback — a spinner that stops after one turn reads broken. */
   .animate-spin {
     animation: spin 3s linear infinite !important;
+  }
+
+  /* So is a countdown outline: it is the only thing saying how long the undo
+     window has left. Zeroing its duration would empty the stroke on the first
+     frame and report a window that has already closed. */
+  .animate-countdown-drain {
+    animation: countdownDrain var(--outline-duration) linear forwards !important;
   }
 }
 
