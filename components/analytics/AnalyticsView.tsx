@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { AlertTriangle, CalendarDays, Gauge, PieChart, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth } from "@/lib/supabase";
+import { useMoney } from "@/components/MoneyContext";
+import { toDisplay } from "@/lib/money";
 import { formatAmount } from "@/lib/currencies";
 import { getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
 import Surface from "@/components/Surface";
@@ -440,7 +442,16 @@ export default function AnalyticsView({
   monthlyIncome,
   budget,
 }: Props) {
-  const [prevExpenses, setPrevExpenses] = useState<Expense[]>([]);
+  const money = useMoney();
+  const [rawPrevExpenses, setPrevExpenses] = useState<Expense[]>([]);
+  // The previous month is fetched here rather than by the page, so it is
+  // converted here — the comparison is meaningless if the two months are
+  // counted in different currencies.
+  const prevExpenses = useMemo(() => toDisplay(rawPrevExpenses, money), [rawPrevExpenses, money]);
+  // Both are saved in the base currency; every figure they are compared
+  // against on this screen has already been converted.
+  const budgetShown = budget == null ? null : money.convert(budget, money.base);
+  const incomeShown = monthlyIncome == null ? null : money.convert(monthlyIncome, money.base);
   const [tab, setTab] = useState<Tab>("insights");
   const [tabDir, setTabDir] = useState(1);
 
@@ -482,8 +493,8 @@ export default function AnalyticsView({
             prevExpenses={prevExpenses}
             selectedMonth={selectedMonth}
             currency={currency}
-            monthlyIncome={monthlyIncome}
-            budget={budget}
+            monthlyIncome={incomeShown}
+            budget={budgetShown}
           />
         )}
 

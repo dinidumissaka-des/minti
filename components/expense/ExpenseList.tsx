@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Trash2, Pencil, Check, X, Loader2, Receipt } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Trash2, Pencil, Check, X, Receipt, Undo2 } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
 import { hapticTap, hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
+import { useMoney } from "@/components/MoneyContext";
 import BottomDrawer from "@/components/BottomDrawer";
-import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
+import { CalendarPicker, CategoryList, CurrencyList } from "@/components/ui/DrawerPickers";
 import type { Expense } from "@/types";
 
 
@@ -23,32 +24,44 @@ function formatDateLabel(dateStr: string) {
 
 interface Props {
   expenses: Expense[];
-  onDeleted: () => void;
+  /** Re-fetches the month. Awaited on delete, so the row stays hidden until
+      the fresh list is in hand rather than flashing back mid-request. */
+  onDeleted: () => void | Promise<void>;
   onUpdated: () => void;
   currency: string;
+  /** Ids awaiting an undo window. The parent drops them from its totals so the
+      hero and the list agree while the row is gone but not yet deleted. */
+  onPendingDelete: (ids: string[]) => void;
 }
 
 interface EditState {
   description: string;
   category: string;
   amount: string;
+  currency: string;
   date: string;
 }
 
 const SWIPE_THRESHOLD = 60;
 // Matches the collapse transition below; keep the two in step.
 const ROW_EXIT_MS = 200;
+// Long enough to notice the row went and reach for it, short enough that the
+// delete still feels like it happened.
+const UNDO_MS = 5000;
 
-export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }: Props) {
+export default function ExpenseList({ expenses, onDeleted, onUpdated, currency, onPendingDelete }: Props) {
   const { mask } = usePrivacy();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const money = useMoney();
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editState, setEditState] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
   const [showCatDrawer, setShowCatDrawer] = useState(false);
   const [showDateDrawer, setShowDateDrawer] = useState(false);
+  const [showCurrencyDrawer, setShowCurrencyDrawer] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<Expense | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const touchStartX = useRef(0);
@@ -62,7 +75,10 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
     setEditState({
       description: expense.description,
       category: expense.category,
-      amount: String(expense.amount),
+      // The row shows a converted figure; the field has to hold the one that
+      // was typed, or saving would write the conversion back as the amount.
+      amount: String(expense.original ? expense.original.amount : expense.amount),
+      currency: money.currencyOf(expense),
       date: expense.date,
     });
   }
@@ -82,6 +98,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
         description: editState.description.trim(),
         category: editState.category,
         amount: parsed,
+        currency: editState.currency,
         date: editState.date,
       });
       setEditingId(null);
@@ -92,23 +109,51 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
     }
   }
 
-  // The row collapses first, then the request goes out. Deleting used to leave
-  // a gap mid-request and then snap everything below upward.
-  async function handleDelete(id: string) {
-    hapticBump();
-    setDeletingId(id);
-    setRemovingId(id);
-    await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
+  // The row stays hidden until the re-fetch lands, so it never flashes back
+  // for the length of the request. Whatever comes back then settles it: gone
+  // if the delete took, back in place if it did not.
+  const commitDelete = useCallback(async (expense: Expense) => {
+    if (undoTimer.current) { clearTimeout(undoTimer.current); undoTimer.current = null; }
+    setPending((current) => (current?.id === expense.id ? null : current));
     try {
-      await deleteExpense(id);
-      onDeleted();
+      await deleteExpense(expense.id);
     } catch {
-      // parent will re-fetch
-    } finally {
-      setDeletingId(null);
-      setRemovingId(null);
+      // The re-fetch puts the row back if the server never lost it.
     }
+    await onDeleted();
+    onPendingDelete([]);
+  }, [onDeleted, onPendingDelete]);
+
+  // Nothing leaves the database until the undo window closes. The row collapses
+  // out straight away and the parent stops counting it, so the list and the
+  // hero agree — but a mis-swipe costs a tap, not a re-entry.
+  async function handleDelete(expense: Expense) {
+    hapticBump();
+    if (pending && pending.id !== expense.id) await commitDelete(pending);
+    setRemovingId(expense.id);
+    await new Promise((resolve) => setTimeout(resolve, ROW_EXIT_MS));
+    setRemovingId(null);
+    setPending(expense);
+    onPendingDelete([expense.id]);
+    undoTimer.current = setTimeout(() => commitDelete(expense), UNDO_MS);
   }
+
+  function undoDelete() {
+    if (undoTimer.current) { clearTimeout(undoTimer.current); undoTimer.current = null; }
+    hapticTap();
+    setPending(null);
+    onPendingDelete([]);
+  }
+
+  // Leaving the view is not a cancellation: a pending delete that never fired
+  // would come back on the next fetch as if the swipe had not happened.
+  const pendingRef = useRef<Expense | null>(null);
+  pendingRef.current = pending;
+  useEffect(() => () => {
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    const left = pendingRef.current;
+    if (left) deleteExpense(left.id).catch(() => {});
+  }, []);
 
   function snapBack(id: string) {
     const el = rowRefs.current[id];
@@ -166,8 +211,27 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
     touchDx.current = 0;
   }
 
+  const undoBar = pending ? (
+    <Surface borderRadius={28}>
+      <div className="w-full px-5 py-4 flex items-center gap-3 animate-row-in">
+        <span className="flex-1 min-w-0 truncate font-sans text-body text-muted">
+          Deleted “{pending.description}”
+        </span>
+        <button
+          onClick={undoDelete}
+          className="h-9 px-4 flex items-center gap-1.5 rounded-full bg-accent-fill text-accent-on text-sm font-semibold flex-shrink-0 transition-transform duration-fast active:scale-95"
+        >
+          <Undo2 size={14} strokeWidth={2.5} />
+          Undo
+        </button>
+      </div>
+    </Surface>
+  ) : null;
+
   if (expenses.length === 0) {
     return (
+      <div className="flex flex-col gap-4">
+      {undoBar}
       <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-slide-in">
         <span
           aria-hidden="true"
@@ -177,6 +241,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
         </span>
         <p className="font-sans font-semibold text-lg text-muted">No expenses yet</p>
         <p className="font-sans text-sm text-muted mt-1">Add your first one to get started.</p>
+      </div>
       </div>
     );
   }
@@ -194,6 +259,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
 
   return (
     <div className="flex flex-col gap-6">
+      {undoBar}
       {sortedDates.map((date) => {
         const dayExpenses = grouped[date];
         const dayTotal = dayExpenses.reduce((s, e) => s + Number(e.amount), 0);
@@ -232,7 +298,7 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         />
                         <input
                           type="number"
-                          className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          className="w-24 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           value={editState.amount}
                           onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                           placeholder="Amount"
@@ -240,6 +306,14 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           min="0.01"
                           step="0.01"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrencyDrawer(true)}
+                          aria-label={`Currency — currently ${editState.currency}`}
+                          className="h-11 px-3 rounded-full border flat-chip font-mono text-xs text-ink/60 hover:text-ink flex-shrink-0 transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
+                        >
+                          {editState.currency}
+                        </button>
                       </div>
                       <button
                         type="button"
@@ -299,12 +373,11 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         <Pencil size={14} />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
-                        disabled={deletingId === expense.id}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(expense); }}
                         aria-label="Delete expense"
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger disabled:opacity-30"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-danger-fill/20 text-danger"
                       >
-                        {deletingId === expense.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        <Trash2 size={14} />
                       </button>
                     </div>
 
@@ -330,9 +403,18 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                         </span>
                       )}
 
-                      <span className="font-mono text-sm text-ink flex-shrink-0">
-                        {mask(formatAmount(Number(expense.amount), currency))}
-                      </span>
+                      <div className="flex flex-col items-end flex-shrink-0">
+                        <span className="font-mono text-sm text-ink">
+                          {mask(formatAmount(Number(expense.amount), currency))}
+                        </span>
+                        {/* Converted figures say what was actually spent, or
+                            the row claims a number nobody paid. */}
+                        {expense.original && (
+                          <span className="font-mono text-xs text-muted">
+                            {mask(formatAmount(expense.original.amount, expense.original.currency))} {expense.original.currency}
+                          </span>
+                        )}
+                      </div>
 
                       {/* Desktop hover actions */}
                       <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
@@ -344,12 +426,11 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
                           <Pencil size={13} />
                         </button>
                         <button
-                          onClick={() => handleDelete(expense.id)}
-                          disabled={deletingId === expense.id}
+                          onClick={() => handleDelete(expense)}
                           aria-label="Delete expense"
-                          className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-danger disabled:opacity-30 transition-colors flex-shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-danger transition-colors flex-shrink-0"
                         >
-                          {deletingId === expense.id ? <span className="text-sm">…</span> : <Trash2 size={13} />}
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -369,6 +450,15 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency }
           <CategoryList
             selected={editState.category}
             onSelect={(cat) => { setEditState({ ...editState, category: cat }); setShowCatDrawer(false); }}
+          />
+        )}
+      </BottomDrawer>
+
+      <BottomDrawer open={showCurrencyDrawer} onClose={() => setShowCurrencyDrawer(false)} title="Currency">
+        {editState && (
+          <CurrencyList
+            selected={editState.currency}
+            onSelect={(code) => { setEditState({ ...editState, currency: code }); setShowCurrencyDrawer(false); }}
           />
         )}
       </BottomDrawer>

@@ -15,7 +15,7 @@ async function fetchRates(base: string): Promise<RatesCache> {
   return { base, rates: data.rates as Record<string, number>, fetchedAt: Date.now() };
 }
 
-async function getRatesForBase(base: string): Promise<RatesCache> {
+export async function getRatesForBase(base: string): Promise<RatesCache> {
   const cacheKey = CACHE_PREFIX + base;
   const cached = localStorage.getItem(cacheKey);
   if (cached) {

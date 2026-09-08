@@ -11,7 +11,8 @@ import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
-import { CategoryList } from "@/components/ui/DrawerPickers";
+import { useMoney } from "@/components/MoneyContext";
+import { CategoryList, CurrencyList } from "@/components/ui/DrawerPickers";
 import type { Subscription, NewSubscription } from "@/types";
 
 const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
@@ -31,18 +32,23 @@ interface Props {
 interface EditState {
   name: string;
   amount: string;
+  currency: string;
   category: string;
 }
 
 export default function SubscriptionList({ subscriptions, userId, currency, selectedMonth, onChanged }: Props) {
   const { mask } = usePrivacy();
+  const money = useMoney();
   const [showAdd, setShowAdd] = useState(false);
   const [showAddCatDrawer, setShowAddCatDrawer] = useState(false);
   const [showEditCatDrawer, setShowEditCatDrawer] = useState(false);
+  const [showAddCurrencyDrawer, setShowAddCurrencyDrawer] = useState(false);
+  const [showEditCurrencyDrawer, setShowEditCurrencyDrawer] = useState(false);
 
   const [newName, setNewName] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newCategory, setNewCategory] = useState(PRESET_CATEGORIES[0]);
+  const [newCurrency, setNewCurrency] = useState(currency);
   const [adding, setAdding] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,7 +81,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
     if (!newName.trim() || isNaN(parsed) || parsed <= 0) return;
     setAdding(true);
     try {
-      const data: NewSubscription = { name: newName.trim(), amount: parsed, category: newCategory, billing_day: 1 };
+      const data: NewSubscription = { name: newName.trim(), amount: parsed, currency: newCurrency, category: newCategory, billing_day: 1 };
       await addSubscription(data, userId, selectedMonth);
       setNewName(""); setNewAmount(""); setNewCategory(PRESET_CATEGORIES[0]);
       setShowAdd(false);
@@ -89,7 +95,13 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
   function startEdit(sub: Subscription) {
     setSwipedId(null);
     setEditingId(sub.id);
-    setEditState({ name: sub.name, amount: String(sub.amount), category: sub.category });
+    setEditState({
+      name: sub.name,
+      // The row is converted for display; the field holds what was entered.
+      amount: String(sub.original ? sub.original.amount : sub.amount),
+      currency: money.currencyOf(sub),
+      category: sub.category,
+    });
   }
 
   async function handleSave(sub: Subscription) {
@@ -100,7 +112,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
     try {
       await updateSubscription(
         sub,
-        { name: editState.name.trim(), amount: parsed, category: editState.category },
+        { name: editState.name.trim(), amount: parsed, currency: editState.currency, category: editState.category },
         selectedMonth,
         userId,
       );
@@ -156,13 +168,21 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
                       />
                       <input
                         type="number"
-                        className="w-28 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-24 bg-ink/7 border border-ink/10 rounded-lg px-3 h-11 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         value={editState.amount}
                         onChange={(e) => setEditState({ ...editState, amount: e.target.value })}
                         placeholder="Amount"
                         aria-label="Amount"
                         min="0.01" step="0.01"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowEditCurrencyDrawer(true)}
+                        aria-label={`Currency — currently ${editState.currency}`}
+                        className="h-11 px-3 rounded-full border flat-chip font-mono text-xs text-ink/60 hover:text-ink flex-shrink-0 transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
+                      >
+                        {editState.currency}
+                      </button>
                     </div>
                     <div className="flex gap-2 items-center">
                       <button
@@ -232,9 +252,16 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
                         {sub.category}
                       </span>
                     </div>
-                    <span className="font-mono text-sm text-ink flex-shrink-0">
-                      {mask(formatAmount(Number(sub.amount), currency))}<span className="text-muted text-xs">/mo</span>
-                    </span>
+                    <div className="flex flex-col items-end flex-shrink-0">
+                      <span className="font-mono text-sm text-ink">
+                        {mask(formatAmount(Number(sub.amount), currency))}<span className="text-muted text-xs">/mo</span>
+                      </span>
+                      {sub.original && (
+                        <span className="font-mono text-xs text-muted">
+                          {mask(formatAmount(sub.original.amount, sub.original.currency))} {sub.original.currency}
+                        </span>
+                      )}
+                    </div>
                     {/* Hover actions (desktop) */}
                     <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
                       <button onClick={() => startEdit(sub)} aria-label="Edit"
@@ -267,15 +294,25 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
               aria-label="Subscription name"
               autoFocus
             />
-            <input
-              type="number"
-              className="w-full bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              value={newAmount}
-              onChange={(e) => setNewAmount(e.target.value)}
-              placeholder="Amount"
-              aria-label="Amount"
-              min="0.01" step="0.01"
-            />
+            <div className="flex gap-2">
+              <input
+                type="number"
+                className="flex-1 min-w-0 bg-ink/7 border border-ink/10 rounded-lg px-3 h-10 text-base text-ink outline-none focus:border-ink/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                value={newAmount}
+                onChange={(e) => setNewAmount(e.target.value)}
+                placeholder="Amount"
+                aria-label="Amount"
+                min="0.01" step="0.01"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAddCurrencyDrawer(true)}
+                aria-label={`Currency — currently ${newCurrency}`}
+                className="h-10 px-3 rounded-full border flat-chip font-mono text-xs text-ink/60 hover:text-ink flex-shrink-0 transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
+              >
+                {newCurrency}
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => setShowAddCatDrawer(true)}
@@ -328,6 +365,19 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
 
       <BottomDrawer open={showAddCatDrawer} onClose={() => setShowAddCatDrawer(false)} title="Category">
         <CategoryList selected={newCategory} onSelect={(cat) => { setNewCategory(cat); setShowAddCatDrawer(false); }} />
+      </BottomDrawer>
+
+      <BottomDrawer open={showAddCurrencyDrawer} onClose={() => setShowAddCurrencyDrawer(false)} title="Currency">
+        <CurrencyList selected={newCurrency} onSelect={(code) => { setNewCurrency(code); setShowAddCurrencyDrawer(false); }} />
+      </BottomDrawer>
+
+      <BottomDrawer open={showEditCurrencyDrawer} onClose={() => setShowEditCurrencyDrawer(false)} title="Currency">
+        {editState && (
+          <CurrencyList
+            selected={editState.currency}
+            onSelect={(code) => { setEditState({ ...editState, currency: code }); setShowEditCurrencyDrawer(false); }}
+          />
+        )}
       </BottomDrawer>
 
       <BottomDrawer open={showEditCatDrawer} onClose={() => setShowEditCatDrawer(false)} title="Category">
