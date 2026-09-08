@@ -48,7 +48,12 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
   const [newName, setNewName] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newCategory, setNewCategory] = useState(PRESET_CATEGORIES[0]);
-  const [newCurrency, setNewCurrency] = useState(currency);
+  // Follows the currency on screen unless this bill overrides it. Seeded once
+  // from `currency`, it kept whatever was displayed when the list first
+  // mounted and went on tagging new bills with it.
+  const [newCurrencyOverride, setNewCurrencyOverride] = useState<string | null>(null);
+  const newCurrency = newCurrencyOverride ?? currency;
+  const setNewCurrency = (code: string) => setNewCurrencyOverride(code === currency ? null : code);
   const [adding, setAdding] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -83,7 +88,7 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
     try {
       const data: NewSubscription = { name: newName.trim(), amount: parsed, currency: newCurrency, category: newCategory, billing_day: 1 };
       await addSubscription(data, userId, selectedMonth);
-      setNewName(""); setNewAmount(""); setNewCategory(PRESET_CATEGORIES[0]);
+      setNewName(""); setNewAmount(""); setNewCategory(PRESET_CATEGORIES[0]); setNewCurrencyOverride(null);
       setShowAdd(false);
       hapticSuccess();
       onChanged();
