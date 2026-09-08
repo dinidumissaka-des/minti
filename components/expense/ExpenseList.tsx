@@ -9,6 +9,7 @@ import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { useMoney } from "@/components/MoneyContext";
 import BottomDrawer from "@/components/BottomDrawer";
+import CountdownOutline from "@/components/ui/CountdownOutline";
 import { CalendarPicker, CategoryList, CurrencyList } from "@/components/ui/DrawerPickers";
 import type { Expense } from "@/types";
 
@@ -48,6 +49,7 @@ const ROW_EXIT_MS = 200;
 // Long enough to notice the row went and reach for it, short enough that the
 // delete still feels like it happened.
 const UNDO_MS = 5000;
+const UNDO_RADIUS = 28;
 
 export default function ExpenseList({ expenses, onDeleted, onUpdated, currency, onPendingDelete }: Props) {
   const { mask } = usePrivacy();
@@ -215,7 +217,10 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency, 
   }
 
   const undoBar = pending ? (
-    <Surface borderRadius={28}>
+    <Surface borderRadius={UNDO_RADIUS}>
+      {/* Keyed on the row, so swiping a second expense restarts the outline
+          rather than leaving it part-drained on a fresh 5 seconds. */}
+      <CountdownOutline key={pending.id} duration={UNDO_MS} radius={UNDO_RADIUS - 1} />
       <div className="w-full px-5 py-4 flex items-center gap-3 animate-row-in">
         <span className="flex-1 min-w-0 truncate font-sans text-body text-muted">
           Deleted “{pending.description}”

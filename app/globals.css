@@ -296,6 +296,13 @@ html.light {
   .animate-spin {
     animation: spin 3s linear infinite !important;
   }
+
+  /* So is a countdown outline: it is the only thing saying how long the undo
+     window has left. Zeroing its duration would empty the stroke on the first
+     frame and report a window that has already closed. */
+  .animate-countdown-drain {
+    animation: countdownDrain var(--outline-duration) linear forwards !important;
+  }
 }
 
 @media (max-width: 640px) {

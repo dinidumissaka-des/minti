@@ -136,6 +136,12 @@ const config: Config = {
           "0%":   { opacity: "0", transform: "translate3d(0, 10px, 0)" },
           "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
         },
+        // The remaining stroke is the remaining time: the dash is the whole
+        // perimeter and the offset walks it out of view over the timer's life.
+        countdownDrain: {
+          from: { strokeDashoffset: "0" },
+          to:   { strokeDashoffset: "var(--outline-length)" },
+        },
         popIn: {
           "0%":   { opacity: "0", transform: "scale(0.8)" },
           "60%":  { opacity: "1", transform: "scale(1.04)" },
@@ -149,6 +155,8 @@ const config: Config = {
         "view-in-back": "viewInBack var(--dur-slow) var(--ease-out) both",
         "row-in":       "rowIn var(--dur-base) var(--ease-out) both",
         "pop-in":       "popIn var(--dur-slow) var(--ease-spring) both",
+        // Linear, and timed by the caller — it is a clock, not an entrance.
+        "countdown-drain": "countdownDrain var(--outline-duration) linear forwards",
       },
     },
   },
