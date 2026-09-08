@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -8,6 +8,9 @@ import type { Expense, Subscription } from "@/types";
 import { getExpensesByMonth, getSubscriptionsForMonth, getUserSettings, onAuthStateChange } from "@/lib/supabase";
 import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import AnalyticsView from "@/components/analytics/AnalyticsView";
+import { MoneyProvider } from "@/components/MoneyContext";
+import { makeMoney, toDisplay } from "@/lib/money";
+import { useRates } from "@/hooks/useRates";
 import Logo from "@/components/Logo";
 import ViewTransition from "@/components/ui/ViewTransition";
 import GradualBlur from "@/components/GradualBlur";
@@ -21,9 +24,10 @@ export default function InsightsPage() {
   const now = new Date();
   const router = useRouter();
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [rawExpenses, setExpenses] = useState<Expense[]>([]);
+  const [rawSubscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+  const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [budget, setBudget] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState({
@@ -52,11 +56,23 @@ export default function InsightsPage() {
     getUserSettings().then((s) => {
       if (s) {
         setCurrency(s.currency);
+        setBaseCurrency(s.base_currency ?? s.currency);
         setBudget(s.budget ?? null);
         setMonthlyIncome(s.monthly_income ?? null);
       }
     }).catch(() => {});
   }, [user]);
+
+  // Same boundary conversion the main page does: this route fetches its own
+  // rows, so an amount entered abroad would otherwise be counted as if it
+  // were spent at home.
+  const { rates } = useRates(currency);
+  const money = useMemo(
+    () => makeMoney(currency, baseCurrency ?? currency, rates),
+    [currency, baseCurrency, rates],
+  );
+  const expenses = useMemo(() => toDisplay(rawExpenses, money), [rawExpenses, money]);
+  const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
 
   useEffect(() => {
     if (!user) return;
@@ -96,6 +112,7 @@ export default function InsightsPage() {
   }
 
   return (
+    <MoneyProvider money={money}>
     <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       <div
@@ -161,5 +178,6 @@ export default function InsightsPage() {
         </ViewTransition>
       </div>
     </main>
+    </MoneyProvider>
   );
 }

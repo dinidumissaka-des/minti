@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { CATEGORY_COLORS } from "@/lib/categories";
+import { CURRENCIES } from "@/lib/currencies";
 import ViewTransition from "@/components/ui/ViewTransition";
 import { MONTH_NAMES_LONG as MONTH_NAMES, MONTH_NAMES_SHORT } from "@/lib/months";
 
@@ -190,6 +191,26 @@ export function SourceList({ sources, selected, onSelect }: { sources: string[];
         >
           <span className="flex-1 text-body font-sans text-ink">{source}</span>
           {selected === source && <Check size={15} className="flex-shrink-0 text-accent" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Currency List ────────────────────────────────────────────────────────────
+
+export function CurrencyList({ selected, onSelect }: { selected: string; onSelect: (code: string) => void }) {
+  return (
+    <div className="flex flex-col px-1">
+      {CURRENCIES.map(({ code, name }) => (
+        <button
+          key={code}
+          onClick={() => onSelect(code)}
+          className={`flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-[color,background-color,transform] duration-fast active:scale-[0.98] ${selected === code ? "bg-ink/10" : "hover:bg-ink/5"}`}
+        >
+          <span className="w-12 flex-shrink-0 font-mono text-body text-ink">{code}</span>
+          <span className="flex-1 text-body font-sans text-ink/60 truncate">{name}</span>
+          {selected === code && <Check size={15} className="flex-shrink-0 text-accent" />}
         </button>
       ))}
     </div>

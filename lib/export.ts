@@ -42,17 +42,28 @@ function escapeCell(value: string | number): string {
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+// Two amount columns, because they are two different facts: what was paid, and
+// what that comes to in the currency the export is counted in. Dropping the
+// first would make the file disagree with the receipt.
 export async function exportExpensesCSV(
   expenses: Expense[],
   currency: string,
   month: { year: number; month: number }
 ) {
   const rows = [
-    ["Date", "Time", "Description", "Category", `Amount (${currency})`],
+    ["Date", "Time", "Description", "Category", "Entered", "Currency", `Amount (${currency})`],
     ...expenses
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
-      .map((e) => [e.date, e.time ?? "", e.description, e.category, e.amount]),
+      .map((e) => [
+        e.date,
+        e.time ?? "",
+        e.description,
+        e.category,
+        e.original ? e.original.amount : e.amount,
+        e.original ? e.original.currency : currency,
+        e.amount,
+      ]),
   ];
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
   const label = `${MONTH_NAMES[month.month - 1]}-${month.year}`;
@@ -61,8 +72,14 @@ export async function exportExpensesCSV(
 
 export async function exportSubscriptionsCSV(subscriptions: Subscription[], currency: string) {
   const rows = [
-    ["Name", "Category", `Amount/Month (${currency})`],
-    ...subscriptions.map((s) => [s.name, s.category, s.amount]),
+    ["Name", "Category", "Entered", "Currency", `Amount/Month (${currency})`],
+    ...subscriptions.map((s) => [
+      s.name,
+      s.category,
+      s.original ? s.original.amount : s.amount,
+      s.original ? s.original.currency : currency,
+      s.amount,
+    ]),
   ];
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
   await downloadCSV(csv, "minti-subscriptions.csv");

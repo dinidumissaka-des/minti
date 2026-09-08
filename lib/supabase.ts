@@ -126,15 +126,48 @@ export async function completeNativeOAuth(callbackUrl: string) {
   if (error) throw error;
 }
 
+// `currency` arrives with supabase/migration.sql alongside the month columns.
+// Until it is applied, a write naming it is rejected outright, so each one
+// below retries without it rather than losing the entry. Reads need no
+// fallback: `select('*')` simply returns whatever columns exist, and a row
+// with no currency of its own is read as the account's base.
+let currencyColumnMissing = false;
+
+export function currencyNeedsMigration(): boolean {
+  return currencyColumnMissing;
+}
+
+function isMissingCurrencyColumn(error: { code?: string; message?: string; details?: string | null } | null): boolean {
+  if (!error) return false;
+  if (error.code !== '42703' && error.code !== 'PGRST204') return false;
+  if (!/currency/.test(`${error.message ?? ''} ${error.details ?? ''}`)) return false;
+  currencyColumnMissing = true;
+  return true;
+}
+
+function withoutCurrency<T extends Record<string, unknown>>(row: T): Omit<T, 'currency'> {
+  const { currency: _currency, ...rest } = row;
+  return rest;
+}
+
 export async function addExpense(data: NewExpense, userId: string): Promise<Expense> {
+  const row = { ...data, user_id: userId };
   const { data: inserted, error } = await getClient()
     .from('expenses')
-    .insert([{ ...data, user_id: userId }])
+    .insert([row])
     .select()
     .single();
 
-  if (error) throw error;
-  return inserted;
+  if (!error) return inserted;
+  if (!isMissingCurrencyColumn(error)) throw error;
+
+  const { data: retried, error: retryError } = await getClient()
+    .from('expenses')
+    .insert([withoutCurrency(row)])
+    .select()
+    .single();
+  if (retryError) throw retryError;
+  return retried;
 }
 
 export async function deleteExpense(id: string): Promise<void> {
@@ -142,9 +175,13 @@ export async function deleteExpense(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function updateExpense(id: string, data: Partial<Omit<Expense, 'id' | 'created_at'>>): Promise<void> {
+export async function updateExpense(id: string, data: Partial<Omit<Expense, 'id' | 'created_at' | 'original'>>): Promise<void> {
   const { error } = await getClient().from('expenses').update(data).eq('id', id);
-  if (error) throw error;
+  if (!error) return;
+  if (!isMissingCurrencyColumn(error)) throw error;
+
+  const { error: retryError } = await getClient().from('expenses').update(withoutCurrency(data)).eq('id', id);
+  if (retryError) throw retryError;
 }
 
 // The month-scoping columns arrive with supabase/migration.sql. Until that has
@@ -196,27 +233,40 @@ export async function getSubscriptionsForMonth(year: number, month: number): Pro
   return allSubscriptions();
 }
 
+
+function withoutPeriod<T extends Record<string, unknown>>(row: T) {
+  const { start_month: _start, end_month: _end, ...rest } = row;
+  return rest;
+}
+
+// Either column class can be the one this database has not been migrated for,
+// so drop whichever the server names and try again — up to once per class.
+async function writeSubscription<T>(
+  row: Record<string, unknown>,
+  send: (row: Record<string, unknown>) => PromiseLike<{ data: T | null; error: { code?: string; message?: string; details?: string | null } | null }>,
+): Promise<T | null> {
+  let payload = row;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await send(payload);
+    if (!error) return data;
+    if (isMissingCurrencyColumn(error)) payload = withoutCurrency(payload);
+    else if (isMissingPeriodColumn(error)) payload = withoutPeriod(payload);
+    else throw error;
+  }
+  throw new Error('Could not write the bill.');
+}
+
 // Starts in the month being viewed, and runs from there on.
 export async function addSubscription(
   data: NewSubscription,
   userId: string,
   from: { year: number; month: number },
 ): Promise<Subscription> {
-  const { data: inserted, error } = await getClient()
-    .from('subscriptions')
-    .insert([{ ...data, user_id: userId, start_month: monthKey(from.year, from.month), end_month: null }])
-    .select()
-    .single();
-  if (!error) return inserted;
-  if (!isMissingPeriodColumn(error)) throw error;
-
-  const { data: unscoped, error: unscopedError } = await getClient()
-    .from('subscriptions')
-    .insert([{ ...data, user_id: userId }])
-    .select()
-    .single();
-  if (unscopedError) throw unscopedError;
-  return unscoped;
+  const row = { ...data, user_id: userId, start_month: monthKey(from.year, from.month), end_month: null };
+  const inserted = await writeSubscription<Subscription>(row, (payload) =>
+    getClient().from('subscriptions').insert([payload]).select().single(),
+  );
+  return inserted as Subscription;
 }
 
 // Stops from this month on. A bill that started in the month being viewed
@@ -255,8 +305,9 @@ export async function updateSubscription(
 ): Promise<void> {
   const key = monthKey(from.year, from.month);
   if (!sub.start_month || sub.start_month >= key) {
-    const { error } = await getClient().from('subscriptions').update(data).eq('id', sub.id);
-    if (error) throw error;
+    await writeSubscription(data as Record<string, unknown>, (payload) =>
+      getClient().from('subscriptions').update(payload).eq('id', sub.id).select().maybeSingle(),
+    );
     return;
   }
 
@@ -266,41 +317,64 @@ export async function updateSubscription(
     .eq('id', sub.id);
   if (closeError) {
     if (!isMissingPeriodColumn(closeError)) throw closeError;
-    const { error } = await getClient().from('subscriptions').update(data).eq('id', sub.id);
-    if (error) throw error;
+    await writeSubscription(data as Record<string, unknown>, (payload) =>
+      getClient().from('subscriptions').update(payload).eq('id', sub.id).select().maybeSingle(),
+    );
     return;
   }
 
-  const { error } = await getClient().from('subscriptions').insert([{
+  await writeSubscription({
     name: sub.name,
     amount: sub.amount,
+    currency: sub.currency ?? null,
     category: sub.category,
     billing_day: sub.billing_day,
     ...data,
     user_id: userId,
     start_month: key,
     end_month: sub.end_month,
-  }]);
-  if (error) throw error;
+  }, (payload) => getClient().from('subscriptions').insert([payload]).select().maybeSingle());
 }
 
-export async function getUserSettings(): Promise<{ budget: number | null; currency: string; monthly_income: number | null } | null> {
-  const { data } = await getClient()
+export type UserSettings = {
+  budget: number | null;
+  currency: string;
+  monthly_income: number | null;
+  // What an entry carrying no currency of its own is counted in. Fixed at the
+  // display currency the account was using when it was first written, so
+  // switching display currency later converts history instead of relabelling it.
+  base_currency: string | null;
+};
+
+export async function getUserSettings(): Promise<UserSettings | null> {
+  const { data, error } = await getClient()
+    .from('user_settings')
+    .select('budget, currency, monthly_income, base_currency')
+    .maybeSingle();
+  if (!error) return (data as UserSettings) ?? null;
+  if (!isMissingCurrencyColumn(error)) throw error;
+
+  const { data: legacy } = await getClient()
     .from('user_settings')
     .select('budget, currency, monthly_income')
     .maybeSingle();
-  return data ?? null;
+  return legacy ? { ...(legacy as Omit<UserSettings, 'base_currency'>), base_currency: null } : null;
 }
 
-export async function upsertUserSettings(settings: { budget?: number | null; currency?: string; monthly_income?: number | null }): Promise<void> {
+export async function upsertUserSettings(settings: {
+  budget?: number | null;
+  currency?: string;
+  monthly_income?: number | null;
+  base_currency?: string;
+}): Promise<void> {
   const { data: { user } } = await getClient().auth.getUser();
   if (!user) return;
-  await getClient()
-    .from('user_settings')
-    .upsert(
-      { user_id: user.id, ...settings, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id' }
-    );
+  const row = { user_id: user.id, ...settings, updated_at: new Date().toISOString() };
+  const { error } = await getClient().from('user_settings').upsert(row, { onConflict: 'user_id' });
+  if (!error || !isMissingCurrencyColumn(error)) return;
+
+  const { base_currency: _base, ...rest } = row;
+  await getClient().from('user_settings').upsert(rest, { onConflict: 'user_id' });
 }
 
 export async function getIncomeByMonth(year: number, month: number): Promise<Income[]> {
@@ -318,13 +392,22 @@ export async function getIncomeByMonth(year: number, month: number): Promise<Inc
 }
 
 export async function addIncome(data: NewIncome, userId: string): Promise<Income> {
+  const row = { ...data, user_id: userId };
   const { data: inserted, error } = await getClient()
     .from('income_entries')
-    .insert([{ ...data, user_id: userId }])
+    .insert([row])
     .select()
     .single();
-  if (error) throw error;
-  return inserted;
+  if (!error) return inserted;
+  if (!isMissingCurrencyColumn(error)) throw error;
+
+  const { data: retried, error: retryError } = await getClient()
+    .from('income_entries')
+    .insert([withoutCurrency(row)])
+    .select()
+    .single();
+  if (retryError) throw retryError;
+  return retried;
 }
 
 export async function deleteIncome(id: string): Promise<void> {
@@ -334,5 +417,9 @@ export async function deleteIncome(id: string): Promise<void> {
 
 export async function updateIncome(id: string, data: Partial<NewIncome>): Promise<void> {
   const { error } = await getClient().from('income_entries').update(data).eq('id', id);
-  if (error) throw error;
+  if (!error) return;
+  if (!isMissingCurrencyColumn(error)) throw error;
+
+  const { error: retryError } = await getClient().from('income_entries').update(withoutCurrency(data)).eq('id', id);
+  if (retryError) throw retryError;
 }

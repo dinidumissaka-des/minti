@@ -5,6 +5,8 @@ import { Plus, Trash2, Check, X, Pencil, Loader2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Subscription, Income } from "@/types";
 import { getIncomeByMonth, addIncome, deleteIncome, upsertUserSettings } from "@/lib/supabase";
+import { useMoney } from "@/components/MoneyContext";
+import { toDisplay } from "@/lib/money";
 import { hapticBump } from "@/lib/haptics";
 import { formatAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
@@ -44,7 +46,9 @@ const IncomeSection = memo(function IncomeSection({
   subscriptions,
   onTotalChange,
 }: Props) {
-  const [incomeEntries, setIncomeEntries] = useState<Income[]>([]);
+  const money = useMoney();
+  const [rawIncomeEntries, setIncomeEntries] = useState<Income[]>([]);
+  const incomeEntries = useMemo(() => toDisplay(rawIncomeEntries, money), [rawIncomeEntries, money]);
   const [loadingEntries, setLoadingEntries] = useState(false);
   const [editingBaseline, setEditingBaseline] = useState(false);
   const [baselineInput, setBaselineInput] = useState("");
@@ -126,7 +130,7 @@ const IncomeSection = memo(function IncomeSection({
     setSaving(true);
     setSaveError(null);
     try {
-      await addIncome({ source: newSource, amount: parsed, date: newDate }, user.id);
+      await addIncome({ source: newSource, amount: parsed, currency: money.display, date: newDate }, user.id);
       setNewAmount("");
       setNewDate(todayISO());
       setShowAddForm(false);
@@ -156,7 +160,8 @@ const IncomeSection = memo(function IncomeSection({
     [incomeEntries],
   );
   const { mask } = usePrivacy();
-  const totalIncome = (monthlyIncome ?? 0) + entriesTotal;
+  const baseline = monthlyIncome == null ? 0 : money.convert(monthlyIncome, money.base);
+  const totalIncome = baseline + entriesTotal;
 
   useEffect(() => { onTotalChange?.(totalIncome); }, [totalIncome, onTotalChange]);
 
@@ -223,8 +228,8 @@ const IncomeSection = memo(function IncomeSection({
                 value={baselineInput}
                 onChange={(e) => setBaselineInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
-                placeholder="Monthly income"
-                aria-label="Monthly income"
+                placeholder={`Monthly income (${money.base})`}
+                aria-label={`Monthly income in ${money.base}`}
                 className="flex-1 min-w-0 h-10 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
@@ -239,12 +244,12 @@ const IncomeSection = memo(function IncomeSection({
               <div className="flex flex-col gap-0.5">
                 <span className="font-sans text-xs text-muted font-semibold">Monthly Income</span>
                 <span className="font-mono text-base text-ink font-semibold">
-                  {mask(formatAmount(entriesTotal > 0 ? totalIncome : monthlyIncome, currency))}
+                  {mask(formatAmount(entriesTotal > 0 ? totalIncome : baseline, currency))}
                   <span className="text-muted text-xs font-normal ml-1">{currency}</span>
                 </span>
                 {entriesTotal > 0 && (
                   <span className="font-mono text-xs text-muted">
-                    {mask(formatAmount(monthlyIncome, currency))} base + {mask(formatAmount(entriesTotal, currency))} one-off
+                    {mask(formatAmount(baseline, currency))} base + {mask(formatAmount(entriesTotal, currency))} one-off
                   </span>
                 )}
               </div>
@@ -389,9 +394,16 @@ const IncomeSection = memo(function IncomeSection({
                         <p className="font-sans text-body text-ink truncate">{entry.source}</p>
                         <p className="font-mono text-xs text-muted">{entry.date}</p>
                       </div>
-                      <span className="font-mono text-sm text-accent font-semibold flex-shrink-0">
-                        +{mask(formatAmount(Number(entry.amount), currency))}
-                      </span>
+                      <div className="flex flex-col items-end flex-shrink-0">
+                        <span className="font-mono text-sm text-accent font-semibold">
+                          +{mask(formatAmount(Number(entry.amount), currency))}
+                        </span>
+                        {entry.original && (
+                          <span className="font-mono text-xs text-muted">
+                            {mask(formatAmount(entry.original.amount, entry.original.currency))} {entry.original.currency}
+                          </span>
+                        )}
+                      </div>
                       <button
                         onClick={() => handleDeleteEntry(entry.id)}
                         disabled={deletingId === entry.id}

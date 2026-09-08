@@ -1,22 +1,60 @@
 "use client";
 
-import { useState, useRef, FormEvent } from "react";
+import { useMemo, useState, useRef, FormEvent } from "react";
 import { Plus, Loader2, Check } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
+import type { Expense } from "@/types";
+import { formatAmount } from "@/lib/currencies";
+import { useMoney } from "@/components/MoneyContext";
+import { usePrivacy } from "@/components/PrivacyContext";
 import { hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Surface from "@/components/Surface";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
-import { CalendarPicker, CategoryList } from "@/components/ui/DrawerPickers";
+import { CalendarPicker, CategoryList, CurrencyList } from "@/components/ui/DrawerPickers";
 import { CATEGORY_COLORS } from "@/lib/categories";
 
 const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
+// Whatever you spent in last time is what you are most likely spending in now,
+// so the picker opens on it rather than resetting to the display currency
+// after every entry.
+const LAST_ENTRY_CURRENCY = "minti_last_entry_currency";
+
+const QUICK_ADD_LIMIT = 4;
+
+type QuickAdd = { key: string; description: string; category: string; amount: number; currency: string };
+
+// The same handful of expenses get typed out again and again. These are drawn
+// from the month already on screen, most recent first, one per description.
+function buildQuickAdds(expenses: Expense[], display: string): QuickAdd[] {
+  const seen = new Set<string>();
+  const out: QuickAdd[] = [];
+  for (const e of expenses) {
+    const key = e.description.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    // The row on screen has been converted for display; a repeat has to
+    // restore what was actually entered, not the converted figure.
+    out.push({
+      key,
+      description: e.description,
+      category: e.category,
+      amount: e.original ? e.original.amount : Number(e.amount),
+      currency: e.original ? e.original.currency : display,
+    });
+    if (out.length === QUICK_ADD_LIMIT) break;
+  }
+  return out;
+}
+
 interface Props {
   userId: string;
   currency: string;
+  /** The month already on screen, used for the one-tap repeat row. */
+  recent?: Expense[];
   onExpenseAdded: () => void;
   /** Drop the Surface card when the form already sits on one (a sheet).
       Apple warns against layering Liquid Glass elements on top of each other. */
@@ -34,7 +72,9 @@ function formatDateLabel(iso: string) {
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
-export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare = false }: Props) {
+export default function AddExpenseForm({ userId, currency, recent = [], onExpenseAdded, bare = false }: Props) {
+  const money = useMoney();
+  const { mask } = usePrivacy();
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(PRESET_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState("");
@@ -47,6 +87,30 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
   const amountRef = useRef<HTMLInputElement>(null);
   const [showDateDrawer, setShowDateDrawer] = useState(false);
   const [showCategoryDrawer, setShowCategoryDrawer] = useState(false);
+  const [showCurrencyDrawer, setShowCurrencyDrawer] = useState(false);
+  const [entryCurrency, setEntryCurrency] = useState(() => {
+    if (typeof window === "undefined") return currency;
+    try { return localStorage.getItem(LAST_ENTRY_CURRENCY) || currency; } catch { return currency; }
+  });
+
+  const quickAdds = useMemo(() => buildQuickAdds(recent, currency), [recent, currency]);
+
+  function selectEntryCurrency(code: string) {
+    setEntryCurrency(code);
+    try { localStorage.setItem(LAST_ENTRY_CURRENCY, code); } catch { /* private mode */ }
+  }
+
+  function applyQuickAdd(item: QuickAdd) {
+    setDescription(item.description);
+    setCategory(PRESET_CATEGORIES.includes(item.category) ? item.category : "__custom__");
+    if (!PRESET_CATEGORIES.includes(item.category)) setCustomCategory(item.category);
+    selectEntryCurrency(item.currency);
+    const raw = String(item.amount);
+    setAmount(raw);
+    const parts = raw.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    setDisplayAmount(parts.join("."));
+  }
 
   function handleAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value.replace(/,/g, "");
@@ -59,6 +123,10 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
 
   const isCustom = category === "__custom__";
   const effectiveCategory = isCustom ? customCategory.trim() : category;
+
+  const parsedAmount = parseFloat(amount);
+  const showsConversion =
+    entryCurrency !== money.display && parsedAmount > 0 && money.canConvert(entryCurrency);
 
   async function handleSubmit(e?: FormEvent) {
     e?.preventDefault();
@@ -80,7 +148,7 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
       const ampm = hours >= 12 ? "PM" : "AM";
       const h12 = String(hours % 12 || 12);
       const time = `${h12}:${mins} ${ampm}`;
-      await addExpense({ description: description.trim(), category: effectiveCategory, amount: parsed, date, time }, userId);
+      await addExpense({ description: description.trim(), category: effectiveCategory, amount: parsed, currency: entryCurrency, date, time }, userId);
       setDescription(""); setCategory(PRESET_CATEGORIES[0]); setCustomCategory("");
       setAmount(""); setDisplayAmount(""); setDate(new Date().toISOString().split("T")[0]);
       setSuccess(true);
@@ -99,7 +167,16 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
     <div className={bare ? "px-4 py-2 flex flex-col gap-5 w-full" : "p-6 flex flex-col gap-5 w-full"}>
           {/* Hero amount */}
           <div className="flex flex-col items-end gap-1 py-4">
-            <span className="font-mono text-xs text-muted uppercase tracking-widest font-semibold">{currency}</span>
+            {/* The code was a label; it is the thing you change when the
+                expense is in another currency, so it is the control. */}
+            <button
+              type="button"
+              onClick={() => setShowCurrencyDrawer(true)}
+              aria-label={`Currency for this expense — currently ${entryCurrency}`}
+              className="font-mono text-xs uppercase tracking-widest font-semibold rounded-full px-2 py-1 -mr-2 text-muted hover:text-ink transition-[color,transform] duration-fast active:scale-95"
+            >
+              {entryCurrency}
+            </button>
             <input
               ref={amountRef}
               type="text"
@@ -116,7 +193,29 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
                 `bg-accent` not `bg-accent-fill` — a hairline has to carry its own
                 contrast, and the fill green is 1.6:1 on a light card. */}
             <div className="h-px w-16 bg-ink/10 mt-1 origin-right transition-[transform,background-color] duration-slow ease-out peer-focus-visible:scale-x-150 peer-focus-visible:scale-y-[2] peer-focus-visible:bg-accent" />
+            {/* What it lands as in the currency every total is counted in. */}
+            <Collapse open={showsConversion}>
+              <span className="block pt-1.5 font-mono text-xs text-muted">
+                ≈ {formatAmount(money.convert(parsedAmount, entryCurrency), money.display)} {money.display}
+              </span>
+            </Collapse>
           </div>
+
+          {quickAdds.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {quickAdds.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => applyQuickAdd(item)}
+                  className="h-9 px-3.5 flex items-center gap-2 rounded-full border flat-chip text-ink/60 hover:text-ink transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
+                >
+                  <span className="text-sm font-sans truncate max-w-[9rem]">{item.description}</span>
+                  <span className="text-xs font-mono text-ink/40">{mask(formatAmount(item.amount, item.currency))}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Description */}
           <Input
@@ -195,6 +294,14 @@ export default function AddExpenseForm({ userId, currency, onExpenseAdded, bare 
       {/* Date bottom drawer */}
       <BottomDrawer open={showDateDrawer} onClose={() => setShowDateDrawer(false)} title="Select Date">
         <CalendarPicker value={date} onChange={setDate} onClose={() => setShowDateDrawer(false)} />
+      </BottomDrawer>
+
+      {/* Currency bottom drawer */}
+      <BottomDrawer open={showCurrencyDrawer} onClose={() => setShowCurrencyDrawer(false)} title="Currency">
+        <CurrencyList
+          selected={entryCurrency}
+          onSelect={(code) => { selectEntryCurrency(code); setShowCurrencyDrawer(false); }}
+        />
       </BottomDrawer>
 
       {/* Category bottom drawer */}

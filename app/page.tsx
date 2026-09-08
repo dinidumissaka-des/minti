@@ -4,12 +4,15 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
-import { getExpensesByMonth, getSubscriptionsForMonth, subscriptionsNeedMigration, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
+import { getExpensesByMonth, getSubscriptionsForMonth, subscriptionsNeedMigration, currencyNeedsMigration, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
 import type { Expense, Subscription } from "@/types";
 import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
-import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
+import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, baseCurrencyKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
+import { makeMoney, toDisplay, hasUnconverted } from "@/lib/money";
+import { useRates } from "@/hooks/useRates";
+import { MoneyProvider } from "@/components/MoneyContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import SegmentedControl, { type Segment } from "@/components/ui/SegmentedControl";
 import ViewTransition from "@/components/ui/ViewTransition";
@@ -73,8 +76,9 @@ export default function Home() {
     year: now.getFullYear(),
     month: now.getMonth() + 1,
   });
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [rawExpenses, setRawExpenses] = useState<Expense[]>([]);
+  const [rawSubscriptions, setRawSubscriptions] = useState<Subscription[]>([]);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [subsError, setSubsError] = useState<{ message: string; retry: boolean } | null>(null);
@@ -82,6 +86,11 @@ export default function Home() {
   const [viewDir, setViewDir] = useState(1);
   const [monthDir, setMonthDir] = useState(1);
   const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
+  // Fixed once per account: what an entry with no currency of its own is in.
+  // Changing the currency above changes what figures are *shown* in; it must
+  // never change what the stored numbers mean.
+  const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
+  const [needsCurrencyMigration, setNeedsCurrencyMigration] = useState(false);
   const [budget, setBudget] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [incomeTotalHero, setIncomeTotalHero] = useState(0);
@@ -99,6 +108,27 @@ export default function Home() {
   const { privacyMode, togglePrivacy } = usePrivacy();
   const { theme, toggleTheme } = useTheme();
 
+  const { rates } = useRates(currency);
+  const money = useMemo(
+    () => makeMoney(currency, baseCurrency ?? currency, rates),
+    [currency, baseCurrency, rates],
+  );
+
+  // Rows are converted here, at the boundary, so every total and figure below
+  // counts one currency. A row awaiting its undo window is dropped first, so
+  // the hero stops counting it the moment it leaves the list.
+  const expenses = useMemo(
+    () => toDisplay(rawExpenses.filter((e) => !pendingDeleteIds.includes(e.id)), money),
+    [rawExpenses, pendingDeleteIds, money],
+  );
+  const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
+
+  // Say so rather than showing a figure in a currency nobody spent.
+  const ratesUnavailable = useMemo(
+    () => hasUnconverted(rawExpenses, money) || hasUnconverted(rawSubscriptions, money),
+    [rawExpenses, rawSubscriptions, money],
+  );
+
   useEffect(() => {
     if (showMonthPicker) setPickerYear(selectedMonth.year);
   }, [showMonthPicker]);
@@ -115,6 +145,8 @@ export default function Home() {
     if (b) setBudget(parseFloat(b));
     const mi = localStorage.getItem(monthlyIncomeKey(uid));
     if (mi) setMonthlyIncome(parseFloat(mi));
+    const base = localStorage.getItem(baseCurrencyKey(uid));
+    if (base) setBaseCurrency(base);
   }, []);
 
   // Sync settings from DB once user is known, migrate localStorage if first time
@@ -122,9 +154,16 @@ export default function Home() {
     if (!user) return;
     rememberUser(user.id);
     getUserSettings().then((settings) => {
+      setNeedsCurrencyMigration(currencyNeedsMigration());
       if (settings) {
         setCurrency(settings.currency);
         localStorage.setItem("minti_currency", settings.currency);
+        // First run after the migration: an account that has been entering
+        // amounts all along was entering them in whatever it was displaying.
+        const base = settings.base_currency ?? settings.currency;
+        setBaseCurrency(base);
+        localStorage.setItem(baseCurrencyKey(user.id), base);
+        if (!settings.base_currency) upsertUserSettings({ base_currency: base }).catch(() => {});
         setBudget(settings.budget ?? null);
         if (settings.budget != null) localStorage.setItem(budgetKey(user.id), String(settings.budget));
         setMonthlyIncome(settings.monthly_income ?? null);
@@ -133,7 +172,10 @@ export default function Home() {
         const c = localStorage.getItem("minti_currency");
         const b = localStorage.getItem(budgetKey(user.id));
         const mi = localStorage.getItem(monthlyIncomeKey(user.id));
-        const toSave: { currency?: string; budget?: number; monthly_income?: number } = {};
+        const toSave: { currency?: string; budget?: number; monthly_income?: number; base_currency?: string } = {};
+        toSave.base_currency = c ?? DEFAULT_CURRENCY;
+        setBaseCurrency(toSave.base_currency);
+        localStorage.setItem(baseCurrencyKey(user.id), toSave.base_currency);
         if (c) toSave.currency = c;
         if (b) toSave.budget = parseFloat(b);
         if (mi) toSave.monthly_income = parseFloat(mi);
@@ -151,8 +193,10 @@ export default function Home() {
       // Network failure still means this device should forget the data.
     } finally {
       clearUserData();
-      setExpenses([]);
-      setSubscriptions([]);
+      setRawExpenses([]);
+      setRawSubscriptions([]);
+      setPendingDeleteIds([]);
+      setBaseCurrency(null);
       setBudget(null);
       setMonthlyIncome(null);
     }
@@ -192,12 +236,17 @@ export default function Home() {
     setFetchError(null);
     try {
       const data = await getExpensesByMonth(selectedMonth.year, selectedMonth.month);
-      setExpenses(data);
+      setRawExpenses(data);
+      // The list owns its undo window and clears it itself; this only drops ids
+      // the server no longer knows about, so one abandoned by an unmount (view
+      // change mid-window) cannot linger as a filter over nothing.
+      setPendingDeleteIds((ids) => ids.filter((id) => data.some((e: Expense) => e.id === id)));
+      setNeedsCurrencyMigration(currencyNeedsMigration());
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota exceeded */ }
     } catch {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
-        try { setExpenses(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
+        try { setRawExpenses(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
       } else {
         setFetchError("Could not load expenses. Check your connection.");
       }
@@ -211,7 +260,7 @@ export default function Home() {
     const cacheKey = subscriptionsKey(user.id, selectedMonth.year, selectedMonth.month);
     try {
       const data = await getSubscriptionsForMonth(selectedMonth.year, selectedMonth.month);
-      setSubscriptions(data);
+      setRawSubscriptions(data);
       // The rows are here but unscoped: every bill shows in every month until
       // the period columns exist, so name the fix rather than leaving the list
       // quietly wrong.
@@ -224,13 +273,13 @@ export default function Home() {
     } catch (error) {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
-        try { setSubscriptions(JSON.parse(cached)); setSubsError(null); return; } catch { /* ignore corrupt cache */ }
+        try { setRawSubscriptions(JSON.parse(cached)); setSubsError(null); return; } catch { /* ignore corrupt cache */ }
       }
       // Say so, and say which failure it was. A failed query used to leave an
       // empty list behind, which is indistinguishable from having no bills —
       // it reads as lost data — and then blamed the network for a request the
       // server had answered.
-      setSubscriptions([]);
+      setRawSubscriptions([]);
       const rejected = typeof error === "object" && error !== null && "code" in error;
       setSubsError({
         message: rejected
@@ -368,6 +417,7 @@ export default function Home() {
   }
 
   return (
+    <MoneyProvider money={money}>
     <main id="main-content" className="relative z-content min-h-screen text-ink/90">
       <GradualBlur target="page" position="bottom" height="5rem" strength={1.5} divCount={6} curve="bezier" zIndex={10} className="hidden sm:block" />
       {/* Scroll edge effect. Apple: "Optimize for legibility when content
@@ -471,6 +521,7 @@ export default function Home() {
             bare
             userId={user.id}
             currency={currency}
+            recent={expenses}
             onExpenseAdded={() => { fetchExpenses(); setShowAddSheet(false); }}
           />
         )}
@@ -617,6 +668,22 @@ export default function Home() {
           />
         </header>
 
+        {needsCurrencyMigration && (
+          <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
+            <p className="text-danger font-mono text-sm">
+              Amounts aren’t tagged with a currency yet. Apply supabase/migration.sql to the database.
+            </p>
+          </div>
+        )}
+
+        {ratesUnavailable && (
+          <div className="bg-ink/7 rounded-xl border border-ink/15 p-5 text-center">
+            <p className="text-muted font-mono text-sm">
+              Exchange rates are unavailable, so amounts entered in another currency are shown as entered.
+            </p>
+          </div>
+        )}
+
         {/* Hero + section content move together, so a section change reads as
             one thing sliding rather than four independent swaps. Only the
             section keys this — the month is handled further in, so the hero
@@ -693,7 +760,7 @@ export default function Home() {
                   Deliberately outside the month transition below: changing month
                   should not wipe a half-typed expense. */}
               {!isMobile && (
-                <AddExpenseForm userId={user.id} currency={currency} onExpenseAdded={fetchExpenses} />
+                <AddExpenseForm userId={user.id} currency={currency} recent={expenses} onExpenseAdded={fetchExpenses} />
               )}
 
               {/* Budget */}
@@ -729,6 +796,7 @@ export default function Home() {
                       onDeleted={fetchExpenses}
                       onUpdated={fetchExpenses}
                       currency={currency}
+                      onPendingDelete={setPendingDeleteIds}
                     />
                   </div>
                 )}
@@ -780,6 +848,7 @@ export default function Home() {
         </ViewTransition>
       </div>
     </main>
+    </MoneyProvider>
   );
 }
 

@@ -7,16 +7,20 @@ import Surface from "@/components/Surface";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import Meter from "@/components/ui/Meter";
 import { usePrivacy } from "@/components/PrivacyContext";
+import { useMoney } from "@/components/MoneyContext";
 
 interface Props {
+  /** Already converted to the display currency. */
   spent: number;
   currency: string;
+  /** Held in the account's base currency, like every other saved setting. */
   budget: number | null;
   onBudgetSave: (value: number) => void;
 }
 
 const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSave }: Props) {
   const { mask } = usePrivacy();
+  const money = useMoney();
   const [editing, setEditing] = useState(false);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +61,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     return (
       <Surface borderRadius={28}>
       <div className="px-4 py-4 flex items-center gap-3 w-full">
-        <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
+        <span className="font-mono text-xs text-muted flex-shrink-0">{money.base}</span>
         <input
           ref={inputRef}
           type="number"
@@ -79,9 +83,13 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     );
   }
 
-  const percentage = Math.min((spent / budget!) * 100, 100);
-  const over = spent > budget!;
-  const remaining = budget! - spent;
+  // The budget is saved once, in the base currency; spend is counted in
+  // whatever is on screen. They have to meet in the same currency before
+  // either the meter or "left" means anything.
+  const limit = money.convert(budget!, money.base);
+  const percentage = Math.min((spent / limit) * 100, 100);
+  const over = spent > limit;
+  const remaining = limit - spent;
 
   return (
     <Surface borderRadius={28}>
@@ -102,11 +110,11 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
       <div className="flex items-center justify-between">
         <span className={`font-mono text-sm font-semibold ${over ? "text-danger" : "text-ink"}`}>
           <AnimatedNumber value={spent} format={(v) => formatAmount(v, currency)} />
-          <span className="text-muted font-normal"> / {mask(formatAmount(budget!, currency))}</span>
+          <span className="text-muted font-normal"> / {mask(formatAmount(limit, currency))}</span>
         </span>
         <span className={`font-mono text-xs ${over ? "text-danger" : "text-muted"}`}>
           {over ? (
-            <AnimatedNumber value={spent - budget!} format={(v) => formatAmount(v, currency)} suffix=" over" />
+            <AnimatedNumber value={spent - limit} format={(v) => formatAmount(v, currency)} suffix=" over" />
           ) : (
             <AnimatedNumber value={remaining} format={(v) => formatAmount(v, currency)} suffix=" left" />
           )}

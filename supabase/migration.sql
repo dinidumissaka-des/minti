@@ -41,3 +41,24 @@ alter table subscriptions
 
 create index if not exists subscriptions_period_idx
   on subscriptions (user_id, start_month, end_month);
+
+-- ─── Amounts carry the currency they were entered in ──────────────────────────
+-- Changing the display currency used to relabel every figure without touching
+-- the numbers, so 40 AED became "40 USD". An amount now records what it was
+-- entered in and is converted for display; a row with no currency of its own
+-- is read as the account's `base_currency`, which is fixed at whatever the
+-- account was already using so existing history keeps its meaning.
+
+alter table expenses       add column if not exists currency text;
+alter table subscriptions  add column if not exists currency text;
+alter table income_entries add column if not exists currency text;
+
+alter table user_settings  add column if not exists base_currency text;
+
+-- Backfill: whatever an account is displaying today is what its untagged rows
+-- were entered in. `currency` is deliberately left null on existing rows rather
+-- than stamped — null already means "the base", and stamping would freeze
+-- today's guess onto history if the base is ever corrected.
+update user_settings
+   set base_currency = currency
+ where base_currency is null;

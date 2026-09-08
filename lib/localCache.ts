@@ -20,6 +20,9 @@ export const subscriptionsKey = (userId: string, year: number, month: number) =>
   `${PREFIX}subscriptions_${userId}_${year}-${String(month).padStart(2, '0')}`;
 export const budgetKey = (userId: string) => `${PREFIX}budget_${userId}`;
 export const monthlyIncomeKey = (userId: string) => `${PREFIX}monthly_income_${userId}`;
+// Account data, not a display preference: it decides what an untagged amount
+// means, so it is namespaced by user and dropped on sign-out like the rest.
+export const baseCurrencyKey = (userId: string) => `${PREFIX}base_currency_${userId}`;
 
 export function rememberUser(userId: string) {
   try { localStorage.setItem(LAST_USER_KEY, userId); } catch { /* private mode */ }
