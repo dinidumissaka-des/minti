@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { Plus, Trash2, Pencil, Check, X, Loader2, RefreshCw } from "lucide-react";
 import { addSubscription, deleteSubscription, updateSubscription } from "@/lib/supabase";
 import { hapticBump, hapticSuccess } from "@/lib/haptics";
-import { formatAmount } from "@/lib/currencies";
+import { formatAmount, roundAmount } from "@/lib/currencies";
 import { CATEGORY_COLORS } from "@/lib/categories";
 import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
@@ -102,9 +102,9 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
     setEditingId(sub.id);
     setEditState({
       name: sub.name,
-      // The row is converted for display; the field holds what was entered.
-      amount: String(sub.original ? sub.original.amount : sub.amount),
-      currency: money.currencyOf(sub),
+      // In the selected currency, like the row above it. See ExpenseList.
+      amount: String(roundAmount(Number(sub.amount), money.display)),
+      currency: money.display,
       category: sub.category,
     });
   }
@@ -257,16 +257,9 @@ export default function SubscriptionList({ subscriptions, userId, currency, sele
                         {sub.category}
                       </span>
                     </div>
-                    <div className="flex flex-col items-end flex-shrink-0">
-                      <span className="font-mono text-sm text-ink">
-                        {mask(formatAmount(Number(sub.amount), currency))}<span className="text-muted text-xs">/mo</span>
-                      </span>
-                      {sub.original && (
-                        <span className="font-mono text-xs text-muted">
-                          {mask(formatAmount(sub.original.amount, sub.original.currency))} {sub.original.currency}
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-mono text-sm text-ink flex-shrink-0">
+                      {mask(formatAmount(Number(sub.amount), currency))}<span className="text-muted text-xs">/mo</span>
+                    </span>
                     {/* Hover actions (desktop) */}
                     <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">
                       <button onClick={() => startEdit(sub)} aria-label="Edit"

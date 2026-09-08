@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Trash2, Pencil, Check, X, Receipt, Undo2 } from "lucide-react";
 import { deleteExpense, updateExpense } from "@/lib/supabase";
 import { hapticTap, hapticBump } from "@/lib/haptics";
-import { formatAmount } from "@/lib/currencies";
+import { formatAmount, roundAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { useMoney } from "@/components/MoneyContext";
@@ -75,10 +75,13 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency, 
     setEditState({
       description: expense.description,
       category: expense.category,
-      // The row shows a converted figure; the field has to hold the one that
-      // was typed, or saving would write the conversion back as the amount.
-      amount: String(expense.original ? expense.original.amount : expense.amount),
-      currency: money.currencyOf(expense),
+      // Every figure on screen is in the selected currency, so the editor is
+      // too — opening a row that reads 61 on a field saying 5,000 is the same
+      // number claiming to be two things. Saving therefore re-records the row
+      // in the selected currency; the chip beside the field overrides that
+      // when an entry really was made in something else.
+      amount: String(roundAmount(Number(expense.amount), money.display)),
+      currency: money.display,
       date: expense.date,
     });
   }
@@ -403,18 +406,9 @@ export default function ExpenseList({ expenses, onDeleted, onUpdated, currency, 
                         </span>
                       )}
 
-                      <div className="flex flex-col items-end flex-shrink-0">
-                        <span className="font-mono text-sm text-ink">
-                          {mask(formatAmount(Number(expense.amount), currency))}
-                        </span>
-                        {/* Converted figures say what was actually spent, or
-                            the row claims a number nobody paid. */}
-                        {expense.original && (
-                          <span className="font-mono text-xs text-muted">
-                            {mask(formatAmount(expense.original.amount, expense.original.currency))} {expense.original.currency}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-mono text-sm text-ink flex-shrink-0">
+                        {mask(formatAmount(Number(expense.amount), currency))}
+                      </span>
 
                       {/* Desktop hover actions */}
                       <div className="hidden sm:flex gap-1 overflow-hidden w-0 group-hover:w-reveal transition-all duration-200 flex-shrink-0">

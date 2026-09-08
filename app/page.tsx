@@ -108,7 +108,7 @@ export default function Home() {
   const { privacyMode, togglePrivacy } = usePrivacy();
   const { theme, toggleTheme } = useTheme();
 
-  const { rates } = useRates(currency);
+  const { rates, loading: ratesLoading } = useRates(currency);
   const money = useMemo(
     () => makeMoney(currency, baseCurrency ?? currency, rates),
     [currency, baseCurrency, rates],
@@ -123,10 +123,12 @@ export default function Home() {
   );
   const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
 
-  // Say so rather than showing a figure in a currency nobody spent.
+  // Say so rather than showing a figure in a currency nobody spent. Held back
+  // while the first fetch for a currency is still out, so switching currency
+  // does not flash a notice at every tap.
   const ratesUnavailable = useMemo(
-    () => hasUnconverted(rawExpenses, money) || hasUnconverted(rawSubscriptions, money),
-    [rawExpenses, rawSubscriptions, money],
+    () => !ratesLoading && (hasUnconverted(rawExpenses, money) || hasUnconverted(rawSubscriptions, money)),
+    [ratesLoading, rawExpenses, rawSubscriptions, money],
   );
 
   useEffect(() => {
