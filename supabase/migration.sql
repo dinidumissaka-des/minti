@@ -1,5 +1,9 @@
+-- Every statement here is guarded, so the file is re-runnable against a
+-- database that already has some of it.
+
 create table if not exists expenses (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
   description text not null,
   category text not null,
   amount numeric(10, 2) not null,
@@ -10,11 +14,53 @@ create table if not exists expenses (
 
 alter table expenses enable row level security;
 
--- Allow all operations (no auth for now). Dropped first so the whole file stays
--- re-runnable: a duplicate policy aborts the transaction before anything below
--- it is applied.
-drop policy if exists "allow all" on expenses;
-create policy "allow all" on expenses for all using (true) with check (true);
+drop policy if exists "own expenses" on expenses;
+create policy "own expenses" on expenses
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- A database set up before auth may still carry a policy named "allow all"
+-- (`using (true)`). Permissive policies are OR'd together, so that one alone
+-- exposes every account's rows to every signed-in user, and the policy above
+-- does not override it. It is not dropped here, because dropping the only
+-- policy a live table has would hide every row from its owner: confirm what is
+-- actually there first, then drop it by hand.
+--
+--   select tablename, policyname, qual from pg_policies where schemaname = 'public';
+--   drop policy if exists "allow all" on expenses;
+
+-- ─── Settings and income ──────────────────────────────────────────────────────
+-- Neither table was ever in this file, so a fresh project came up without them
+-- and getUserSettings failed silently — settings lived only in localStorage.
+
+create table if not exists user_settings (
+  user_id        uuid primary key references auth.users(id) on delete cascade,
+  budget         numeric,
+  monthly_income numeric,
+  currency       text,
+  base_currency  text,
+  updated_at     timestamptz not null default now()
+);
+
+alter table user_settings enable row level security;
+
+drop policy if exists "own settings" on user_settings;
+create policy "own settings" on user_settings
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create table if not exists income_entries (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  source     text not null,
+  amount     numeric not null,
+  date       date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
+alter table income_entries enable row level security;
+
+drop policy if exists "own income" on income_entries;
+create policy "own income" on income_entries
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ─── Subscriptions become month-scoped ────────────────────────────────────────
 -- A row is one *version* of a bill, valid for a range of months. A bill added
