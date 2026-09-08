@@ -210,6 +210,15 @@ export default function Home() {
     upsertUserSettings({ currency: code }).catch(() => {});
   }, []);
 
+  // Changes what older entries are read as, not what they are worth. Wrong,
+  // it silently divides a whole history by an exchange rate, so it is a thing
+  // you can see and correct rather than something captured behind your back.
+  const selectBaseCurrency = useCallback((code: string) => {
+    setBaseCurrency(code);
+    if (user) localStorage.setItem(baseCurrencyKey(user.id), code);
+    upsertUserSettings({ base_currency: code }).catch(() => {});
+  }, [user]);
+
   const saveBudget = useCallback((value: number) => {
     setBudget(value);
     if (user) localStorage.setItem(budgetKey(user.id), String(value));
@@ -475,6 +484,8 @@ export default function Home() {
         onClose={() => setShowCurrencyMenu(false)}
         currency={currency}
         onSelect={selectCurrency}
+        baseCurrency={baseCurrency ?? currency}
+        onSelectBase={selectBaseCurrency}
         onOpenConverter={() => setShowConverterDrawer(true)}
       />
 

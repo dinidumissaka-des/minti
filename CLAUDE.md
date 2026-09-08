@@ -25,7 +25,7 @@ components/
   Surface.tsx       The one raised surface — paints --surface opaque, owns the card radius
   BottomDrawer.tsx  Modal sheet — month/category/date pickers, add-expense sheet (currency and the converter are pushed pages, not sheets)
   AccountPage.tsx   Full-screen account page pushed in from the header avatar — identity block + Your account / Settings / Session rows (replaced the "⋯" More menu)
-  CurrencyPage.tsx  Pushed page holding both currency errands — Change currency (the list, one level further in) and Convert currency
+  CurrencyPage.tsx  Pushed page holding the currency errands — Change currency, Base currency (what older entries were recorded in) and Convert currency
   Avatar.tsx        Profile circle — OAuth photo when the session has one, initials otherwise; also exports displayName()
   HeroAmount.tsx    The big figure at the top of a view — label, month chip, tappable currency, swipe-to-change-month
   MonthChip.tsx     Mobile month pill (`Sep 2026 ⌄`) — opens the month picker
