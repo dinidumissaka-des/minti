@@ -108,3 +108,58 @@ alter table user_settings  add column if not exists base_currency text;
 update user_settings
    set base_currency = currency
  where base_currency is null;
+
+-- ─── One currency setting, not two ───────────────────────────────────────────
+-- `base_currency` was never a preference. It answered one question — "what were
+-- the entries that predate the currency column recorded in?" — and then sat in
+-- the UI forever beside the display currency, where two controls that both said
+-- a currency code read as two ways to set the same thing. Worse, its value was
+-- guessed from whatever was on screen the first time the account loaded after
+-- the currency migration, so an account displaying LKR while entering AED read
+-- its whole history as rupees, with a wrong answer to a question nobody was
+-- asked visible nowhere.
+--
+-- The question is now answered once, here, and written onto the rows. After
+-- this runs every amount in the account carries its own currency and the
+-- display currency is the only currency setting left.
+--
+-- Check the answer before running this. It stamps history permanently:
+--     select base_currency from user_settings;
+
+update expenses e
+   set currency = s.base_currency
+  from user_settings s
+ where s.user_id = e.user_id
+   and e.currency is null
+   and s.base_currency is not null;
+
+update subscriptions sub
+   set currency = s.base_currency
+  from user_settings s
+ where s.user_id = sub.user_id
+   and sub.currency is null
+   and s.base_currency is not null;
+
+update income_entries i
+   set currency = s.base_currency
+  from user_settings s
+ where s.user_id = i.user_id
+   and i.currency is null
+   and s.base_currency is not null;
+
+-- The budget and the monthly income were the only amounts in the app with no
+-- currency of their own, which is the other half of why the base had to exist.
+-- They now follow the same rule as every row: an amount is a number and the
+-- currency it was entered in.
+
+alter table user_settings add column if not exists budget_currency text;
+alter table user_settings add column if not exists income_currency text;
+
+update user_settings
+   set budget_currency = coalesce(budget_currency, base_currency),
+       income_currency = coalesce(income_currency, base_currency)
+ where base_currency is not null;
+
+-- `base_currency` is now unread. It is left in place rather than dropped so a
+-- rollback to the previous release still finds it; drop it once you are happy:
+--     alter table user_settings drop column base_currency;

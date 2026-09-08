@@ -9,8 +9,8 @@ import type { Expense, Subscription } from "@/types";
 import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
-import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, baseCurrencyKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
-import { makeMoney, toDisplay, hasUnconverted } from "@/lib/money";
+import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, budgetCurrencyKey, incomeCurrencyKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
+import { makeMoney, toDisplay, hasUnconverted, hasUntagged } from "@/lib/money";
 import { useRates } from "@/hooks/useRates";
 import { MoneyProvider } from "@/components/MoneyContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -89,7 +89,8 @@ export default function Home() {
   // Fixed once per account: what an entry with no currency of its own is in.
   // Changing the currency above changes what figures are *shown* in; it must
   // never change what the stored numbers mean.
-  const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
+  const [budgetCurrency, setBudgetCurrency] = useState<string | null>(null);
+  const [incomeCurrency, setIncomeCurrency] = useState<string | null>(null);
   const [needsCurrencyMigration, setNeedsCurrencyMigration] = useState(false);
   const [budget, setBudget] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
@@ -110,8 +111,8 @@ export default function Home() {
 
   const { rates, loading: ratesLoading } = useRates(currency);
   const money = useMemo(
-    () => makeMoney(currency, baseCurrency ?? currency, rates),
-    [currency, baseCurrency, rates],
+    () => makeMoney(currency, rates),
+    [currency, rates],
   );
 
   // Rows are converted here, at the boundary, so every total and figure below
@@ -122,6 +123,13 @@ export default function Home() {
     [rawExpenses, pendingDeleteIds, money],
   );
   const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
+
+  // The backfill hasn't run, so these rows are being taken at face value in the
+  // display currency. Right only if that is what they were entered in.
+  const hasUntaggedRows = useMemo(
+    () => hasUntagged(rawExpenses) || hasUntagged(rawSubscriptions),
+    [rawExpenses, rawSubscriptions],
+  );
 
   // Say so rather than showing a figure in a currency nobody spent. Held back
   // while the first fetch for a currency is still out, so switching currency
@@ -147,8 +155,10 @@ export default function Home() {
     if (b) setBudget(parseFloat(b));
     const mi = localStorage.getItem(monthlyIncomeKey(uid));
     if (mi) setMonthlyIncome(parseFloat(mi));
-    const base = localStorage.getItem(baseCurrencyKey(uid));
-    if (base) setBaseCurrency(base);
+    const bc = localStorage.getItem(budgetCurrencyKey(uid));
+    if (bc) setBudgetCurrency(bc);
+    const ic = localStorage.getItem(incomeCurrencyKey(uid));
+    if (ic) setIncomeCurrency(ic);
   }, []);
 
   // Sync settings from DB once user is known, migrate localStorage if first time
@@ -160,12 +170,14 @@ export default function Home() {
       if (settings) {
         setCurrency(settings.currency);
         localStorage.setItem("minti_currency", settings.currency);
-        // First run after the migration: an account that has been entering
-        // amounts all along was entering them in whatever it was displaying.
-        const base = settings.base_currency ?? settings.currency;
-        setBaseCurrency(base);
-        localStorage.setItem(baseCurrencyKey(user.id), base);
-        if (!settings.base_currency) upsertUserSettings({ base_currency: base }).catch(() => {});
+        // No guess if these are missing: a saved amount with no currency of its
+        // own is read as already being in the display currency, the same rule
+        // rows follow. Guessing one from the display currency and storing it is
+        // exactly how a whole history came to be read as the wrong money.
+        setBudgetCurrency(settings.budget_currency);
+        setIncomeCurrency(settings.income_currency);
+        if (settings.budget_currency) localStorage.setItem(budgetCurrencyKey(user.id), settings.budget_currency);
+        if (settings.income_currency) localStorage.setItem(incomeCurrencyKey(user.id), settings.income_currency);
         setBudget(settings.budget ?? null);
         if (settings.budget != null) localStorage.setItem(budgetKey(user.id), String(settings.budget));
         setMonthlyIncome(settings.monthly_income ?? null);
@@ -174,13 +186,11 @@ export default function Home() {
         const c = localStorage.getItem("minti_currency");
         const b = localStorage.getItem(budgetKey(user.id));
         const mi = localStorage.getItem(monthlyIncomeKey(user.id));
-        const toSave: { currency?: string; budget?: number; monthly_income?: number; base_currency?: string } = {};
-        toSave.base_currency = c ?? DEFAULT_CURRENCY;
-        setBaseCurrency(toSave.base_currency);
-        localStorage.setItem(baseCurrencyKey(user.id), toSave.base_currency);
+        const toSave: { currency?: string; budget?: number; monthly_income?: number; budget_currency?: string; income_currency?: string } = {};
+        const entered = c ?? DEFAULT_CURRENCY;
         if (c) toSave.currency = c;
-        if (b) toSave.budget = parseFloat(b);
-        if (mi) toSave.monthly_income = parseFloat(mi);
+        if (b) { toSave.budget = parseFloat(b); toSave.budget_currency = entered; setBudgetCurrency(entered); }
+        if (mi) { toSave.monthly_income = parseFloat(mi); toSave.income_currency = entered; setIncomeCurrency(entered); }
         if (Object.keys(toSave).length > 0) upsertUserSettings(toSave).catch(() => {});
       }
     }).catch(() => {});
@@ -198,7 +208,8 @@ export default function Home() {
       setRawExpenses([]);
       setRawSubscriptions([]);
       setPendingDeleteIds([]);
-      setBaseCurrency(null);
+      setBudgetCurrency(null);
+      setIncomeCurrency(null);
       setBudget(null);
       setMonthlyIncome(null);
     }
@@ -210,30 +221,29 @@ export default function Home() {
     upsertUserSettings({ currency: code }).catch(() => {});
   }, []);
 
-  // Changes what older entries are read as, not what they are worth. Wrong,
-  // it silently divides a whole history by an exchange rate, so it is a thing
-  // you can see and correct rather than something captured behind your back.
-  const selectBaseCurrency = useCallback((code: string) => {
-    setBaseCurrency(code);
-    if (user) localStorage.setItem(baseCurrencyKey(user.id), code);
-    upsertUserSettings({ base_currency: code }).catch(() => {});
-  }, [user]);
-
+  // Saved in whatever is on screen, and stamped with it — the same rule an
+  // expense row follows. Nothing else has to remember what it meant later.
   const saveBudget = useCallback((value: number) => {
     setBudget(value);
-    if (user) localStorage.setItem(budgetKey(user.id), String(value));
-    upsertUserSettings({ budget: value }).catch(() => {});
-  }, [user]);
+    setBudgetCurrency(currency);
+    if (user) {
+      localStorage.setItem(budgetKey(user.id), String(value));
+      localStorage.setItem(budgetCurrencyKey(user.id), currency);
+    }
+    upsertUserSettings({ budget: value, budget_currency: currency }).catch(() => {});
+  }, [user, currency]);
 
   const saveMonthlyIncome = useCallback((value: number | null) => {
     setMonthlyIncome(value);
+    if (value != null) setIncomeCurrency(currency);
     if (!user) return;
     if (value != null) {
       localStorage.setItem(monthlyIncomeKey(user.id), String(value));
+      localStorage.setItem(incomeCurrencyKey(user.id), currency);
     } else {
       localStorage.removeItem(monthlyIncomeKey(user.id));
     }
-  }, [user]);
+  }, [user, currency]);
 
   useEffect(() => {
     const { data: { subscription } } = onAuthStateChange(setUser);
@@ -484,8 +494,6 @@ export default function Home() {
         onClose={() => setShowCurrencyMenu(false)}
         currency={currency}
         onSelect={selectCurrency}
-        baseCurrency={baseCurrency ?? currency}
-        onSelectBase={selectBaseCurrency}
         onOpenConverter={() => setShowConverterDrawer(true)}
       />
 
@@ -681,10 +689,10 @@ export default function Home() {
           />
         </header>
 
-        {needsCurrencyMigration && (
+        {(needsCurrencyMigration || hasUntaggedRows) && (
           <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
             <p className="text-danger font-mono text-sm">
-              Amounts aren’t tagged with a currency yet. Apply supabase/migration.sql to the database.
+              Some amounts aren’t tagged with a currency and are being counted as {currency}. Apply supabase/migration.sql to the database.
             </p>
           </div>
         )}
@@ -777,7 +785,7 @@ export default function Home() {
               )}
 
               {/* Budget */}
-              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
+              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} budgetCurrency={budgetCurrency} onBudgetSave={saveBudget} />
 
               {/* The list names itself. All / Today / This Week stood here
                   instead: three tabs to cut a month that is already scoped by
@@ -818,7 +826,7 @@ export default function Home() {
             </>
           ) : view === "subscriptions" ? (
             <>
-              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} onBudgetSave={saveBudget} />
+              <BudgetBar spent={expensesTotal + subscriptionsTotal} currency={currency} budget={budget} budgetCurrency={budgetCurrency} onBudgetSave={saveBudget} />
               {subsError && (
                 <div className="bg-ink/7 rounded-xl border border-danger-fill/40 p-5 text-center">
                   <p className="text-danger font-mono text-sm">{subsError.message}</p>
@@ -843,6 +851,7 @@ export default function Home() {
               selectedMonth={selectedMonth}
               currency={currency}
               monthlyIncome={monthlyIncome}
+              incomeCurrency={incomeCurrency}
               onMonthlyIncomeChange={saveMonthlyIncome}
               expenses={expenses}
               subscriptions={subscriptions}
@@ -855,7 +864,9 @@ export default function Home() {
               selectedMonth={selectedMonth}
               currency={currency}
               monthlyIncome={monthlyIncome}
+              incomeCurrency={incomeCurrency}
               budget={budget}
+              budgetCurrency={budgetCurrency}
             />
           )}
         </ViewTransition>

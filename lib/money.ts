@@ -14,16 +14,19 @@ export type Priced = { amount: number; currency?: string | null; original?: Orig
 export type Money = {
   /** What every figure on screen is counted in. */
   display: string;
-  /** What an entry saved before currencies existed is in. */
-  base: string;
   currencyOf: (row: { currency?: string | null }) => string;
   canConvert: (from: string) => boolean;
   convert: (amount: number, from?: string | null) => number;
   format: (amount: number, from?: string | null) => string;
 };
 
-export function makeMoney(display: string, base: string, rates: Rates | null): Money {
-  const currencyOf = (row: { currency?: string | null }) => row.currency || base;
+// There is one currency setting: the one on screen. An amount says what it was
+// entered in, and an amount that doesn't is taken to be in the display currency
+// already — never divided by a rate on the strength of a stored guess. The
+// backfill in supabase/migration.sql stamps the currency onto older rows, and
+// `hasUntagged` says so if it hasn't been run.
+export function makeMoney(display: string, rates: Rates | null): Money {
+  const currencyOf = (row: { currency?: string | null }) => row.currency || display;
 
   // Null rather than 1 when the rate is unknown: a missing rate has to be
   // visible to the caller, because silently counting 40 EUR as 40 AED is the
@@ -36,13 +39,12 @@ export function makeMoney(display: string, base: string, rates: Rates | null): M
   }
 
   const convert = (amount: number, from?: string | null) => {
-    const rate = rateFor(from || base);
+    const rate = rateFor(from || display);
     return rate === null ? Number(amount) : Number(amount) * rate;
   };
 
   return {
     display,
-    base,
     currencyOf,
     canConvert: (from: string) => rateFor(from) !== null,
     convert,
@@ -67,4 +69,12 @@ export function toDisplay<T extends Priced>(rows: T[], money: Money): T[] {
 // the figure is in the wrong currency and every total containing it is off.
 export function hasUnconverted(rows: Priced[], money: Money): boolean {
   return rows.some((row) => !money.canConvert(money.currencyOf(row)));
+}
+
+// Rows that never got a currency stamped on them. Until the backfill runs they
+// are counted as already being in the display currency, which is right only
+// while that is what they were entered in — so it is worth saying out loud
+// rather than quietly deciding for them.
+export function hasUntagged(rows: Priced[]): boolean {
+  return rows.some((row) => !row.currency);
 }

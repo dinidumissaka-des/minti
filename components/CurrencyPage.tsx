@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftRight, Check, Coins, Landmark } from "lucide-react";
+import { ArrowLeftRight, Check, Coins } from "lucide-react";
 import PushPage from "@/components/ui/PushPage";
 import Surface from "@/components/Surface";
 import { ListRow, RowValue } from "@/components/ui/ListRow";
@@ -12,9 +12,6 @@ interface Props {
   onClose: () => void;
   currency: string;
   onSelect: (code: string) => void;
-  /** What an entry saved without a currency of its own is counted in. */
-  baseCurrency: string;
-  onSelectBase: (code: string) => void;
   onOpenConverter: () => void;
 }
 
@@ -51,12 +48,9 @@ export default function CurrencyPage({
   onClose,
   currency,
   onSelect,
-  baseCurrency,
-  onSelectBase,
   onOpenConverter,
 }: Props) {
   const [showList, setShowList] = useState(false);
-  const [showBaseList, setShowBaseList] = useState(false);
 
   const name = CURRENCIES.find((c) => c.code === currency)?.name;
 
@@ -75,17 +69,6 @@ export default function CurrencyPage({
                 description={name}
                 trailing={<RowValue>{currency}</RowValue>}
                 onClick={() => setShowList(true)}
-              />
-              {/* Set once from whatever was on screen the first time the app
-                  ran, and until now there was no way to see it, let alone
-                  correct it — so an account that happened to be showing LKR
-                  that day read its whole AED history as rupees. */}
-              <ListRow
-                icon={<Landmark size={20} />}
-                label="Base currency"
-                description="What older entries were recorded in"
-                trailing={<RowValue>{baseCurrency}</RowValue>}
-                onClick={() => setShowBaseList(true)}
               />
               <ListRow
                 icon={<ArrowLeftRight size={20} />}
@@ -107,24 +90,6 @@ export default function CurrencyPage({
         ariaLabel="Change currency"
       >
         <CurrencyChoices selected={currency} onPick={(code) => { onSelect(code); setShowList(false); }} />
-      </PushPage>
-
-      {/* Declared after the page above so it paints on top — pushed pages all
-          share one z-index. */}
-      <PushPage
-        open={showBaseList}
-        onClose={() => setShowBaseList(false)}
-        title="Base currency"
-        ariaLabel="Base currency"
-      >
-        <div className="px-4 pt-6">
-          <p className="font-sans text-sm text-muted">
-            Entries saved before amounts carried a currency are counted in this one. Changing it
-            re-reads that history — it does not convert it — so pick what you were actually
-            spending in.
-          </p>
-        </div>
-        <CurrencyChoices selected={baseCurrency} onPick={(code) => { onSelectBase(code); setShowBaseList(false); }} />
       </PushPage>
 
     </>

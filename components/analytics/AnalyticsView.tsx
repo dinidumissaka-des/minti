@@ -21,7 +21,9 @@ interface Props {
   selectedMonth: { year: number; month: number };
   currency: string;
   monthlyIncome: number | null;
+  incomeCurrency: string | null;
   budget: number | null;
+  budgetCurrency: string | null;
 }
 
 function daysInMonth(year: number, month: number) {
@@ -440,7 +442,9 @@ export default function AnalyticsView({
   selectedMonth,
   currency,
   monthlyIncome,
+  incomeCurrency,
   budget,
+  budgetCurrency,
 }: Props) {
   const money = useMoney();
   const [rawPrevExpenses, setPrevExpenses] = useState<Expense[]>([]);
@@ -450,8 +454,9 @@ export default function AnalyticsView({
   const prevExpenses = useMemo(() => toDisplay(rawPrevExpenses, money), [rawPrevExpenses, money]);
   // Both are saved in the base currency; every figure they are compared
   // against on this screen has already been converted.
-  const budgetShown = budget == null ? null : money.convert(budget, money.base);
-  const incomeShown = monthlyIncome == null ? null : money.convert(monthlyIncome, money.base);
+  // Converted here so Overview sums one currency and needs no stamp of its own.
+  const budgetShown = budget == null ? null : money.convert(budget, budgetCurrency);
+  const incomeShown = monthlyIncome == null ? null : money.convert(monthlyIncome, incomeCurrency);
   const [tab, setTab] = useState<Tab>("insights");
   const [tabDir, setTabDir] = useState(1);
 

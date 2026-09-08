@@ -27,9 +27,10 @@ export default function InsightsPage() {
   const [rawExpenses, setExpenses] = useState<Expense[]>([]);
   const [rawSubscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
-  const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [budget, setBudget] = useState<number | null>(null);
+  const [budgetCurrency, setBudgetCurrency] = useState<string | null>(null);
+  const [incomeCurrency, setIncomeCurrency] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState({
     year: now.getFullYear(),
     month: now.getMonth() + 1,
@@ -56,9 +57,10 @@ export default function InsightsPage() {
     getUserSettings().then((s) => {
       if (s) {
         setCurrency(s.currency);
-        setBaseCurrency(s.base_currency ?? s.currency);
         setBudget(s.budget ?? null);
+        setBudgetCurrency(s.budget_currency);
         setMonthlyIncome(s.monthly_income ?? null);
+        setIncomeCurrency(s.income_currency);
       }
     }).catch(() => {});
   }, [user]);
@@ -68,8 +70,8 @@ export default function InsightsPage() {
   // were spent at home.
   const { rates } = useRates(currency);
   const money = useMemo(
-    () => makeMoney(currency, baseCurrency ?? currency, rates),
-    [currency, baseCurrency, rates],
+    () => makeMoney(currency, rates),
+    [currency, rates],
   );
   const expenses = useMemo(() => toDisplay(rawExpenses, money), [rawExpenses, money]);
   const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
@@ -173,7 +175,9 @@ export default function InsightsPage() {
             selectedMonth={selectedMonth}
             currency={currency}
             monthlyIncome={monthlyIncome}
+            incomeCurrency={incomeCurrency}
             budget={budget}
+            budgetCurrency={budgetCurrency}
           />
         </ViewTransition>
       </div>
