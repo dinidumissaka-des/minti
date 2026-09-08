@@ -4,7 +4,7 @@ import { useMemo, useState, useRef, FormEvent } from "react";
 import { Plus, Loader2, Check } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
 import type { Expense } from "@/types";
-import { formatAmount } from "@/lib/currencies";
+import { formatAmount, roundAmount } from "@/lib/currencies";
 import { useMoney } from "@/components/MoneyContext";
 import { usePrivacy } from "@/components/PrivacyContext";
 import { hapticSuccess, hapticError } from "@/lib/haptics";
@@ -31,14 +31,14 @@ function buildQuickAdds(expenses: Expense[], display: string): QuickAdd[] {
     const key = e.description.trim().toLowerCase();
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    // The row on screen has been converted for display; a repeat has to
-    // restore what was actually entered, not the converted figure.
+    // In the selected currency, like the row it was drawn from — repeating a
+    // 5,000 LKR lunch while the app counts in AED should offer it as ~61 AED.
     out.push({
       key,
       description: e.description,
       category: e.category,
-      amount: e.original ? e.original.amount : Number(e.amount),
-      currency: e.original ? e.original.currency : display,
+      amount: roundAmount(Number(e.amount), display),
+      currency: display,
     });
     if (out.length === QUICK_ADD_LIMIT) break;
   }

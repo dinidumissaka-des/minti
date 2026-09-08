@@ -108,7 +108,7 @@ export default function Home() {
   const { privacyMode, togglePrivacy } = usePrivacy();
   const { theme, toggleTheme } = useTheme();
 
-  const { rates } = useRates(currency);
+  const { rates, loading: ratesLoading } = useRates(currency);
   const money = useMemo(
     () => makeMoney(currency, baseCurrency ?? currency, rates),
     [currency, baseCurrency, rates],
@@ -123,10 +123,12 @@ export default function Home() {
   );
   const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
 
-  // Say so rather than showing a figure in a currency nobody spent.
+  // Say so rather than showing a figure in a currency nobody spent. Held back
+  // while the first fetch for a currency is still out, so switching currency
+  // does not flash a notice at every tap.
   const ratesUnavailable = useMemo(
-    () => hasUnconverted(rawExpenses, money) || hasUnconverted(rawSubscriptions, money),
-    [rawExpenses, rawSubscriptions, money],
+    () => !ratesLoading && (hasUnconverted(rawExpenses, money) || hasUnconverted(rawSubscriptions, money)),
+    [ratesLoading, rawExpenses, rawSubscriptions, money],
   );
 
   useEffect(() => {
@@ -207,6 +209,15 @@ export default function Home() {
     localStorage.setItem("minti_currency", code);
     upsertUserSettings({ currency: code }).catch(() => {});
   }, []);
+
+  // Changes what older entries are read as, not what they are worth. Wrong,
+  // it silently divides a whole history by an exchange rate, so it is a thing
+  // you can see and correct rather than something captured behind your back.
+  const selectBaseCurrency = useCallback((code: string) => {
+    setBaseCurrency(code);
+    if (user) localStorage.setItem(baseCurrencyKey(user.id), code);
+    upsertUserSettings({ base_currency: code }).catch(() => {});
+  }, [user]);
 
   const saveBudget = useCallback((value: number) => {
     setBudget(value);
@@ -473,6 +484,8 @@ export default function Home() {
         onClose={() => setShowCurrencyMenu(false)}
         currency={currency}
         onSelect={selectCurrency}
+        baseCurrency={baseCurrency ?? currency}
+        onSelectBase={selectBaseCurrency}
         onOpenConverter={() => setShowConverterDrawer(true)}
       />
 

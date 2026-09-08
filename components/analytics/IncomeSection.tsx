@@ -394,16 +394,9 @@ const IncomeSection = memo(function IncomeSection({
                         <p className="font-sans text-body text-ink truncate">{entry.source}</p>
                         <p className="font-mono text-xs text-muted">{entry.date}</p>
                       </div>
-                      <div className="flex flex-col items-end flex-shrink-0">
-                        <span className="font-mono text-sm text-accent font-semibold">
-                          +{mask(formatAmount(Number(entry.amount), currency))}
-                        </span>
-                        {entry.original && (
-                          <span className="font-mono text-xs text-muted">
-                            {mask(formatAmount(entry.original.amount, entry.original.currency))} {entry.original.currency}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-mono text-sm text-accent font-semibold flex-shrink-0">
+                        +{mask(formatAmount(Number(entry.amount), currency))}
+                      </span>
                       <button
                         onClick={() => handleDeleteEntry(entry.id)}
                         disabled={deletingId === entry.id}

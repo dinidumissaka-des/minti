@@ -28,6 +28,16 @@ export const CURRENCIES: Currency[] = [
 
 export const DEFAULT_CURRENCY = "AED";
 
+export function currencyDecimals(currencyCode: string): number {
+  return CURRENCIES.find((c) => c.code === currencyCode)?.decimals ?? 2;
+}
+
+// A plain number at the currency's precision — for a number input, where
+// formatAmount's thousands separators would not parse back.
+export function roundAmount(amount: number, currencyCode: string): number {
+  return Number(Number(amount).toFixed(currencyDecimals(currencyCode)));
+}
+
 export function formatAmount(amount: number, currencyCode: string): string {
   const currency = CURRENCIES.find((c) => c.code === currencyCode);
   const decimals = currency?.decimals ?? 2;

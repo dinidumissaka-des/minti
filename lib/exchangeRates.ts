@@ -15,6 +15,21 @@ async function fetchRates(base: string): Promise<RatesCache> {
   return { base, rates: data.rates as Record<string, number>, fetchedAt: Date.now() };
 }
 
+// The cached map for a base, however old. Read synchronously so a currency
+// change can convert on the very first render rather than waiting a round trip
+// with nothing to convert with — a stale rate beats no rate.
+export function readCachedRates(base: string): Record<string, number> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = localStorage.getItem(CACHE_PREFIX + base);
+    if (!cached) return null;
+    const parsed: RatesCache = JSON.parse(cached);
+    return parsed.base === base ? parsed.rates : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getRatesForBase(base: string): Promise<RatesCache> {
   const cacheKey = CACHE_PREFIX + base;
   const cached = localStorage.getItem(cacheKey);
