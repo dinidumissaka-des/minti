@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, memo } from "react";
 import { Pencil, Check, X } from "lucide-react";
-import { formatAmount } from "@/lib/currencies";
+import { formatAmount, roundAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import Meter from "@/components/ui/Meter";
@@ -13,12 +13,14 @@ interface Props {
   /** Already converted to the display currency. */
   spent: number;
   currency: string;
-  /** Held in the account's base currency, like every other saved setting. */
+  /** As saved, in `budgetCurrency`. */
   budget: number | null;
+  /** What the budget was entered in; null means it predates the stamp. */
+  budgetCurrency: string | null;
   onBudgetSave: (value: number) => void;
 }
 
-const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSave }: Props) {
+const BudgetBar = memo(function BudgetBar({ spent, currency, budget, budgetCurrency, onBudgetSave }: Props) {
   const { mask } = usePrivacy();
   const money = useMoney();
   const [editing, setEditing] = useState(false);
@@ -29,8 +31,10 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     if (editing) setTimeout(() => inputRef.current?.focus(), 50);
   }, [editing]);
 
+  // The bar reads in the display currency, so the field does too — a meter
+  // showing 59 must not open an editor saying 4,896.
   function openEdit() {
-    setInput(budget ? String(budget) : "");
+    setInput(budget ? String(roundAmount(money.convert(budget, budgetCurrency), currency)) : "");
     setEditing(true);
   }
 
@@ -61,7 +65,7 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     return (
       <Surface borderRadius={28}>
       <div className="px-4 py-4 flex items-center gap-3 w-full">
-        <span className="font-mono text-xs text-muted flex-shrink-0">{money.base}</span>
+        <span className="font-mono text-xs text-muted flex-shrink-0">{currency}</span>
         <input
           ref={inputRef}
           type="number"
@@ -83,10 +87,10 @@ const BudgetBar = memo(function BudgetBar({ spent, currency, budget, onBudgetSav
     );
   }
 
-  // The budget is saved once, in the base currency; spend is counted in
+  // Saved with the currency it was typed in; spend is counted in
   // whatever is on screen. They have to meet in the same currency before
   // either the meter or "left" means anything.
-  const limit = money.convert(budget!, money.base);
+  const limit = money.convert(budget!, budgetCurrency);
   const percentage = Math.min((spent / limit) * 100, 100);
   const over = spent > limit;
   const remaining = limit - spent;

@@ -340,16 +340,17 @@ export type UserSettings = {
   budget: number | null;
   currency: string;
   monthly_income: number | null;
-  // What an entry carrying no currency of its own is counted in. Fixed at the
-  // display currency the account was using when it was first written, so
-  // switching display currency later converts history instead of relabelling it.
-  base_currency: string | null;
+  // A saved amount records what it was entered in, exactly like an expense row.
+  // These replaced `base_currency`, which had to stand in for both of them and
+  // for every untagged row at once, from a single value nobody had been asked for.
+  budget_currency: string | null;
+  income_currency: string | null;
 };
 
 export async function getUserSettings(): Promise<UserSettings | null> {
   const { data, error } = await getClient()
     .from('user_settings')
-    .select('budget, currency, monthly_income, base_currency')
+    .select('budget, currency, monthly_income, budget_currency, income_currency')
     .maybeSingle();
   if (!error) return (data as UserSettings) ?? null;
   if (!isMissingCurrencyColumn(error)) throw error;
@@ -358,14 +359,20 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     .from('user_settings')
     .select('budget, currency, monthly_income')
     .maybeSingle();
-  return legacy ? { ...(legacy as Omit<UserSettings, 'base_currency'>), base_currency: null } : null;
+  if (!legacy) return null;
+  return {
+    ...(legacy as Omit<UserSettings, 'budget_currency' | 'income_currency'>),
+    budget_currency: null,
+    income_currency: null,
+  };
 }
 
 export async function upsertUserSettings(settings: {
   budget?: number | null;
   currency?: string;
   monthly_income?: number | null;
-  base_currency?: string;
+  budget_currency?: string;
+  income_currency?: string;
 }): Promise<void> {
   const { data: { user } } = await getClient().auth.getUser();
   if (!user) return;
@@ -373,7 +380,7 @@ export async function upsertUserSettings(settings: {
   const { error } = await getClient().from('user_settings').upsert(row, { onConflict: 'user_id' });
   if (!error || !isMissingCurrencyColumn(error)) return;
 
-  const { base_currency: _base, ...rest } = row;
+  const { budget_currency: _b, income_currency: _i, ...rest } = row;
   await getClient().from('user_settings').upsert(rest, { onConflict: 'user_id' });
 }
 

@@ -8,7 +8,7 @@ import { getIncomeByMonth, addIncome, deleteIncome, upsertUserSettings } from "@
 import { useMoney } from "@/components/MoneyContext";
 import { toDisplay } from "@/lib/money";
 import { hapticBump } from "@/lib/haptics";
-import { formatAmount } from "@/lib/currencies";
+import { formatAmount, roundAmount } from "@/lib/currencies";
 import Surface from "@/components/Surface";
 import { usePrivacy } from "@/components/PrivacyContext";
 import BottomDrawer from "@/components/BottomDrawer";
@@ -30,6 +30,7 @@ interface Props {
   selectedMonth: { year: number; month: number };
   currency: string;
   monthlyIncome: number | null;
+  incomeCurrency: string | null;
   onMonthlyIncomeChange: (v: number | null) => void;
   expenses: Expense[];
   subscriptions: Subscription[];
@@ -41,6 +42,7 @@ const IncomeSection = memo(function IncomeSection({
   selectedMonth,
   currency,
   monthlyIncome,
+  incomeCurrency,
   onMonthlyIncomeChange,
   expenses,
   subscriptions,
@@ -108,7 +110,7 @@ const IncomeSection = memo(function IncomeSection({
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
   function openBaselineEdit() {
-    setBaselineInput(monthlyIncome ? String(monthlyIncome) : "");
+    setBaselineInput(monthlyIncome ? String(roundAmount(money.convert(monthlyIncome, incomeCurrency), money.display)) : "");
     setEditingBaseline(true);
   }
 
@@ -160,7 +162,7 @@ const IncomeSection = memo(function IncomeSection({
     [incomeEntries],
   );
   const { mask } = usePrivacy();
-  const baseline = monthlyIncome == null ? 0 : money.convert(monthlyIncome, money.base);
+  const baseline = monthlyIncome == null ? 0 : money.convert(monthlyIncome, incomeCurrency);
   const totalIncome = baseline + entriesTotal;
 
   useEffect(() => { onTotalChange?.(totalIncome); }, [totalIncome, onTotalChange]);
@@ -228,8 +230,8 @@ const IncomeSection = memo(function IncomeSection({
                 value={baselineInput}
                 onChange={(e) => setBaselineInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") saveBaseline(); if (e.key === "Escape") setEditingBaseline(false); }}
-                placeholder={`Monthly income (${money.base})`}
-                aria-label={`Monthly income in ${money.base}`}
+                placeholder={`Monthly income (${money.display})`}
+                aria-label={`Monthly income in ${money.display}`}
                 className="flex-1 min-w-0 h-10 bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink text-base outline-none focus:border-ink/40 placeholder:text-muted [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button onClick={saveBaseline} aria-label="Save income" className="w-9 h-9 flex items-center justify-center rounded-full bg-accent-fill text-accent-on flex-shrink-0">
