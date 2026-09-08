@@ -4,13 +4,14 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, Download, Plus } from "lucide-react";
 import { CreditCard, ArrowsClockwise, Wallet, Lightbulb, Eye, EyeClosed, ArrowsLeftRight } from "@phosphor-icons/react";
 import type { User } from "@supabase/supabase-js";
-import { getExpensesByMonth, getSubscriptionsForMonth, subscriptionsNeedMigration, currencyNeedsMigration, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
-import type { Expense, Subscription } from "@/types";
+import { getExpensesByMonth, getExpenseHistory, getSubscriptionsForMonth, subscriptionsNeedMigration, currencyNeedsMigration, onAuthStateChange, signOut, getUserSettings, upsertUserSettings } from "@/lib/supabase";
+import type { Expense, ExpenseHistoryRow, Subscription } from "@/types";
 import { DEFAULT_CURRENCY, formatAmount } from "@/lib/currencies";
 import { MONTH_NAMES_SHORT as MONTH_NAMES } from "@/lib/months";
 import { exportExpensesCSV, exportSubscriptionsCSV } from "@/lib/export";
-import { expensesKey, subscriptionsKey, budgetKey, monthlyIncomeKey, budgetCurrencyKey, incomeCurrencyKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
+import { expensesKey, expenseHistoryKey, subscriptionsKey, budgetKey, monthlyIncomeKey, budgetCurrencyKey, incomeCurrencyKey, rememberUser, lastUserId, clearUserData, purgeLegacyCache } from "@/lib/localCache";
 import { makeMoney, toDisplay, hasUnconverted, hasUntagged } from "@/lib/money";
+import { buildSuggestions } from "@/lib/suggestions";
 import { useRates } from "@/hooks/useRates";
 import { MoneyProvider } from "@/components/MoneyContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -78,6 +79,9 @@ export default function Home() {
   });
   const [rawExpenses, setRawExpenses] = useState<Expense[]>([]);
   const [rawSubscriptions, setRawSubscriptions] = useState<Subscription[]>([]);
+  // Every month, not just the one on screen — the add form's suggestions rank
+  // a description by how often it comes back, which one month cannot answer.
+  const [rawHistory, setRawHistory] = useState<ExpenseHistoryRow[]>([]);
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -123,6 +127,13 @@ export default function Home() {
     [rawExpenses, pendingDeleteIds, money],
   );
   const subscriptions = useMemo(() => toDisplay(rawSubscriptions, money), [rawSubscriptions, money]);
+
+  // Converted at the boundary like every other page of rows, then ranked, so a
+  // chip offers the figure in the currency the rest of the screen counts in.
+  const suggestions = useMemo(
+    () => buildSuggestions(toDisplay(rawHistory, money), currency),
+    [rawHistory, money, currency],
+  );
 
   // The backfill hasn't run, so these rows are being taken at face value in the
   // display currency. Right only if that is what they were entered in.
@@ -207,6 +218,7 @@ export default function Home() {
       clearUserData();
       setRawExpenses([]);
       setRawSubscriptions([]);
+      setRawHistory([]);
       setPendingDeleteIds([]);
       setBudgetCurrency(null);
       setIncomeCurrency(null);
@@ -311,10 +323,40 @@ export default function Home() {
     }
   }, [user, selectedMonth]);
 
+  // Not keyed to the month, so it runs once per session rather than on every
+  // month step. It only has to be fresh enough that an expense just added can
+  // show up as a repeat, which is why adding one re-reads it.
+  const fetchHistory = useCallback(async () => {
+    if (!user) return;
+    const cacheKey = expenseHistoryKey(user.id);
+    try {
+      const data = await getExpenseHistory();
+      setRawHistory(data);
+      try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota exceeded */ }
+    } catch {
+      // No notice for this one: the suggestions are a shortcut, and a row of
+      // chips that fails to appear costs nothing that the form cannot do.
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try { setRawHistory(JSON.parse(cached)); } catch { /* ignore corrupt cache */ }
+      }
+    }
+  }, [user]);
+
+  const handleExpenseAdded = useCallback(() => {
+    fetchExpenses();
+    fetchHistory();
+  }, [fetchExpenses, fetchHistory]);
+
   useEffect(() => {
     if (!user) return;
     fetchExpenses();
   }, [fetchExpenses, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchHistory();
+  }, [fetchHistory, user]);
 
   useEffect(() => {
     if (user) fetchSubscriptions();
@@ -542,8 +584,8 @@ export default function Home() {
             bare
             userId={user.id}
             currency={currency}
-            recent={expenses}
-            onExpenseAdded={() => { fetchExpenses(); setShowAddSheet(false); }}
+            suggestions={suggestions}
+            onExpenseAdded={() => { handleExpenseAdded(); setShowAddSheet(false); }}
           />
         )}
       </BottomDrawer>
@@ -781,7 +823,7 @@ export default function Home() {
                   Deliberately outside the month transition below: changing month
                   should not wipe a half-typed expense. */}
               {!isMobile && (
-                <AddExpenseForm userId={user.id} currency={currency} recent={expenses} onExpenseAdded={fetchExpenses} />
+                <AddExpenseForm userId={user.id} currency={currency} suggestions={suggestions} onExpenseAdded={handleExpenseAdded} />
               )}
 
               {/* Budget */}

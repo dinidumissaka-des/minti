@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { Preferences } from '@capacitor/preferences';
 import { Browser } from '@capacitor/browser';
-import type { Expense, NewExpense, Subscription, NewSubscription, Income, NewIncome } from '@/types';
+import type { Expense, NewExpense, ExpenseHistoryRow, Subscription, NewSubscription, Income, NewIncome } from '@/types';
 import { isNative } from '@/lib/platform';
 import { monthKey, prevMonthKey } from '@/lib/months';
 
@@ -50,6 +50,24 @@ export async function getExpensesByMonth(year: number, month: number): Promise<E
     .lte('date', to)
     .order('date', { ascending: false })
     .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// The suggestion chips rank a description by how many months it recurs in, so
+// they have to read past the month on screen. Only the columns a chip needs,
+// newest first, and bounded — a row of chips is not worth an unbounded table
+// scan, and a year of daily spending still fits inside the cap.
+const HISTORY_ROW_LIMIT = 1000;
+
+export async function getExpenseHistory(): Promise<ExpenseHistoryRow[]> {
+  const { data, error } = await getClient()
+    .from('expenses')
+    .select('description, category, amount, currency, date')
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(HISTORY_ROW_LIMIT);
 
   if (error) throw error;
   return data ?? [];

@@ -1,55 +1,29 @@
 "use client";
 
-import { useMemo, useState, useRef, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { Plus, Loader2, Check } from "lucide-react";
 import { addExpense } from "@/lib/supabase";
-import type { Expense } from "@/types";
-import { formatAmount, roundAmount } from "@/lib/currencies";
+import { formatAmount } from "@/lib/currencies";
 import { useMoney } from "@/components/MoneyContext";
 import { usePrivacy } from "@/components/PrivacyContext";
-import { hapticSuccess, hapticError } from "@/lib/haptics";
+import { hapticTap, hapticSuccess, hapticError } from "@/lib/haptics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Surface from "@/components/Surface";
 import BottomDrawer from "@/components/BottomDrawer";
 import Collapse from "@/components/ui/Collapse";
 import { CalendarPicker, CategoryList, CurrencyList } from "@/components/ui/DrawerPickers";
-import { CATEGORY_COLORS } from "@/lib/categories";
+import { CATEGORY_COLORS, getCategoryColor, OTHER_CATEGORY_COLOR } from "@/lib/categories";
+import { useTheme } from "@/components/ThemeContext";
+import type { Suggestion } from "@/lib/suggestions";
 
 const PRESET_CATEGORIES = Object.keys(CATEGORY_COLORS);
-
-const QUICK_ADD_LIMIT = 4;
-
-type QuickAdd = { key: string; description: string; category: string; amount: number; currency: string };
-
-// The same handful of expenses get typed out again and again. These are drawn
-// from the month already on screen, most recent first, one per description.
-function buildQuickAdds(expenses: Expense[], display: string): QuickAdd[] {
-  const seen = new Set<string>();
-  const out: QuickAdd[] = [];
-  for (const e of expenses) {
-    const key = e.description.trim().toLowerCase();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    // In the selected currency, like the row it was drawn from — repeating a
-    // 5,000 LKR lunch while the app counts in AED should offer it as ~61 AED.
-    out.push({
-      key,
-      description: e.description,
-      category: e.category,
-      amount: roundAmount(Number(e.amount), display),
-      currency: display,
-    });
-    if (out.length === QUICK_ADD_LIMIT) break;
-  }
-  return out;
-}
 
 interface Props {
   userId: string;
   currency: string;
-  /** The month already on screen, used for the one-tap repeat row. */
-  recent?: Expense[];
+  /** Ranked repeats read across the whole history, built in page.tsx. */
+  suggestions?: Suggestion[];
   onExpenseAdded: () => void;
   /** Drop the Surface card when the form already sits on one (a sheet).
       Apple warns against layering Liquid Glass elements on top of each other. */
@@ -67,8 +41,9 @@ function formatDateLabel(iso: string) {
 
 // ─── Main Form ────────────────────────────────────────────────────────────────
 
-export default function AddExpenseForm({ userId, currency, recent = [], onExpenseAdded, bare = false }: Props) {
+export default function AddExpenseForm({ userId, currency, suggestions = [], onExpenseAdded, bare = false }: Props) {
   const money = useMoney();
+  const { theme } = useTheme();
   const { mask } = usePrivacy();
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(PRESET_CATEGORIES[0]);
@@ -90,13 +65,12 @@ export default function AddExpenseForm({ userId, currency, recent = [], onExpens
   const [entryOverride, setEntryOverride] = useState<string | null>(null);
   const entryCurrency = entryOverride ?? currency;
 
-  const quickAdds = useMemo(() => buildQuickAdds(recent, currency), [recent, currency]);
-
   function selectEntryCurrency(code: string) {
     setEntryOverride(code === currency ? null : code);
   }
 
-  function applyQuickAdd(item: QuickAdd) {
+  function applySuggestion(item: Suggestion) {
+    hapticTap();
     setDescription(item.description);
     setCategory(PRESET_CATEGORIES.includes(item.category) ? item.category : "__custom__");
     if (!PRESET_CATEGORIES.includes(item.category)) setCustomCategory(item.category);
@@ -198,19 +172,36 @@ export default function AddExpenseForm({ userId, currency, recent = [], onExpens
             </Collapse>
           </div>
 
-          {quickAdds.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {quickAdds.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => applyQuickAdd(item)}
-                  className="h-9 px-3.5 flex items-center gap-2 rounded-full border flat-chip text-ink/60 hover:text-ink transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
-                >
-                  <span className="text-sm font-sans truncate max-w-[9rem]">{item.description}</span>
-                  <span className="text-xs font-mono text-ink/40">{mask(formatAmount(item.amount, item.currency))}</span>
-                </button>
-              ))}
+          {/* The repeats, ranked by the months they recur in. One row that
+              scrolls rather than a wrapping cloud: the card keeps its height
+              however many there are, and the order is readable left to right
+              instead of being reshuffled by the widths of the labels. The
+              bleed runs the row to the card's edge so the last chip is
+              visibly cut off, which is what says there is more to scroll. */}
+          {suggestions.length > 0 && (
+            <div className="flex flex-col gap-2.5">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-ink/40">Frequent</span>
+              <div className={`overflow-x-auto overscroll-x-contain ${bare ? "-mx-4 px-4" : "-mx-6 px-6"}`}>
+                <div className="flex gap-2 w-max pb-0.5">
+                  {suggestions.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => applySuggestion(item)}
+                      aria-label={`Repeat ${item.description}, ${mask(formatAmount(item.amount, item.currency))} ${item.currency}`}
+                      className="shrink-0 h-11 pl-3 pr-3.5 flex items-center gap-2.5 rounded-full border flat-chip text-ink/70 hover:text-ink transition-[color,background-color,border-color,transform] duration-fast active:scale-95"
+                    >
+                      <span
+                        aria-hidden
+                        className="shrink-0 w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: getCategoryColor(item.category, theme) ?? OTHER_CATEGORY_COLOR[theme] }}
+                      />
+                      <span className="text-sm font-medium truncate max-w-[10rem]">{item.description}</span>
+                      <span className="font-mono text-xs text-ink/45">{mask(formatAmount(item.amount, item.currency))}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

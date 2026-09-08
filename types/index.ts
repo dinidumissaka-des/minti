@@ -47,3 +47,15 @@ export type Income = {
 };
 
 export type NewIncome = Omit<Income, 'id' | 'created_at' | 'original'>;
+
+// The columns a suggestion chip needs, read across the whole history rather
+// than one month. Not an Expense — it carries no id, so nothing can mistake it
+// for a row that could be edited or deleted.
+export type ExpenseHistoryRow = {
+  description: string;
+  category: string;
+  amount: number;
+  currency?: string | null;
+  original?: Original;
+  date: string;
+};
