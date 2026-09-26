@@ -5,16 +5,17 @@ Create a new React component for Minti following project conventions.
 Arguments: $ARGUMENTS (component name and optional folder, e.g. "BudgetHistory" or "expense/SpendingChart")
 
 Steps:
-1. Determine the correct folder:
+1. Check the change spec this component belongs to (`specs/changes/`). If there is no approved spec for it, stop and suggest `/spec` first.
+2. Determine the correct folder:
    - Expense-specific UI → `components/expense/`
    - Subscription-specific UI → `components/subscription/`
-   - Background/visual only → `components/background/`
+   - Shared primitive → `components/ui/`
    - Shared across features → `components/` root
-2. Create the file with:
+3. Create the file with:
    - `"use client";` at the top
    - Named Props interface
-   - Tailwind classes only — use `bg-white/[0.07]`, `border-white/[0.1]` (never `bg-surface` or `border-border`)
-   - Wrap card content in `<Surface borderRadius={28}>`
-   - No comments unless non-obvious
-3. Export as default function
-4. Report the file path created
+   - Tailwind classes only, following `specs/design/design-system.md`: `ink`-opacity utilities (`bg-ink/7`, `border-ink/10`, `text-ink/60`) — never literal `white`/`black`
+   - Card content wrapped in `<Surface borderRadius={28}>`
+   - No comments unless the why is non-obvious
+4. Export as default function
+5. Report the file path created

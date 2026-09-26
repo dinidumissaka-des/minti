@@ -1,0 +1,8 @@
+# Specs need sign-off from product and both designers before code is written.
+# Replace the commented handles with the designers' GitHub usernames — GitHub
+# ignores a line whose owner has no access to the repo, so add them as
+# collaborators first.
+*                          @dinidumissaka-des
+/specs/                    @dinidumissaka-des
+# /specs/                  @dinidumissaka-des @<ux-designer> @<service-designer>
+# /specs/design/           @dinidumissaka-des @<ux-designer>

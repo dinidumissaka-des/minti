@@ -29,11 +29,28 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Review this PR against CLAUDE.md in the repo root, which is the
-            source of truth for this project's conventions. Read it first.
+            This project is built spec-first. Read CLAUDE.md, then
+            specs/README.md. The specs in specs/ are the source of truth:
+            specs/design/design-system.md for anything visual,
+            specs/product/*.md for behaviour.
 
-            Weight the review toward the rules this codebase actually gets
-            wrong, in this order:
+            Start with the spec. The PR body names it (`Spec: …`), or a
+            specs/changes/ file is in the diff.
+            - A PR that changes behaviour with no spec and no
+              `Spec: none — <reason>` line is a finding.
+            - Check each acceptance criterion is met, and that every
+              testable one has a test in tests/ whose name starts with its
+              ID. A criterion with no test and no `Verify: manual` is a
+              finding.
+            - Flag behaviour the spec does not ask for.
+            - An implementation PR must set the change spec to
+              `Status: Shipped` and fold its rules into specs/product/ or
+              specs/design/. A PR that only adds or edits a spec: review the
+              spec itself — are the criteria testable, is anything
+              ambiguous, is the Problem backed by evidence.
+
+            Then weight the review toward the rules this codebase actually
+            gets wrong, in this order:
 
             1. **Theming.** Content surfaces must never use literal
                white/black opacity utilities (`bg-white/7`, `text-white`,

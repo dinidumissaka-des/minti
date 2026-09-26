@@ -4,6 +4,7 @@ import { Browser } from '@capacitor/browser';
 import type { Expense, NewExpense, ExpenseHistoryRow, Subscription, NewSubscription, Income, NewIncome } from '@/types';
 import { isNative } from '@/lib/platform';
 import { monthKey, prevMonthKey } from '@/lib/months';
+import { changeMode } from '@/lib/bills';
 
 export const NATIVE_OAUTH_REDIRECT = 'com.minti.app://auth/callback';
 
@@ -240,6 +241,7 @@ export async function getSubscriptionsForMonth(year: number, month: number): Pro
   // A row with no period at all — one written before the columns existed, or
   // one the backfill missed — is treated as always active rather than filtered
   // out of every month. Losing sight of a bill is worse than showing it early.
+  // Mirrors isActiveInMonth in lib/bills.ts — change both together.
   const { data, error } = await getClient()
     .from('subscriptions')
     .select('*')
@@ -294,7 +296,7 @@ export async function deleteSubscription(
   sub: Subscription,
   from: { year: number; month: number },
 ): Promise<void> {
-  if (!sub.start_month || sub.start_month >= monthKey(from.year, from.month)) {
+  if (changeMode(sub, from) === 'in-place') {
     const { error } = await getClient().from('subscriptions').delete().eq('id', sub.id);
     if (error) throw error;
     return;
@@ -322,7 +324,7 @@ export async function updateSubscription(
   userId: string,
 ): Promise<void> {
   const key = monthKey(from.year, from.month);
-  if (!sub.start_month || sub.start_month >= key) {
+  if (changeMode(sub, from) === 'in-place') {
     await writeSubscription(data as Record<string, unknown>, (payload) =>
       getClient().from('subscriptions').update(payload).eq('id', sub.id).select().maybeSingle(),
     );
