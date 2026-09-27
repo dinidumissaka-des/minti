@@ -20,9 +20,9 @@ of how it got there — never rewritten once shipped.
 
 1. **Spec** — `/spec <what you want>` drafts `changes/NNNN-<slug>.md` from the
    template and stops. No code yet.
-2. **Approve** — the spec goes up as its own PR. The product owner, UX designer
-   and service designer review it (see `CODEOWNERS`); it merges with
-   `Status: Approved` and every approver named.
+2. **Approve** — the spec goes up as its own PR. Dinidu reviews and merges it
+   (see `CODEOWNERS`); it merges with `Status: Approved` and the approver
+   named. Nothing is implemented from an unmerged spec.
 3. **Implement** — `/implement specs/changes/NNNN-<slug>.md` builds exactly what
    the spec says and writes one test per acceptance criterion, named by its ID.
 4. **Review** — `/review` and the Claude PR review check the diff against the

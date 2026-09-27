@@ -1,6 +1,6 @@
 # Design system
 
-Status: Accepted · Owner: UX design · Applies to: every file under `app/` and `components/`
+Status: Accepted · Owner: Dinidu · Applies to: every file under `app/` and `components/`
 
 This is the source of truth for how Minti looks and moves. `CLAUDE.md`, the
 `design-system` skill, the `ui-reviewer` agent and the PR review prompt all

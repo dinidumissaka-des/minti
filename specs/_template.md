@@ -3,7 +3,7 @@
 Status: Draft
 <!-- Draft → Approved → Shipped (or Rejected / Superseded by NNNN) -->
 Author: <name>
-Approved by: <product owner>, <UX designer>, <service designer>
+Approved by: Dinidu
 Updates: specs/product/<area>.md
 Implemented in: <PR link, filled in at Shipped>
 
