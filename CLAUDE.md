@@ -3,6 +3,17 @@
 ## What this is
 A mobile-first personal expense tracker PWA. Users log daily expenses and recurring subscriptions, track against a monthly budget, and switch currencies. Primary audience is mobile users.
 
+## How we work: specs first
+**`specs/` is the source of truth. Code is written to satisfy a spec, and the tests prove it does.** See `specs/README.md` for the full loop.
+
+- Before changing behaviour, read the spec that covers it (`specs/product/*.md`, `specs/design/design-system.md`).
+- If no spec covers the change, or it would contradict one, **write or update a change spec in `specs/changes/` first and stop for approval**. Don't write code against a spec whose status isn't `Approved`.
+- Build what the spec says and nothing else. Anything extra is a new spec.
+- Every testable acceptance criterion gets a test in `tests/` whose name starts with its ID (`it("CUR-3: …")`). Logic that a criterion depends on goes in `lib/` as a pure function so it can be tested.
+- When a change ships, set it to `Status: Shipped` and fold its rules into the matching `specs/product/` or `specs/design/` file in the same PR.
+- Before pushing: `npm run typecheck && npm test && npm run build`.
+- Commands: `/spec` drafts a change spec, `/implement` builds one, `/review` checks the diff against it.
+
 ## Tech stack
 - **Framework**: Next.js 14 App Router, TypeScript, `"use client"` components throughout
 - **Database + Auth**: Supabase (email/password auth, RLS on all tables)
@@ -44,6 +55,7 @@ lib/
   categories.ts     CATEGORY_COLORS_DARK / CATEGORY_COLORS_LIGHT maps + getCategoryColor(category, theme) — keys are the valid category names
   currencies.ts     CURRENCIES list, DEFAULT_CURRENCY, formatAmount()
   months.ts         MONTH_NAMES_SHORT / MONTH_NAMES_LONG / monthLabel()
+  bills.ts          isActiveInMonth() / changeMode() — the month rules every bill write follows
   suggestions.ts    buildSuggestions() — ranks the add-form's repeat chips across the whole history
   brand.ts          Literal brand colors for the PWA manifest / theme-color meta / Capacitor shell
   exchangeRates.ts  Live FX rates with a 6h localStorage cache
@@ -55,6 +67,15 @@ lib/
   appLock.ts        Face ID / passcode gate (native only)
   notifications.ts  Subscription billing reminders (native only)
   widget.ts         Publishes the home-screen widget snapshot (native only)
+
+specs/
+  README.md         The spec-first loop and the index of specs
+  _template.md      What every change spec starts from
+  product/          The app's behaviour, one file per area, with acceptance criteria
+  design/           The design system
+  changes/          One numbered, approved spec per change
+
+tests/              Vitest — one test per acceptance criterion, named by its ID
 
 hooks/
   useIsMobile.ts    640px breakpoint hook
@@ -73,82 +94,13 @@ One codebase, two build targets. `npm run build` is the web build and is unaffec
 
 Anything that differs between platforms goes behind `isNative()` from `lib/platform.ts` — never a user-agent sniff. Native-only paths today: session storage, OAuth flow, Sign in with Apple, CSV delivery, haptics, app lock, notifications, the widget, and skipping the service worker and install prompt. **After changing web source, run `npm run ios:sync` or the app ships a stale bundle.** See README for the iOS build and the App Group / Supabase redirect setup.
 
-## Design system rules
-The app supports light and dark themes (toggle in the header, defaults to OS preference, persisted to `localStorage` as `minti_theme`). Theming works via CSS variables that flip on an `.light`/`.dark` class on `<html>` (set in `app/globals.css`). There are two categories of surface — pick the right one, don't guess:
-
-**1. Content surfaces** (Surface cards, list rows, inputs, body text, BottomDrawer sheets, InstallPrompt) — these fully adapt per theme:
-- **Never** use literal `white`/`black` opacity utilities (`bg-white/7`, `text-white`, etc.) here — they don't flip with the theme. Always use `ink`-opacity utilities:
-  - Backgrounds: `bg-ink/7`, `bg-ink/4`, `bg-ink/10`
-  - Borders: `border-ink/10`, `border-ink/15`
-  - Text: `text-ink`, `text-ink/40`, or `text-muted` (= ink/50%)
-  - In inline JS styles, use `"rgb(var(--ink) / 0.07)"` instead of a literal `rgba(255,255,255,0.07)` string.
-- **Raised surfaces are opaque and all one colour.** Cards, drawers, the install prompt and the desktop auth panel are all `--surface` at full alpha — `bg-surface`, or `rgb(var(--surface))` inline. There is no frost, no translucency and nothing to re-derive when `--background` moves. A drawer is told apart from a card by the **scrim behind it**, not by being a different colour, which is why `--sheet` no longer exists.
-- **Cards**: always use `<Surface borderRadius={28}>`, not raw divs — it paints `--surface` and owns the radius. It was `GlassSurface`; there is no frost, no `backgroundOpacity` prop and no backdrop-filter. It ships a transparent 1px border so a caller can tint a card's edge via `style={{ borderColor: … }}` — Tailwind's preflight zeroes `border-width` on every element, so without that declaration a passed `borderColor` paints nothing at all. Nothing in the app stacks a blur behind a card, so don't reintroduce one; the only surviving `backdrop-filter` is `.glass-chip` on the mobile nav and header, where content genuinely scrolls underneath.
-- **Inputs**: `bg-ink/7 border border-ink/10 rounded-lg px-3 text-ink outline-none focus:border-ink/30` — hide number spinners with `[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`
-- **Focus is a border change, never a ring** — on a boxed field the border darkens (`focus:border-ink/40`); on the bare hero amount in AddExpenseForm the rule beneath it thickens and turns accent (`peer-focus-visible:`). A `ring` around a `bg-transparent` field draws a pill in empty space with nothing to attach to, which is what the budget and income editors shipped with. A focus mark that has to read on its own uses `bg-accent`/`text-accent`, not `-fill` — the fill green is 1.6:1 on a light card.
-
-**2. Flat chips** (desktop header pills — currency/CSV/converter/month-nav, the desktop Sections segmented nav, filter tabs, category tags) — a Wise-style flat fintech look: solid fill, no blur/translucent glass, fully theme-adaptive via three shared utility classes in `globals.css` (all driven by `--chip`, so no `.light` override needed per-component):
-  - `.flat-chip` (unselected/track state), `.flat-chip-active` (selected state), `.flat-chip-dashed` (dashed empty-state border).
-  - Usage: `className="rounded-full border flat-chip text-ink/40 hover:text-ink/90"` — no `backdrop-blur`.
-  - If a chip needs a different opacity, tune the shared class in `globals.css`, not a one-off value in the component.
-
-**3. Glass chrome** (the mobile bottom nav and the mobile header controls) — floating surfaces that content scrolls beneath, matching the iOS convention of frosted controls over moving content:
-  - `.glass-chip` and `.glass-chip-active` in `globals.css` — `backdrop-filter: blur(24px) saturate(180%)` plus an inset top highlight that stands in for the specular rim iOS draws natively.
-  - **Only use these where content actually passes underneath.** `backdrop-filter` has nothing to sample over a static background, so glass on a non-scrolling surface just renders as a translucent fill. The mobile header is `sticky` for exactly this reason; the desktop header is not, and keeps `flat-chip`.
-  - Everything else — filter tabs, category tags, the desktop segmented nav, the desktop header rows — stays `flat-chip`. The Wise-style flat look is still the default; glass is the exception for floating chrome.
-  - Apple's real Liquid Glass is a native material (`.glassEffect()`, iOS 26+) and is unavailable to a WKWebView. This is a CSS approximation: it gets the frost and saturation, not the edge refraction or motion-tracked highlights.
-
-**Selected segments** (filter tabs, the desktop sections nav, the analytics tabs — every `SegmentedControl` pill except the mobile bottom nav, which is glass chrome) — `.flat-chip-active` + `text-surface`, with `flat-chip text-ink/60` when unselected.
-- **The fill is the state signal, solid, and brand-coloured.** `.flat-chip-active` paints `--chip`; the label is `text-chip-on`. Both are **green**-ramp steps, taken from whichever end the ground is not at: light is `green-900` (`#274F0D`, a deep forest green) labelled `green-50` — 7.41:1 on the page, 8.08:1 against an unselected chip, 8.98:1 for the label. Dark is `green-100` (`#E2F6D5`, a green-cast white) labelled `green-900` — 17.68:1, 13.55:1, 8.31:1. The chip was oxblood until it was asked to carry the brand colour instead; the ramp is new, the direction of the inversion is not.
-- **The direction is set by the ground, not by taste.** A *darker* green is only possible in light mode. `green-900` on the dark theme's near-black page is 2.13:1 and `green-800` is 3.05:1 — a selected filter would be invisible — so dark takes the pale end, exactly as oxblood did. Equally, don't reach up the ramp for a pale pill in light mode: `green-50` through `300` sit within 1.0–1.4:1 of the light ground, which is the brand green's whole problem as a bare mark. The ramp only has luminance to spend at its ends.
-- **The label must invert with the fill.** `text-accent` on a filled pill is the neutral on the neutral and vanishes; `text-ink` fails the same way in light. That is what `--chip-on` is for.
-- **The pill and the primary button are both green now**, which they were not when the pill was oxblood, so they are told apart by weight rather than hue: the button is always the one saturated mid-green (`--accent`, `159 232 112`), the pill is always an end of the ramp. In light they are 6.45:1 apart and unmistakable; **in dark they are 1.29:1 apart** — a green-cast white beside a lime — so don't place a selected pill immediately next to a primary button and expect the fills alone to separate them. Their labels do it there (`--chip-on` green vs `--accent-on` oxblood). This also repaints the `chip`-toned tile in `AnalyticsView`, which now sits beside the `accent` tile as the dark/light pair of one green rather than two different brand fills.
-- **Unselected chips are the same colour at low alpha** — `.flat-chip` washes `--chip` at 6%/5% with a 14%/12% border, so the track and the pill sliding along it are one colour at two weights. At that alpha it is a warm grey with a green cast, and it is meant to be: the state it marks is *unselected*. Raising it until the green reads would put two washes back in competition, which is what the solid pill replaced — they separated active from inactive by only 1.11:1 (light) / 1.23:1 (dark), so the border had been pushed to `0.42`/`0.5` to carry selection alone. Don't go back to a wash; if a chip needs a different weight, change the shared class in `globals.css`.
-- Unselected chips are `text-ink/60`; `/50` measured 3.42:1 in light mode and failed AA.
-
-**Brand green vs. the neutral — the split that matters most:**
-`--accent` and `--accent-text` are **two different colours**, not one colour at two lightnesses. Picking the wrong one is now a visible bug, not a contrast nudge.
-- **`--accent` is the brand green** (`159 232 112`, identical in both themes). It is what a *solid brand surface* is made of, and only that: primary buttons, save/confirm circles, the FAB, the budget and savings meters, the selected day in the calendar picker, the skip link. Use `bg-accent-fill` / `border-accent-fill`, and always pair it with `text-accent-on` (`oxblood-900`) for the label — 10.81:1.
-- **`--accent-text` is the neutral** and marks *state*, not brand: bare accent text and icons, checkmarks, selected list rows, active filter/nav chips, toggle-on labels, focus borders and rings. It inverts per theme — `oxblood-1000` (`20 1 1`) in light, `oxblood-50` (`253 236 236`) in dark — because a mark that reads against the ground needs the opposite end of the ramp from it. Use `text-accent`, `bg-accent/10`, `border-accent/50`.
-- **A low-alpha wash is a tint, not a fill.** `bg-accent-fill/15` is a *washed-out green* and reads as a stain; the tint the design system wants is `bg-accent/15`. The `-fill` token is for solid surfaces only.
-- **`--brand` is the green as a bare mark** — the logo, and nothing else so far. It exists because a fill only has to carry the label printed on it, while a mark has to carry itself: `--accent` is 1.15:1 on the light page. `--brand` is the same green in dark and the darkened `57 112 28` in light (4.67:1). Never draw the logo with `text-accent` (neutral) or `text-accent-fill` (invisible in light).
-- **Danger** does not split this way — `bg-danger-fill` for fills, `text-danger` for bare text, same red in both themes.
-- **The neutral no longer marks a highlight on its own.** In light mode `text-accent` (`20 1 1`) lands within a point of `text-ink` (`26 14 15`); in dark it's a hair off white. It reads as state only next to a clearly dimmer `text-ink/40` or `/60` sibling. For emphasis standing alone, use the green fill.
-- **Category colors**: use `getCategoryColor(category, theme)` from `lib/categories.ts` (theme from `useTheme()`), not the raw `CATEGORY_COLORS` map, anywhere a category color is the actual rendered swatch/text/chart color.
-
-**Token layer** — every color resolves from a CSS variable in `app/globals.css`; there are no loose hexes in components.
-- `--background`, `--surface` (every raised surface — cards, drawers, the install prompt, the desktop auth panel — one opaque step above the ground in both themes. It replaced `--card` and `--sheet`, which were two tokens frosted and painted at different alphas and had to be re-derived against each other by hand whenever the ground moved; `--sheet` was re-derived three times and still ended up reading as a maroon panel. An opaque surface has nothing to re-derive. Dark is `29 22 22`, exactly what a glass card already composited to; light is `253 248 248`, which reads as white but carries the oxblood hue at the ground's own 2.0% saturation rather than a literal white's 0%), `--ink`, `--accent` (the brand green, solid fills only), `--accent-hi`/`--accent-lo` (button gradient stops — declared but currently unused), `--accent-text` (the theme-inverting neutral that marks state), `--brand` (the green as a bare mark — the logo), `--accent-on` (text sitting on an accent fill), `--chip`/`--chip-on` (the selected segment's fill and its label, green-ramp ends that invert per theme; `.flat-chip` also washes `--chip` for the unselected state), `--danger`, `--danger-text`, `--scrim` (modal backdrop).
-- Tailwind's opacity scale only steps in fives, so `tailwind.config.ts` extends it with `3, 4, 6, 7, 8` for the low-alpha surface steps. **A step outside that scale silently generates no CSS** — add it to the config rather than reaching for `ink/[0.07]` bracket syntax.
-- Two raw ramps (`--oxblood-50` … `--oxblood-1000`, `--green-50` … `--green-1000`) are the palette layer beneath the tokens. They hold no meaning and are never used directly in a component — the semantic tokens point at them. The green ramp walks lightness at the brand green's own hue and saturation (96.5°, 72%), so `green-300` is the brand green to within a rounding step; it exists because `--accent` is a single green with no steps, and `--chip` needs a step the ground is not at.
-- `--background` and the brand green are the two colors that are **not** ramp steps. Everything else resolves to one.
-- **One mechanism raises a surface off the page**: paint `--surface`. (Chips are different — they wash a token at low alpha to mark *state*, not to raise anything.) This used to be three mechanisms and the mismatch between them was a recurring bug, so don't add a fourth.
-- Platform manifests can't read CSS variables, so `lib/brand.ts` holds those literals in one place. Keep it in sync with `--background` and `--accent`.
-
-**Layout scales** — same rule as color: name it in `tailwind.config.ts`, don't bracket it in a component.
-- **Z-index**: `z-background` (0), `z-content` (10), `z-nav-scrim` (45), `z-nav` (50), `z-prompt` (55), `z-page` (58), `z-scrim` (60), `z-drawer` (70), `z-skip` (200), `z-lock` (300). `z-page` is a pushed full-screen page: over the nav it covers, under the drawer scrim so a sheet opened from it dims it. New overlays join this ladder — never invent a bigger number inline.
-- **Radius**: `sm` 6 · `DEFAULT` 10 · `md` 12 · `lg` 16 · `xl` 20 · `2xl` 24 · `3xl` 32 · `full`. `md` and `lg` were both 16px until they were split, so anything written before that reads `rounded-lg`.
-- **Type**: `text-body` (15px) is the list-row / menu-row size, between `text-sm` and `text-base`.
-- **Sizing**: `h-control`/`w-control` (52px) is the standard input and button height; `w-reveal` (60px) is the hover-reveal action strip.
-- One-off layout measurements (a `min-w` that only stops a single label from jittering) stay as bracket values — they are local constraints, not system tokens.
-
-**Motion** — same rule as color and layout: name it in the config, don't inline a magic curve or duration in a component.
-- **Easing**: `ease-out` (`cubic-bezier(0.32, 0.72, 0, 1)` — the iOS sheet curve, the default for anything entering or moving), `ease-spring` (overshoots; for gestures that snap back, like the swipe row), `ease-in-out`.
-- **Duration**: `duration-fast` (150ms — press feedback, hovers), `duration-base` (220ms — row enter/exit), `duration-slow` (320ms — sheets, view changes, collapses), `duration-slower` (500ms — meters filling). The CSS variables (`--ease-*`, `--dur-*`) live in `globals.css` so JS-driven motion reads the same values.
-- **Animate `transform` and `opacity` only.** The app already stacks `backdrop-filter: blur(28-32px)` surfaces; animating `width`/`height`/`max-height` on top of that drops frames in WKWebView. For collapses use `grid-template-rows: 0fr → 1fr` (`components/ui/Collapse.tsx`), never `max-height` with a magic cap.
-- **Shared primitives** — reach for these before hand-rolling:
-  - `ui/SegmentedControl` — any tab bar. One measured pill slides between segments; used by the bottom nav, desktop sections nav, filter tabs and the analytics tabs.
-  - `ui/ViewTransition` — keyed directional enter. Caller supplies `direction` (1 forward / -1 back) so content travels the way the nav did.
-  - `ui/Collapse` — enter/exit for forms and inline editors. Unmounts when closed, so a closed child earns no flex gap.
-  - `ui/Meter` — progress bars. Mounts at zero so the fill animates on first paint.
-  - `ui/AnimatedNumber` — amounts. Tweens between values and owns the privacy blur.
-- **Press feedback**: every tappable control gets `active:scale-90` (icon buttons) / `active:scale-95` (chips) / `active:scale-[0.98]` (full-width rows and buttons). Pair it with a transition list that **includes `transform`** — `transition-colors active:scale-95` silently does nothing, which is what the header shipped with for months.
-- **Reduced motion** is handled globally in `globals.css` (duration, delay and iteration count are all neutralised; spinners are exempt). JS-driven motion must check `usePrefersReducedMotion()` itself — no media query reaches it.
-
-**Other rules:**
-- **Pill buttons** (active state, on a content surface): `bg-ink/10 backdrop-blur-md text-ink font-semibold border border-ink/15`
-- **Rounded**: **every button is `rounded-full`** — pills for anything with a label, circles for icon-only actions (save/cancel, swipe actions, hover-reveal icons, the converter swap). No `rounded-lg`/`rounded-xl` buttons; they read as a different control language next to the pills. `rounded-lg` is for inputs, `borderRadius={28}` for Surface cards. The exceptions are things that are not buttons in the visual sense: full-bleed drawer menu rows and picker rows (a divided list, no radius or `rounded-xl`), and bare text/icon buttons with no fill or border, where the radius never paints.
-- **Font**: Manrope for everything. `font-mono` class still uses Manrope (overridden in tailwind.config.ts)
-- **No comments** unless the WHY is non-obvious. No docstrings.
+## Design system
+The full rules live in **`specs/design/design-system.md`** — read it before any UI change. The ones that are broken most often:
+- Content surfaces use `ink`-opacity utilities (`bg-ink/7`, `border-ink/10`, `text-ink/60`), never literal `white`/`black`.
+- Raised surfaces are opaque `--surface`; cards are `<Surface borderRadius={28}>`.
+- `bg-accent-fill` (brand green) is for solid fills only, labelled `text-accent-on`; `text-accent` is the theme-inverting neutral that marks state. The logo is `text-brand`.
+- Every colour, z-index, radius, duration and easing is a named token — no loose hexes, no bracket values that reinvent a scale step.
+- Animate `transform` and `opacity` only. Every button is `rounded-full`.
 
 ## Database schema
 ```sql
@@ -170,17 +122,12 @@ billing_day integer default 1, start_month text, end_month text, created_at time
 ```
 RLS enabled on both tables. `billing_day` exists in DB but is hidden from UI (hardcoded to 1).
 
-## Key patterns
-- **An amount is a number *and* a currency**: every entry stores what it was entered in (`currency`, null meaning the account's `base_currency`), and `lib/money.ts` converts a fetched page of rows **once, at the boundary** — `page.tsx` for the month's expenses and bills, `AnalyticsView` for the previous month, `IncomeSection` for its entries. Everything downstream therefore sums a single currency and needs no conversion of its own. **Every figure on screen is in the display currency, and only that** — a row entered in LKR and viewed in AED shows the AED figure alone, with no second line naming what was entered. `original` is still attached by `toDisplay`, but it is used by the CSV export, not the UI. Edit forms therefore load the *converted* amount and save in the display currency, re-recording the row's `currency`: a row reading 61 must not open an editor saying 5,000. The chip beside the amount field overrides that when an entry really was made in something else. Saved settings follow the same rule rather than a separate one: `budget` and `monthly_income` each carry `budget_currency` / `income_currency`, are typed and shown in the display currency, and are stamped with it on save. When a rate is missing, `convert` returns the amount unchanged and `hasUnconverted` says so, which the page surfaces as a notice — never a silently wrong total.
-- **There is one currency setting, and an untagged amount is never guessed at.** `user_settings.base_currency` used to say what a row with no `currency` of its own meant. It was a one-time backfill question stored as permanent config: its value was taken from whatever was on screen the first time an account loaded after the currency migration, it appeared in the UI beside the display currency as if it were a second preference, and when it was wrong it divided an entire history by an exchange rate (an account displaying LKR while spending in AED read a 205 AED fee as 2.49). The question is now answered once in `supabase/migration.sql`, which stamps the currency onto every untagged row, and `currencyOf` falls back to the **display** currency — so a missing stamp costs a relabel at worst, never a silent division. `hasUntagged` surfaces a banner if the backfill hasn't run.
-- **Month and currency live on the figure, not in a menu**: every hero renders through `HeroAmount`, which carries the month chip (mobile only — desktop has the header month nav) and the tappable currency code. They qualify the number, so hiding them behind the header left the largest figure on the screen unexplained.
-- **Pushed pages**: `ui/PushPage` is the shell for a screen you navigate to — in from the right, out under a back arrow with the title beneath it, holding a history entry so hardware and browser back close it. AccountPage, CurrencyPage and the converter are all this one component. It keeps a module-level stack (pages portal to `<body>`, so a page opened from a page is a DOM sibling, not a descendant) and only the top page answers Escape or a back press; a page closed from its own back button unwinds its entry and suppresses the resulting pop so it does not travel on and close the page underneath. **They all share one z-index, so the later of two in the tree paints on top** — a page opened from another page must be declared after it in `page.tsx`. Rows come from `ui/ListRow`: `ListRow` navigates when it ends in a chevron (`RowValue` keeps one beside a value) and acts in place when it does not.
-- **Settings, not overflow**: the header avatar (mobile: it replaces the wordmark in the top-left corner; desktop: it sits in the right-hand pill) pushes `AccountPage` in from the right — identity block, then Your account / Settings / Session. It takes a history entry, so hardware and browser back close it. Nav destinations never appear in it — Insights is a bottom-nav tab and having it in both taught two depths for one place. Rows read label-primary, value-secondary, and sign out asks first.
-- **Category/date picker**: `CategoryList`/`CalendarPicker`/`SourceList` (`components/ui/DrawerPickers.tsx`) always render inside a `BottomDrawer` — used from AddExpenseForm, ExpenseList/SubscriptionList edit rows, IncomeSection
-- **Hover-reveal actions**: edit/delete buttons use `w-0 group-hover:w-[60px] overflow-hidden transition-all duration-200` inside a `group` parent
-- **Bills are month-scoped, and edits never rewrite the past**: a bill added while viewing September applies to September and every month after it, never to August. Editing it in a later month closes the old row at the month before and opens a new one (inheriting the old row's `end_month`, so a later version is not overlapped); deleting sets `end_month` to the month before. A row that *started* in the month being viewed is edited or deleted outright — there is no earlier month for it to protect. All of that lives in `getSubscriptionsForMonth` / `addSubscription` / `updateSubscription` / `deleteSubscription`, which take the viewed month; components never write the period themselves.
-- **Deletes are deferred, not undone**: an expense swiped away is hidden immediately (`ExpenseList` reports the id up so the parent drops it from every total) and the row only leaves the database when the 5s undo window closes. `commitDelete` awaits the parent's re-fetch before un-hiding, so a row never flashes back mid-request, and unmounting flushes a pending delete rather than cancelling it.
-- **Suggestions are habits, not history**: the chips above the add form come from `getExpenseHistory` (the whole table, newest first, capped at 1000 rows), not the month on screen. `buildSuggestions` groups by lower-cased description and ranks by **distinct months recurred in**, then total count, then recency — five taxis in one busy week is a week, not a habit, and ranking on the raw total let that week outrank a metro top-up bought every month. The amount and category come from the newest sighting, so a price that moved is the price the chip fills in. Rows are converted at the boundary in `page.tsx` like every other page, so a chip offers the figure in the currency on screen. One-offs still sort in once the repeats run out, which is what a new account sees.
-- **onChanged callback**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch
-- **View state**: `view: "expenses" | "subscriptions"` lives in page.tsx. Expenses view shows AddExpenseForm + filter tabs + ExpenseList. Subscriptions view shows SubscriptionList only.
-- **subscriptionsTotal**: calculated in page.tsx, passed to StatsBar and added to BudgetBar `spent`
+## Behaviour
+What the app does, and the acceptance criteria that test it, live in `specs/product/` — currency, bills, suggestions, deletes, navigation. See `specs/README.md` for the index. Don't restate those rules here; a second copy is how they drifted before.
+
+## Code patterns
+Implementation conventions, not behaviour — these stay here:
+- **View state**: `view` lives in `page.tsx`. The expenses view shows AddExpenseForm + ExpenseList; bills shows SubscriptionList only.
+- **onChanged**: SubscriptionList receives `onChanged: () => void` and calls it after any mutation to re-fetch.
+- **subscriptionsTotal** is calculated in `page.tsx`, passed to StatsBar and added to BudgetBar `spent`.
+- **Hover-reveal actions**: edit/delete use `w-0 group-hover:w-[60px] overflow-hidden transition-all duration-200` inside a `group` parent.

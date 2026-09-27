@@ -20,6 +20,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## How it's built
+
+Minti is built spec-first: every change starts as an approved spec in [`specs/`](specs/README.md), and every testable acceptance criterion has a test named by its ID.
+
+```bash
+npm run typecheck && npm test && npm run build
+```
+
 ## iOS app
 
 The iOS app is the same web bundle running in a native shell via [Capacitor](https://capacitorjs.com). The web build is unaffected — `npm run build` still produces a normal server build for Vercel.

@@ -1,0 +1,5 @@
+# Dinidu reviews and merges every PR, specs included. To bring the designers
+# into spec review later, add them as collaborators and append their handles
+# to the /specs/ line.
+*          @dinidumissaka-des
+/specs/    @dinidumissaka-des
